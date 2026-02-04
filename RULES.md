@@ -1,5 +1,5 @@
 # ⚖️ RULES.md  
-### **The Code of Law for Serapeum API**
+## **The Code of Law for Serapeum API**
 
 ---
 
@@ -94,6 +94,13 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
 
 > *Work that is not tracked in Linear does not exist.*
 
+### 5.1 🤖 Agent Commit Protocol
+
+- **User Authority Required:**  
+  The AI Agent **MUST NOT** commit or push changes to the repository without explicit user approval.  
+  - All changes must be staged or left in the working directory for user review.  
+  - Commits to remote branches are strictly prohibited unless the user explicitly requests them (e.g. *"commit and push this"*).
+
 ---
 
 ## 6. 🛂 CI Enforcement
@@ -101,11 +108,11 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
 The CI pipeline is the final gatekeeper of Serapeum’s standards.
 
 - **PR Title Check:**  
-  CI MUST fail if the PR title does not start with a valid Linear issue key (e.g. `SER-123:`, `ENG-456:`).  
+  CI **MUST fail** if the PR title does not start with a valid Linear issue key (e.g. `SER-123:`, `ENG-456:`).  
 - **Linear Link Enforcement:**  
-  A GitHub Action MUST ensure that:
-  - Each PR is associated with at least one Linear issue.  
-  - The PR title is automatically prefixed with a Linear key when missing (via a dedicated Linear + GitHub Action).
+  A GitHub Action **MUST fail** the check if:
+  - The PR is not associated with at least one Linear issue.  
+  - The PR title lacks the required Linear key prefix (contributors MUST fix this manually).
 - **Quality Checks in CI:**  
   The CI pipeline MUST run:
   - `eslint` for linting.  
