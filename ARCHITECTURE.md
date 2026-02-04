@@ -1,5 +1,5 @@
 # 🧱 ARCHITECTURE.md  
-### **Technical Blueprint for Serapeum API**
+## **Technical Blueprint for Serapeum API**
 
 ---
 
