@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsc --watch & sleep 3 && node --watch dist/index.js",
+    "dev": "tsx watch src/index.ts",
     "dev:build": "tsc --watch",
     "dev:run": "node --watch dist/index.js",
     "build": "tsc",
