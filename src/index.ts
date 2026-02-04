@@ -1,11 +1,10 @@
 import * as dotenv from 'dotenv';
-import { createServer } from 'http';
+import { startFlowServer } from '@genkit-ai/express';
+import { helloFlow } from './flows/sample.js';
 
 // Load environment variables
 dotenv.config();
 
-// Server configuration
-// Server configuration
 const parsePort = (value: string | undefined, fallback: number): number => {
   const parsed = parseInt(value || '', 10);
   if (isNaN(parsed) || parsed <= 0 || parsed > 65535) {
@@ -18,59 +17,36 @@ const parsePort = (value: string | undefined, fallback: number): number => {
 };
 
 const PORT = parsePort(process.env['PORT'], 3000);
-const HOST = '0.0.0.0';
 
-// Create basic HTTP server
-const server = createServer((req, res) => {
-  // Health check endpoint
-  if (req.url === '/health' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
-    return;
-  }
+const getCorsOrigins = (): string[] | string => {
+  const allowedOrigins = process.env['CORS_ORIGINS'];
+  const isProduction = process.env['NODE_ENV'] === 'production';
 
-  // Root endpoint
-  if (req.url === '/' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        name: 'Serapeum API',
-        version: '1.0.0',
-        status: 'running',
-        message: 'AI orchestration service powered by Genkit',
-      })
-    );
-    return;
-  }
-
-  // 404 for other routes
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'Not Found' }));
-});
-
-// Start server
-server.listen(PORT, HOST, () => {
-  console.log(`🚀 Serapeum API server started`);
-  console.log(`📍 Listening on http://${HOST}:${PORT}`);
-  console.log(`💚 Health check: http://localhost:${PORT}/health`);
-  console.log(`\n✨ Server is ready to accept connections`);
-});
-
-// Graceful shutdown handling
-const shutdown = async (signal: string): Promise<void> => {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
-
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
-
-  // Force shutdown after 10 seconds
-  setTimeout(() => {
-    console.error('Forced shutdown after timeout');
+  if (isProduction && !allowedOrigins) {
+    console.error('🛑 Fatal Error: CORS_ORIGINS environment variable is required in production.');
     process.exit(1);
-  }, 10000);
+  }
+
+  if (!allowedOrigins) {
+    console.warn('⚠️ Warning: CORS_ORIGINS not set. Defaulting to "*" for development.');
+    return '*';
+  }
+
+  // Support comma-separated list of origins
+  const origins = allowedOrigins.split(',').map((o) => o.trim());
+  return origins.length === 1 ? (origins[0] || '*') : origins;
 };
 
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
-process.on('SIGINT', () => void shutdown('SIGINT'));
+const corsOrigins = getCorsOrigins();
+
+console.log('🚀 Starting Serapeum API (Genkit Powered)...');
+
+// Start the Genkit Flows Server
+startFlowServer({
+  flows: [helloFlow],
+  port: PORT,
+  cors: {
+    origin: corsOrigins,
+  },
+});
+
