@@ -38,7 +38,8 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 
 ## 📦 Available Scripts
 
-- `npm run dev` - Start development server with hot reload and Genkit UI
+- `npm run dev` - Start development server with hot reload
+- `npm run genkit:start` - Start Genkit Developer UI and server flow
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
@@ -52,7 +53,7 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 src/
 ├── flows/          # Genkit Flows (API Logic)
 ├── tools/          # External API integrations
-├── lib/            # Shared infrastructure
+├── lib/            # Shared infrastructure (ai.ts, config)
 ├── prompts/        # Dotprompt files
 └── index.ts        # Server entry point
 ```

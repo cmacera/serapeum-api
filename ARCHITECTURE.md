@@ -40,7 +40,8 @@ src/
 │
 ├── lib/ # Shared Infrastructure
 │ ├── supabase.ts # Supabase Admin Client
-│ └── auth.ts # Middleware (Bearer Token validation)
+│ ├── ai.ts       # Genkit Instance Configuration
+│ └── auth.ts     # Middleware (Bearer Token validation)
 │
 ├── prompts/ # Dotprompt Files
 └── index.ts # Server Entry Point (starts startFlowsServer)
