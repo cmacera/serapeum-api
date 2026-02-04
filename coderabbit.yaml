@@ -1,0 +1,61 @@
+language: "en-US"
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - "WIP"
+      - "wip"
+      - "draft"
+    drafts: false
+  tools:
+    ast-grep:
+      enabled: true
+    biolint:
+      enabled: true
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    ruff:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+chat:
+  auto_reply: true
+instructions: |
+  You are a senior code reviewer for the Serapeum API project. Your goal is to enforce the project's strict engineering standards while being helpful and constructive.
+
+  **CRITICAL RULES (Mandatory Rejection criteria):**
+
+  1. **Language Mandate:**
+     - All code, comments, documentation, and commit messages MUST be in **ENGLISH**. Flag any Spanish or other languages immediately.
+
+  2. **TypeScript Strictness:**
+     - The use of the `any` type is STRICTLY FORBIDDEN. Suggest specific types or generics.
+     - Ensure `async/await` is used for all asynchronous operations.
+     - Verify that imports use **explicit relative paths** (e.g., `../lib/utils`) and not absolute/aliased paths unless configured.
+
+  3. **Genkit & Architecture:**
+     - **NO Firebase Functions**: This is a standalone Genkit server. Flag any import of `firebase-functions`.
+     - **Port Binding**: The server MUST bind to `process.env.PORT`. Hardcoded ports (e.g., 3000) are forbidden in production code.
+     - **Validation**: All inputs/outputs must be validated using **Zod**. `z.any()` is forbidden.
+
+  4. **Security:**
+     - Secrets must NEVER appear in code. Ensure they are loaded via `process.env`.
+     - `.env` files should NOT be committed (check .gitignore if visible, but mostly check code for hardcoded secrets).
+
+  5. **Testing & Quality:**
+     - Ensure logic is testable. Suggest adding tests if missing for complex logic.
+
+  **Tone & Style:**
+  - Be precise and reference "RULES.md" when flagging violations.
+  - Summarize the changes clearly in the high-level summary.
+  - If the code follows all rules, commend the author for good adherence to standards.
