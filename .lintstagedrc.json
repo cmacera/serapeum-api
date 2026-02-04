@@ -2,6 +2,6 @@
     "*.ts": [
         "prettier --write",
         "eslint --fix",
-        "tsc --project . --noEmit"
+        "bash -c \"tsc --noEmit\""
     ]
 }

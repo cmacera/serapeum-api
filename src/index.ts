@@ -5,7 +5,19 @@ import { createServer } from 'http';
 dotenv.config();
 
 // Server configuration
-const PORT = parseInt(process.env['PORT'] || '3000', 10);
+// Server configuration
+const parsePort = (value: string | undefined, fallback: number): number => {
+  const parsed = parseInt(value || '', 10);
+  if (isNaN(parsed) || parsed <= 0 || parsed > 65535) {
+    if (value !== undefined) {
+      console.warn(`⚠️ Invalid PORT "${value}". using fallback: ${fallback}`);
+    }
+    return fallback;
+  }
+  return parsed;
+};
+
+const PORT = parsePort(process.env['PORT'], 3000);
 const HOST = '0.0.0.0';
 
 // Create basic HTTP server
