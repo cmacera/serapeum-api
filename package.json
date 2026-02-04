@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "genkit:start": "genkit start -- npx tsx watch src/index.ts",
     "dev:build": "tsc --watch",
     "dev:run": "node --watch dist/index.js",
     "build": "tsc",
@@ -39,6 +40,7 @@
   "dependencies": {
     "@genkit-ai/ai": "^1.28.0",
     "@genkit-ai/core": "^1.28.0",
+    "@genkit-ai/express": "^1.28.0",
     "@genkit-ai/googleai": "^1.28.0",
     "dotenv": "^17.2.3",
     "zod": "^4.3.6"
@@ -54,6 +56,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "genkit": "^1.28.0",
+    "genkit-cli": "^1.28.0",
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
