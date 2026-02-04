@@ -1,28 +1,46 @@
-export default {
-    root: true,
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: 'module',
-        project: './tsconfig.json',
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import prettierPlugin from 'eslint-plugin-prettier';
+
+export default [
+    // Global ignores
+    {
+        ignores: ['dist/**', 'node_modules/**', 'eslint.config.js', 'commitlint.config.js'],
     },
-    plugins: ['@typescript-eslint', 'prettier'],
-    extends: [
-        'eslint:recommended',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking',
-        'plugin:prettier/recommended',
-    ],
-    rules: {
-        'prettier/prettier': 'error',
-        '@typescript-eslint/explicit-function-return-type': 'warn',
-        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-        '@typescript-eslint/no-explicit-any': 'error',
-        '@typescript-eslint/strict-boolean-expressions': 'off',
-        'no-console': 'off',
+
+    // TypeScript & Prettier Configuration
+    {
+        files: ['src/**/*.ts'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 2022,
+                sourceType: 'module',
+                project: './tsconfig.json',
+                tsconfigRootDir: import.meta.dirname,
+            },
+            // Globals would go here but we lack the package, so we rely on environment/builtin
+        },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+            prettier: prettierPlugin,
+        },
+        rules: {
+            // Replicating recommended rules manually since we can't extend legacy configs easily in flat config without compat utils
+
+            // Prettier
+            'prettier/prettier': 'error',
+
+            // TypeScript (High Priority)
+            '@typescript-eslint/no-explicit-any': 'error',
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/explicit-function-return-type': 'warn',
+            '@typescript-eslint/strict-boolean-expressions': 'off',
+            '@typescript-eslint/no-empty-interface': 'warn',
+
+            // General
+            'no-console': 'off',
+            'no-debugger': 'error',
+        },
     },
-    env: {
-        node: true,
-        es2022: true,
-    },
-};
+];

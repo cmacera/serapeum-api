@@ -63,14 +63,14 @@ These rules govern how Serapeum services behave when deployed as independent **G
 Local development MUST enforce quality before changes reach remote branches.
 
 - **Git Hooks Engine:**  
-  All contributors MUST use `husky` to manage Git hooks (`pre-commit`, `commit-msg`, `pre-push`). [web:7][web:8][web:10][web:13]
+  All contributors MUST use `husky` to manage Git hooks (`pre-commit`, `commit-msg`, `pre-push`).
 - **Staged Checks (`pre-commit`):**  
-  `lint-staged` MUST run on every commit to: [web:7][web:10][web:13]  
-  - Format code with `prettier`. [web:3]  
-  - Lint code with `eslint`. [web:7][web:8]  
-  - Type-check with `tsc --noEmit`. [web:11]
+  `lint-staged` MUST run on every commit to: 
+  - Format code with `prettier`. 
+  - Lint code with `eslint`. 
+  - Type-check with `tsc --noEmit`. 
 - **Commit Messages (`commit-msg`):**  
-  `commitlint` MUST enforce a conventional commit style for all commits (e.g. Conventional Commits). [web:10][web:13]
+  `commitlint` MUST enforce a conventional commit style for all commits (e.g. Conventional Commits).
 
 > *If it does not pass locally, it does not reach the repository.*
 
@@ -88,9 +88,9 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
   - Example: `SER-123: Implement recommendation flow`.
 - **PR Description:**  
   PR descriptions MUST include a direct reference to the Linear issue:  
-  - Example: `Fixes SER-123` or `Closes SER-123`. [web:12]  
+  - Example: `Fixes SER-123` or `Closes SER-123`.
 - **Sync Requirement:**  
-  Every merged PR MUST be linked to at least one Linear issue, leveraging the official Linear ↔ GitHub integration. [web:6][web:15]
+  Every merged PR MUST be linked to at least one Linear issue, leveraging the official Linear ↔ GitHub integration.
 
 > *Work that is not tracked in Linear does not exist.*
 
@@ -105,12 +105,12 @@ The CI pipeline is the final gatekeeper of Serapeum’s standards.
 - **Linear Link Enforcement:**  
   A GitHub Action MUST ensure that:
   - Each PR is associated with at least one Linear issue.  
-  - The PR title is automatically prefixed with a Linear key when missing (via a dedicated Linear + GitHub Action). [web:9]
+  - The PR title is automatically prefixed with a Linear key when missing (via a dedicated Linear + GitHub Action).
 - **Quality Checks in CI:**  
   The CI pipeline MUST run:
-  - `eslint` for linting. [web:7]  
-  - `prettier --check` for formatting. [web:3]  
-  - `tsc --noEmit` for type-checking. [web:11]
+  - `eslint` for linting.  
+  - `prettier --check` for formatting.  
+  - `tsc --noEmit` for type-checking.
 
 > *CI is law enforcement; local hooks are the neighborhood watch.*
 
