@@ -43,7 +43,8 @@
     "@genkit-ai/express": "^1.28.0",
     "@genkit-ai/googleai": "^1.28.0",
     "dotenv": "^17.2.3",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "genkit": "^1.28.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",
@@ -55,7 +56,6 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "genkit": "^1.28.0",
     "genkit-cli": "^1.28.0",
     "globals": "^17.3.0",
     "husky": "^9.1.7",
