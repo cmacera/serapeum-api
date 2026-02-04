@@ -1,0 +1,64 @@
+{
+  "name": "serapeum-api",
+  "version": "1.0.0",
+  "description": "Serapeum API - AI orchestration service powered by Genkit",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch & sleep 3 && node --watch dist/index.js",
+    "dev:build": "tsc --watch",
+    "dev:run": "node --watch dist/index.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmacera/serapeum-api.git"
+  },
+  "keywords": [
+    "genkit",
+    "ai",
+    "api",
+    "typescript",
+    "node"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cmacera/serapeum-api/issues"
+  },
+  "homepage": "https://github.com/cmacera/serapeum-api#readme",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@genkit-ai/ai": "^1.28.0",
+    "@genkit-ai/core": "^1.28.0",
+    "@genkit-ai/googleai": "^1.28.0",
+    "dotenv": "^17.2.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@types/node": "^25.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "genkit": "^1.28.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.8.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
