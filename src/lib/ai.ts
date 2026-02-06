@@ -6,7 +6,7 @@ import { googleAI } from '@genkit-ai/googleai';
  * Plugins: GoogleAI
  */
 export const ai = genkit({
-    plugins: [googleAI()],
+  plugins: [googleAI()],
 });
 
 // Export Zod for convenience in flows

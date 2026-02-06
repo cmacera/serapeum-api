@@ -6,12 +6,12 @@ import { ai, z } from '../lib/ai.js';
  * Output: string (greeting)
  */
 export const helloFlow = ai.defineFlow(
-    {
-        name: 'helloFlow',
-        inputSchema: z.string(),
-        outputSchema: z.string(),
-    },
-    async (name: string) => {
-        return `Hello, ${name}! Genkit Flows Server is running.`;
-    }
+  {
+    name: 'helloFlow',
+    inputSchema: z.string(),
+    outputSchema: z.string(),
+  },
+  async (name: string) => {
+    return `Hello, ${name}! Genkit Flows Server is running.`;
+  }
 );
