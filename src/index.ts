@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { startFlowServer } from '@genkit-ai/express';
 import { helloFlow } from './flows/sample.js';
+import { searchContent } from './flows/catalog/searchContent.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,7 +35,7 @@ const getCorsOrigins = (): string[] | string => {
 
   // Support comma-separated list of origins
   const origins = allowedOrigins.split(',').map((o) => o.trim());
-  return origins.length === 1 ? (origins[0] || '*') : origins;
+  return origins.length === 1 ? origins[0] || '*' : origins;
 };
 
 const corsOrigins = getCorsOrigins();
@@ -43,10 +44,9 @@ console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
 // Start the Genkit Flows Server
 startFlowServer({
-  flows: [helloFlow],
+  flows: [helloFlow, searchContent],
   port: PORT,
   cors: {
     origin: corsOrigins,
   },
 });
-
