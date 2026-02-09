@@ -35,14 +35,17 @@ export interface TMDBSearchResponse {
 }
 
 /**
- * Clean media result format for our API
- * Contains only essential fields for UI consumption
+ * Media search result for tool output
+ * Contains fields available from TMDB /search/multi endpoint
  */
-export interface CleanMediaResult {
+export interface MediaSearchResult {
   id: number;
   title?: string; // For movies
   name?: string; // For TV shows
   media_type: 'movie' | 'tv';
-  release_date?: string;
-  poster_path?: string | null;
+  release_date?: string; // Movie release or TV first air date
+  poster_path?: string | null; // Poster image path
+  overview?: string; // Description/synopsis
+  vote_average?: number; // Rating (0-10)
+  popularity?: number; // Popularity score for sorting
 }
