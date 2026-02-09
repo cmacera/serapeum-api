@@ -1,0 +1,22 @@
+name: "Check PR Title"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  check-title:
+    name: Check PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const regex = /^SER-\d+\b/;
+            if (!regex.test(title)) {
+              core.setFailed(`PR title "${title}" must contain a Linear Issue ID (e.g., SER-123).`);
+            }

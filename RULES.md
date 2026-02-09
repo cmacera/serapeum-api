@@ -64,6 +64,17 @@ Local development MUST enforce quality before changes reach remote branches.
 
 - **Git Hooks Engine:**  
   All contributors MUST use `husky` to manage Git hooks (`pre-commit`, `commit-msg`, `pre-push`).
+- **Git Rules:**
+
+*   **Clean, Atomic Results**:
+    *   Do not include unrelated changes in the same commit or PR.
+    *   If you find a bug unrelated to your task, report it or create a separate ticket; do not fix it "along the way".
+*   **Commit Messages**:
+    *   Use [Conventional Commits](https://www.conventionalcommits.org/).
+    *   Structure: `type(scope): description`. Example: `feat(auth): add login endpoint`.
+*   **Pull Requests**:
+    *   **Title**: Must include the Linear ticket ID (e.g., `SER-123: feat(auth): add login`).
+    *   **Description**: Must include "Closes SER-123" to automatically link it.
 - **Staged Checks (`pre-commit`):**  
   `lint-staged` MUST run on every commit to: 
   - Format code with `prettier`. 
