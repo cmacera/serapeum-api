@@ -1,6 +1,6 @@
 import { ai, z } from '../lib/ai.js';
 import axios from 'axios';
-import type { TMDBSearchResponse, CleanMediaResult } from '../lib/tmdb-types.js';
+import type { TMDBSearchResponse, MediaSearchResult } from '../lib/tmdb-types.js';
 
 /**
  * Genkit Tool: Search for movies and TV shows using TMDB API
@@ -22,6 +22,9 @@ export const searchMoviesAndTVTool = ai.defineTool(
         media_type: z.enum(['movie', 'tv']),
         release_date: z.string().optional(),
         poster_path: z.string().nullable().optional(),
+        overview: z.string().optional(),
+        vote_average: z.number().optional(),
+        popularity: z.number().optional(),
       })
     ),
   },
@@ -48,7 +51,7 @@ export const searchMoviesAndTVTool = ai.defineTool(
 
       // Filter to only include movies and TV shows (exclude 'person')
       // and transform to clean format
-      const cleanResults: CleanMediaResult[] = response.data.results
+      const results: MediaSearchResult[] = response.data.results
         .filter((result) => result.media_type === 'movie' || result.media_type === 'tv')
         .map((result) => ({
           id: result.id,
@@ -57,9 +60,12 @@ export const searchMoviesAndTVTool = ai.defineTool(
           media_type: result.media_type as 'movie' | 'tv',
           release_date: result.release_date || result.first_air_date,
           poster_path: result.poster_path,
+          overview: result.overview,
+          vote_average: result.vote_average,
+          popularity: result.popularity,
         }));
 
-      return cleanResults;
+      return results;
     } catch (error) {
       // Handle axios errors
       if (axios.isAxiosError(error)) {
