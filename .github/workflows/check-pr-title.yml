@@ -11,6 +11,7 @@ jobs:
   check-title:
     name: Check PR Title
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/github-script@v6
         with:
