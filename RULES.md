@@ -66,15 +66,15 @@ Local development MUST enforce quality before changes reach remote branches.
   All contributors MUST use `husky` to manage Git hooks (`pre-commit`, `commit-msg`, `pre-push`).
 - **Git Rules:**
 
-*   **Resultados Limpios y Atómicos**:
-    *   No incluyas cambios no relacionados en un mismo commit o PR.
-    *   Si encuentras un bug no relacionado con tu tarea, repórtalo o crea un ticket separado, no lo arregles "de paso".
-*   **Mensajes de Commit**:
-    *   Usa [Conventional Commits](https://www.conventionalcommits.org/).
-    *   Estructura: `tipo(alcance): descripción`. Ejemplo: `feat(auth): add login endpoint`.
+*   **Clean, Atomic Results**:
+    *   Do not include unrelated changes in the same commit or PR.
+    *   If you find a bug unrelated to your task, report it or create a separate ticket; do not fix it "along the way".
+*   **Commit Messages**:
+    *   Use [Conventional Commits](https://www.conventionalcommits.org/).
+    *   Structure: `type(scope): description`. Example: `feat(auth): add login endpoint`.
 *   **Pull Requests**:
-    *   **Título**: Debe incluir el ID del ticket de Linear (ej: `SER-123: feat(auth): add login`).
-    *   **Descripción**: Debe incluir "Closes SER-123" para vincularlo automáticamente.
+    *   **Title**: Must include the Linear ticket ID (e.g., `SER-123: feat(auth): add login`).
+    *   **Description**: Must include "Closes SER-123" to automatically link it.
 - **Staged Checks (`pre-commit`):**  
   `lint-staged` MUST run on every commit to: 
   - Format code with `prettier`. 
