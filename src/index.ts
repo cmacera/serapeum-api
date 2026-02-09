@@ -1,7 +1,8 @@
 import * as dotenv from 'dotenv';
 import { startFlowServer } from '@genkit-ai/express';
 import { helloFlow } from './flows/sample.js';
-import { searchContent } from './flows/catalog/searchContent.js';
+import { searchMoviesAndTV } from './flows/catalog/searchMoviesAndTV.js';
+import { searchBooks } from './flows/catalog/searchBooks.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,7 +45,7 @@ console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
 // Start the Genkit Flows Server
 startFlowServer({
-  flows: [helloFlow, searchContent],
+  flows: [helloFlow, searchMoviesAndTV, searchBooks],
   port: PORT,
   cors: {
     origin: corsOrigins,
