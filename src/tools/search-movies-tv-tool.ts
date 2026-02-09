@@ -6,9 +6,9 @@ import type { TMDBSearchResponse, CleanMediaResult } from '../lib/tmdb-types.js'
  * Genkit Tool: Search for movies and TV shows using TMDB API
  * Uses the /search/multi endpoint to search both media types at once
  */
-export const searchMultiTool = ai.defineTool(
+export const searchMoviesAndTVTool = ai.defineTool(
   {
-    name: 'searchMultiTool',
+    name: 'searchMoviesAndTVTool',
     description:
       'Search for movies and TV shows using The Movie Database (TMDB) API. Returns clean, structured data for UI consumption.',
     inputSchema: z.object({

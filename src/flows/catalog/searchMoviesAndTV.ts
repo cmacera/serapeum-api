@@ -1,15 +1,15 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchMultiTool } from '../../tools/search-multi-tool.js';
+import { searchMoviesAndTVTool } from '../../tools/search-movies-tv-tool.js';
 
 /**
- * Search Content Flow
+ * Search Movies and TV Shows Flow
  * Deterministic flow that searches for movies and TV shows using TMDB API.
- * This flow does NOT use an LLM - it simply calls the searchMultiTool
+ * This flow does NOT use an LLM - it simply calls the searchMoviesAndTVTool
  * and returns the raw results for UI consumption.
  */
-export const searchContent = ai.defineFlow(
+export const searchMoviesAndTV = ai.defineFlow(
   {
-    name: 'searchContent',
+    name: 'searchMoviesAndTV',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
     }),
@@ -27,7 +27,7 @@ export const searchContent = ai.defineFlow(
   async (input) => {
     // Call the search tool directly and return results
     // No LLM processing - this is a deterministic, data-only flow
-    const results = await searchMultiTool(input);
+    const results = await searchMoviesAndTVTool(input);
     return results;
   }
 );
