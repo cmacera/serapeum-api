@@ -2,7 +2,7 @@ import { ai, z } from '../lib/ai.js';
 import axios from 'axios';
 import type {
   GoogleBooksSearchResponse,
-  CleanBookResult,
+  BookSearchResult,
   IndustryIdentifier,
 } from '../lib/google-books-types.js';
 
@@ -79,7 +79,7 @@ export const searchBooksTool = ai.defineTool(
       );
 
       // Transform API response to clean format
-      const cleanResults: CleanBookResult[] =
+      const results: BookSearchResult[] =
         response.data.items?.map((item) => ({
           id: item.id,
           title: item.volumeInfo.title,
@@ -100,7 +100,7 @@ export const searchBooksTool = ai.defineTool(
           previewLink: item.volumeInfo.previewLink,
         })) || [];
 
-      return cleanResults;
+      return results;
     } catch (error) {
       // Handle axios errors
       if (axios.isAxiosError(error)) {

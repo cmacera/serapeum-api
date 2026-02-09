@@ -53,9 +53,9 @@ export interface GoogleBooksSearchResponse {
 }
 
 /**
- * Clean book result for tool output
+ * Book search result for tool output
  */
-export interface CleanBookResult {
+export interface BookSearchResult {
   id: string;
   title: string;
   authors?: string[];
