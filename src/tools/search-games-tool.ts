@@ -1,5 +1,5 @@
 import { ai, z } from '../lib/ai.js';
-import { getAccessToken } from '../lib/igdb-auth.js';
+import { getAccessToken, clearTokenCache } from '../lib/igdb-auth.js';
 import type { IGDBGame, GameSearchResult } from '../lib/igdb-types.js';
 import { transformGame } from '../lib/igdb-types.js';
 
@@ -43,10 +43,13 @@ export const searchGamesTool = ai.defineTool(
       // Get OAuth access token
       const accessToken = await getAccessToken();
 
+      // Sanitize query to prevent Apicalypse injection
+      const sanitizedQuery = input.query.replace(/"/g, '\\"');
+
       // Build Apicalypse query
       // Expand nested fields to get names instead of IDs
       const apicalypseQuery = `
-        search "${input.query}";
+        search "${sanitizedQuery}";
         fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;
         where game_type = (0, 1, 2, 8, 9, 10);
         limit 10;
@@ -66,6 +69,7 @@ export const searchGamesTool = ai.defineTool(
       if (!response.ok) {
         // Handle token expiry (401) - token should auto-refresh on next call
         if (response.status === 401) {
+          clearTokenCache();
           throw new Error('IGDB authentication failed. Access token may have expired.');
         }
 

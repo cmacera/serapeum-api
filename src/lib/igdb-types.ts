@@ -60,7 +60,7 @@ export interface GameSearchResult {
  * Convert IGDB Unix timestamp to ISO date string
  */
 export function formatReleaseDate(timestamp?: number): string | undefined {
-  if (!timestamp) return undefined;
+  if (timestamp === undefined || timestamp === null) return undefined;
   return new Date(timestamp * 1000).toISOString().split('T')[0];
 }
 

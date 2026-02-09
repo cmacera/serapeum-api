@@ -169,6 +169,24 @@ describe('searchGamesTool', () => {
       expect(normalize(capturedBody)).toBe(normalize(expectedQuery));
     });
 
+    it('should sanitize search query to prevent injection', async () => {
+      const query = 'Game "Inject" Test';
+      let capturedBody = '';
+
+      nock(IGDB_API_URL)
+        .post('/v4/games', (body) => {
+          capturedBody = body;
+          return true;
+        })
+        .reply(200, []);
+
+      await searchGamesTool({ query });
+
+      // Expect the quote to be escaped: "Game \"Inject\" Test"
+      // In the body string it looks like: search "Game \"Inject\" Test";
+      expect(capturedBody).toContain('search "Game \\"Inject\\" Test";');
+    });
+
     it('should correctly map different game_types', async () => {
       const mockGames: IGDBGame[] = [
         { id: 1, name: 'Main Game', game_type: 0 },

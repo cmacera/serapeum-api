@@ -26,6 +26,7 @@ export const searchGames = ai.defineFlow(
         genres: z.array(z.string()).optional(),
         developers: z.array(z.string()).optional(),
         publishers: z.array(z.string()).optional(),
+        game_type: z.number().optional(),
       })
     ),
   },
