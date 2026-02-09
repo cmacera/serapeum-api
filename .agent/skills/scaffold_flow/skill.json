@@ -1,0 +1,15 @@
+{
+    "name": "scaffold_flow",
+    "description": "Generates a new Genkit Flow file and automatically registers it in the main index.ts.",
+    "arguments": {
+        "flow_name": {
+            "type": "string",
+            "description": "The name of the flow in camelCase (e.g., 'generateSummary')."
+        },
+        "category": {
+            "type": "string",
+            "description": "The category folder for the flow (e.g., 'content', 'analysis')."
+        }
+    },
+    "command": "python3 .agent/skills/scaffold_flow/generator.py ${flow_name} ${category}"
+}
