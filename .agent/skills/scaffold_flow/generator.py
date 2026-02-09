@@ -76,19 +76,21 @@ export const {flow_name} = ai.defineFlow(
 
         if match:
             prefix, current_flows, suffix = match.groups()
-            if flow_name not in current_flows:
-                # Add comma if needed
-                new_flow_entry = f", {flow_name}" if current_flows.strip() else f"{flow_name}"
-                # If currently multiline/formatted, try to respect it loosely or just append
-                # A simple append works for both single line `[a]` -> `[a, b]` and `[a,]` -> `[a, b]` (if handled right)
-                # But to be safe with trailing commas:
-                clean_flows = current_flows.strip()
-                if clean_flows.endswith(","):
-                     new_flows = f"{current_flows} {flow_name}"
-                elif clean_flows == "":
-                     new_flows = f"{flow_name}"
-                else:
-                     new_flows = f"{current_flows}, {flow_name}"
+            
+            # Parse current flows into a list of flow names
+            # Handle formats like: "flow1, flow2" or "flow1,flow2" or ""
+            flow_list = []
+            if current_flows.strip():
+                # Split by comma and clean each item
+                flow_list = [f.strip() for f in current_flows.split(',') if f.strip()]
+            
+            # Check if flow_name already exists (exact match)
+            if flow_name not in flow_list:
+                # Add the new flow to the list
+                flow_list.append(flow_name)
+                
+                # Rebuild the flows string with consistent formatting
+                new_flows = ', '.join(flow_list)
                 
                 # Replace
                 new_full_string = f"{prefix}{new_flows}{suffix}"
@@ -96,6 +98,7 @@ export const {flow_name} = ai.defineFlow(
                 print(f"Registered {flow_name} in 'flows' array.")
             else:
                 print(f"{flow_name} already in flows array.")
+
         else:
             print("Warning: Could not find 'flows: [...]' array in index.ts. Manual registration required.")
 
@@ -107,6 +110,12 @@ export const {flow_name} = ai.defineFlow(
     except FileNotFoundError:
         print(f"Warning: {index_path} not found. Could not register flow automatically.")
 
+def validate_identifier(name, label):
+    """Ensure name is a valid JS identifier (alphanumeric + underscore, no leading digit)."""
+    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', name):
+        print(f"Error: {label} must be a valid identifier (got '{name}')")
+        sys.exit(1)
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python generator.py <flow_name> <category>")
@@ -114,4 +123,7 @@ if __name__ == "__main__":
     
     flow_name = sys.argv[1]
     category = sys.argv[2]
+    validate_identifier(flow_name, "flow_name")
+    validate_identifier(category, "category")
     create_flow(flow_name, category)
+
