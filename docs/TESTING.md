@@ -6,7 +6,7 @@ This project uses **Vitest** for unit and integration testing. Tests are organiz
 
 ## Test Structure
 
-```
+```text
 tests/
 └── unit/                    # Unit tests (isolated functions/tools)
     └── tools/
