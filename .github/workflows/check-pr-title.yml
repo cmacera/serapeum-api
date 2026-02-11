@@ -17,7 +17,7 @@ jobs:
         with:
           script: |
             const title = context.payload.pull_request.title;
-            const regex = /^SER-\d+\b/;
+            const regex = /^(\[SER-\d+\]|SER-\d+)/;
             if (!regex.test(title)) {
-              core.setFailed(`PR title "${title}" must contain a Linear Issue ID (e.g., SER-123).`);
+              core.setFailed(`PR title "${title}" must start with a Linear Issue ID, e.g. "SER-123" or "[SER-123]".`);
             }

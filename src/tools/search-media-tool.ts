@@ -6,27 +6,27 @@ import type { TMDBSearchResponse, MediaSearchResult } from '../lib/tmdb-types.js
  * Genkit Tool: Search for movies and TV shows using TMDB API
  * Uses the /search/multi endpoint to search both media types at once
  */
-export const searchMoviesAndTVTool = ai.defineTool(
+export const MediaSearchResultSchema = z.object({
+  id: z.number(),
+  title: z.string().optional(),
+  name: z.string().optional(),
+  media_type: z.enum(['movie', 'tv']),
+  release_date: z.string().optional(),
+  poster_path: z.string().nullable().optional(),
+  overview: z.string().optional(),
+  vote_average: z.number().optional(),
+  popularity: z.number().optional(),
+});
+
+export const searchMediaTool = ai.defineTool(
   {
-    name: 'searchMoviesAndTVTool',
+    name: 'searchMediaTool',
     description:
       'Search for movies and TV shows using The Movie Database (TMDB) API. Returns clean, structured data for UI consumption.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
     }),
-    outputSchema: z.array(
-      z.object({
-        id: z.number(),
-        title: z.string().optional(),
-        name: z.string().optional(),
-        media_type: z.enum(['movie', 'tv']),
-        release_date: z.string().optional(),
-        poster_path: z.string().nullable().optional(),
-        overview: z.string().optional(),
-        vote_average: z.number().optional(),
-        popularity: z.number().optional(),
-      })
-    ),
+    outputSchema: z.array(MediaSearchResultSchema),
   },
   async (input) => {
     const apiKey = process.env['TMDB_API_KEY'];

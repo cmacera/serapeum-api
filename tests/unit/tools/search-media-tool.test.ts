@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
-import { searchMoviesAndTVTool } from '../../../src/tools/search-movies-tv-tool.js';
+import { searchMediaTool } from '../../../src/tools/search-media-tool.js';
 import type { TMDBSearchResponse } from '../../../src/lib/tmdb-types.js';
 
-describe('searchMoviesAndTVTool', () => {
+describe('searchMediaTool', () => {
   const TMDB_API_URL = 'https://api.themoviedb.org';
   const mockApiKey = 'test-api-key';
 
@@ -46,7 +46,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'Fight Club' })
         .reply(200, mockResponse);
 
-      const result = await searchMoviesAndTVTool({ query: 'Fight Club' });
+      const result = await searchMediaTool({ query: 'Fight Club' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -88,7 +88,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'Breaking Bad' })
         .reply(200, mockResponse);
 
-      const result = await searchMoviesAndTVTool({ query: 'Breaking Bad' });
+      const result = await searchMediaTool({ query: 'Breaking Bad' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -139,7 +139,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'Matrix' })
         .reply(200, mockResponse);
 
-      const result = await searchMoviesAndTVTool({ query: 'Matrix' });
+      const result = await searchMediaTool({ query: 'Matrix' });
 
       expect(result).toHaveLength(2);
       expect(result[0].media_type).toBe('movie');
@@ -159,7 +159,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'NonexistentMovie12345' })
         .reply(200, mockResponse);
 
-      const result = await searchMoviesAndTVTool({ query: 'NonexistentMovie12345' });
+      const result = await searchMediaTool({ query: 'NonexistentMovie12345' });
 
       expect(result).toEqual([]);
     });
@@ -203,7 +203,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'test' })
         .reply(200, mockResponse);
 
-      const result = await searchMoviesAndTVTool({ query: 'test' });
+      const result = await searchMediaTool({ query: 'test' });
 
       expect(result).toHaveLength(2);
       expect(result.every((r) => r.media_type === 'movie' || r.media_type === 'tv')).toBe(true);
@@ -214,7 +214,7 @@ describe('searchMoviesAndTVTool', () => {
     it('should throw error when API key is missing', async () => {
       delete process.env.TMDB_API_KEY;
 
-      await expect(searchMoviesAndTVTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
         'TMDB_API_KEY environment variable is not configured'
       );
     });
@@ -225,7 +225,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'test' })
         .reply(401, { status_message: 'Invalid API key', status_code: 7 });
 
-      await expect(searchMoviesAndTVTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
         'TMDB API authentication failed. Please check your API key.'
       );
     });
@@ -236,7 +236,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'test' })
         .reply(429, { status_message: 'Rate limit exceeded', status_code: 25 });
 
-      await expect(searchMoviesAndTVTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
         'TMDB API rate limit exceeded. Please try again later.'
       );
     });
@@ -247,7 +247,7 @@ describe('searchMoviesAndTVTool', () => {
         .query({ api_key: mockApiKey, query: 'test' })
         .replyWithError('Network error');
 
-      await expect(searchMoviesAndTVTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
         'Network error: Unable to reach TMDB API. Please check your internet connection.'
       );
     });
