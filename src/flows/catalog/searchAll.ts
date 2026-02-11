@@ -13,6 +13,7 @@ export const searchAll = ai.defineFlow(
     name: 'searchAll',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional().default('es-ES'),
     }),
     outputSchema: z.object({
       movies: z.array(MediaSearchResultSchema),

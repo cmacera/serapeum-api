@@ -12,6 +12,7 @@ export const searchBooks = ai.defineFlow(
     name: 'searchBooks',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional(),
     }),
     outputSchema: z.array(
       z.object({
@@ -38,7 +39,10 @@ export const searchBooks = ai.defineFlow(
   async (input) => {
     // Call the search tool directly and return results
     // No LLM processing - this is a deterministic, data-only flow
-    const results = await searchBooksTool(input);
+    const results = await searchBooksTool({
+      query: input.query,
+      language: input.language,
+    });
     return results;
   }
 );

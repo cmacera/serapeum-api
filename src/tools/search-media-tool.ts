@@ -25,6 +25,7 @@ export const searchMediaTool = ai.defineTool(
       'Search for movies and TV shows using The Movie Database (TMDB) API. Returns clean, structured data for UI consumption.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional().default('es-ES'),
     }),
     outputSchema: z.array(MediaSearchResultSchema),
   },
@@ -42,6 +43,7 @@ export const searchMediaTool = ai.defineTool(
           params: {
             api_key: apiKey,
             query: input.query,
+            language: input.language,
           },
           headers: {
             Accept: 'application/json',

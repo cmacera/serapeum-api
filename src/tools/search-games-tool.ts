@@ -29,6 +29,7 @@ export const searchGamesTool = ai.defineTool(
       'Search for video games using the IGDB (Internet Game Database) API. Returns detailed game information including title, platforms, genres, developers, and ratings.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional(),
     }),
     outputSchema: z.array(GameSearchResultSchema),
   },

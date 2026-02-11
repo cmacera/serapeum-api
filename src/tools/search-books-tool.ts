@@ -52,6 +52,7 @@ export const searchBooksTool = ai.defineTool(
       'Search for books using the Google Books API. Returns detailed book information including title, authors, publisher, ISBN, description, and cover images.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional(),
     }),
     outputSchema: z.array(BookSearchResultSchema),
   },
