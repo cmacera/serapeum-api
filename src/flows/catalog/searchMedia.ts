@@ -26,8 +26,7 @@ export const searchMedia = ai.defineFlow(
     ),
   },
   async (input) => {
-    // Call the search tool directly and return results
-    // No LLM processing - this    // Execute the searchMediaTool
+    // Execute the searchMediaTool - no LLM processing required
     const results = await searchMediaTool({
       query: input.query,
       language: input.language,

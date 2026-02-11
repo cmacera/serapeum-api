@@ -64,6 +64,9 @@ export const searchBooksTool = ai.defineTool(
     }
 
     try {
+      // Normalize language to ISO 639-1 (e.g., 'es-ES' -> 'es')
+      const normalizedLang = input.language?.split('-')[0];
+
       const response = await axios.get<GoogleBooksSearchResponse>(
         'https://www.googleapis.com/books/v1/volumes',
         {
@@ -72,6 +75,7 @@ export const searchBooksTool = ai.defineTool(
             key: apiKey,
             maxResults: 10,
             printType: 'books', // Exclude magazines
+            ...(normalizedLang && { langRestrict: normalizedLang }),
           },
           headers: {
             Accept: 'application/json',
