@@ -12,6 +12,7 @@ export const searchMedia = ai.defineFlow(
     name: 'searchMedia',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional().default('es-ES'),
     }),
     outputSchema: z.array(
       z.object({
@@ -25,9 +26,11 @@ export const searchMedia = ai.defineFlow(
     ),
   },
   async (input) => {
-    // Call the search tool directly and return results
-    // No LLM processing - this is a deterministic, data-only flow
-    const results = await searchMediaTool(input);
+    // Execute the searchMediaTool - no LLM processing required
+    const results = await searchMediaTool({
+      query: input.query,
+      language: input.language,
+    });
     return results;
   }
 );
