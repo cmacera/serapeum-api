@@ -73,7 +73,7 @@ Local development MUST enforce quality before changes reach remote branches.
     *   Use [Conventional Commits](https://www.conventionalcommits.org/).
     *   Structure: `type(scope): description`. Example: `feat(auth): add login endpoint`.
 *   **Pull Requests**:
-    *   **Title**: Must include the Linear ticket ID (e.g., `SER-123: feat(auth): add login`).
+    *   **Title**: Must include the Linear ticket ID (e.g., `[SER-123] feat(auth): add login` or `SER-123: feat(auth): add login`).
     *   **Description**: Must include "Closes SER-123" to automatically link it.
 - **Staged Checks (`pre-commit`):**  
   `lint-staged` MUST run on every commit to: 
