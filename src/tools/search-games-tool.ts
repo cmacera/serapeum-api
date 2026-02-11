@@ -7,6 +7,21 @@ import { transformGame } from '../lib/igdb-types.js';
  * Genkit Tool: Search for video games using IGDB API
  * Uses Apicalypse query language for searching
  */
+export const GameSearchResultSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  summary: z.string().optional(),
+  rating: z.number().optional(),
+  aggregated_rating: z.number().optional(),
+  released: z.string().optional(),
+  cover_url: z.string().optional(),
+  platforms: z.array(z.string()).optional(),
+  genres: z.array(z.string()).optional(),
+  developers: z.array(z.string()).optional(),
+  publishers: z.array(z.string()).optional(),
+  game_type: z.number().optional(),
+});
+
 export const searchGamesTool = ai.defineTool(
   {
     name: 'searchGamesTool',
@@ -15,22 +30,7 @@ export const searchGamesTool = ai.defineTool(
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
     }),
-    outputSchema: z.array(
-      z.object({
-        id: z.number(),
-        name: z.string(),
-        summary: z.string().optional(),
-        rating: z.number().optional(),
-        aggregated_rating: z.number().optional(),
-        released: z.string().optional(),
-        cover_url: z.string().optional(),
-        platforms: z.array(z.string()).optional(),
-        genres: z.array(z.string()).optional(),
-        developers: z.array(z.string()).optional(),
-        publishers: z.array(z.string()).optional(),
-        game_type: z.number().optional(),
-      })
-    ),
+    outputSchema: z.array(GameSearchResultSchema),
   },
   async (input) => {
     const clientId = process.env['IGDB_CLIENT_ID'];

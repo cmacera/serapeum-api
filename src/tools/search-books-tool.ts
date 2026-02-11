@@ -22,6 +22,26 @@ function extractISBN(identifiers?: IndustryIdentifier[]): string | undefined {
   return isbn10?.identifier;
 }
 
+export const BookSearchResultSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  authors: z.array(z.string()).optional(),
+  publisher: z.string().optional(),
+  publishedDate: z.string().optional(),
+  description: z.string().optional(),
+  isbn: z.string().optional(),
+  pageCount: z.number().optional(),
+  categories: z.array(z.string()).optional(),
+  imageLinks: z
+    .object({
+      thumbnail: z.string().optional(),
+      smallThumbnail: z.string().optional(),
+    })
+    .optional(),
+  language: z.string().optional(),
+  previewLink: z.string().optional(),
+});
+
 /**
  * Genkit Tool: Search for books using Google Books API
  */
@@ -33,27 +53,7 @@ export const searchBooksTool = ai.defineTool(
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
     }),
-    outputSchema: z.array(
-      z.object({
-        id: z.string(),
-        title: z.string(),
-        authors: z.array(z.string()).optional(),
-        publisher: z.string().optional(),
-        publishedDate: z.string().optional(),
-        description: z.string().optional(),
-        isbn: z.string().optional(),
-        pageCount: z.number().optional(),
-        categories: z.array(z.string()).optional(),
-        imageLinks: z
-          .object({
-            thumbnail: z.string().optional(),
-            smallThumbnail: z.string().optional(),
-          })
-          .optional(),
-        language: z.string().optional(),
-        previewLink: z.string().optional(),
-      })
-    ),
+    outputSchema: z.array(BookSearchResultSchema),
   },
   async (input) => {
     const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
