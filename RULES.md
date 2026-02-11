@@ -96,7 +96,7 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
   - Example: `SER-123/add-genkit-flow-for-recommendations`.
 - **PR Title Convention:**  
   Pull Requests MUST include the Linear issue key at the beginning of the title:  
-  - Example: `SER-123: Implement recommendation flow`.
+  - Example: `[SER-123] Implement recommendation flow` or `SER-123: Implement recommendation flow`.
 - **PR Description:**  
   PR descriptions MUST include a direct reference to the Linear issue:  
   - Example: `Fixes SER-123` or `Closes SER-123`.
@@ -119,7 +119,7 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
 The CI pipeline is the final gatekeeper of Serapeum’s standards.
 
 - **PR Title Check:**  
-  CI **MUST fail** if the PR title does not start with a valid Linear issue key (e.g. `SER-123:`, `ENG-456:`).  
+  CI **MUST fail** if the PR title does not start with a valid Linear issue key (e.g. `[SER-123]`, `SER-123:`).  
 - **Linear Link Enforcement:**  
   A GitHub Action **MUST fail** the check if:
   - The PR is not associated with at least one Linear issue.  
