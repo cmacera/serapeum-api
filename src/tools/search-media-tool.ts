@@ -44,6 +44,7 @@ export const searchMediaTool = ai.defineTool(
             api_key: apiKey,
             query: input.query,
             language: input.language,
+            include_adult: false,
           },
           headers: {
             Accept: 'application/json',
