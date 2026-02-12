@@ -71,10 +71,11 @@ export const searchBooksTool = ai.defineTool(
         'https://www.googleapis.com/books/v1/volumes',
         {
           params: {
-            q: input.query,
+            q: `intitle:${input.query}`,
             key: apiKey,
             maxResults: 10,
             printType: 'books', // Exclude magazines
+            orderBy: 'relevance',
             ...(normalizedLang && { langRestrict: normalizedLang }),
           },
           headers: {

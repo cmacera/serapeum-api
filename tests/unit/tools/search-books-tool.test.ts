@@ -57,10 +57,11 @@ describe('searchBooksTool', () => {
       nock(GOOGLE_BOOKS_API_URL)
         .get('/books/v1/volumes')
         .query({
-          q: 'The Great Gatsby',
+          q: 'intitle:The Great Gatsby',
           key: mockApiKey,
           maxResults: 10,
           printType: 'books',
+          orderBy: 'relevance',
         })
         .reply(200, mockResponse);
 
