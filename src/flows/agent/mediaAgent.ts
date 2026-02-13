@@ -7,7 +7,6 @@ import { searchTavilyTool } from '../../tools/search-tavily-tool.js';
 // @ts-ignore
 import { googleAI } from '@genkit-ai/google-genai';
 
-
 // Define the output schema for reuse
 const MediaAgentOutputSchema = z.object({
   text: z.string().describe('The response message or explanation'),
