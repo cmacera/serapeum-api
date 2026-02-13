@@ -21,8 +21,9 @@ vi.mock('@/lib/ai', () => ({
   },
   z: {
     object: (schema: any) => schema,
-    string: () => ({}),
-    unknown: () => ({}),
+    string: () => ({ describe: () => ({}) }),
+    any: () => ({ optional: () => ({ describe: () => ({}) }) }),
+    unknown: () => ({ optional: () => ({}) }),
   },
 }));
 
@@ -35,21 +36,24 @@ vi.mock('@/tools/search-tavily-tool', () => ({ searchTavilyTool: {} }));
 describe('mediaAgent Flow', () => {
   it('should process movie queries', async () => {
     const result = await mediaAgent({ prompt: 'Inception movie' });
-    expect(result).toContain('Mocked TMDB Result');
+    expect(result.text).toContain('Mocked TMDB Result');
+    expect(result.output).toBeDefined();
   });
 
   it('should process book queries', async () => {
     const result = await mediaAgent({ prompt: 'Harry Potter book' });
-    expect(result).toContain('Mocked Book Result');
+    expect(result.text).toContain('Mocked Book Result');
+    expect(result.output).toBeDefined();
   });
 
   it('should process game queries', async () => {
     const result = await mediaAgent({ prompt: 'Elden Ring game' });
-    expect(result).toContain('Mocked Game Result');
+    expect(result.text).toContain('Mocked Game Result');
+    expect(result.output).toBeDefined();
   });
 
   it('should fall back to web search/general query', async () => {
     const result = await mediaAgent({ prompt: 'General query' });
-    expect(result).toContain('Mocked Web Search Result');
+    expect(result.text).toContain('Mocked Web Search Result');
   });
 });
