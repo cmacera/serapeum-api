@@ -5,6 +5,7 @@ import { searchMedia } from './flows/catalog/searchMedia.js';
 import { searchBooks } from './flows/catalog/searchBooks.js';
 import { searchGames } from './flows/catalog/searchGames.js';
 import { searchAll } from './flows/catalog/searchAll.js';
+import { searchWeb } from './flows/catalog/searchWeb.js';
 
 // Load environment variables
 dotenv.config();
@@ -47,7 +48,7 @@ console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
 // Start the Genkit Flows Server
 startFlowServer({
-  flows: [searchMedia, searchBooks, searchGames, searchAll],
+  flows: [searchMedia, searchBooks, searchGames, searchAll, searchWeb],
   port: PORT,
   cors: {
     origin: corsOrigins,
