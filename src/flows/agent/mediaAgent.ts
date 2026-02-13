@@ -29,7 +29,7 @@ export const mediaAgent = ai.defineFlow(
     name: 'mediaAgent',
     inputSchema: z.object({
       prompt: z.string(),
-      language: z.string().optional().default('en'),
+      language: z.enum(['en', 'es', 'fr', 'de', 'zh', 'ja']).optional().default('en'),
     }),
     outputSchema: AgentResponseSchema,
   },
@@ -67,21 +67,31 @@ Limit the \`items\` list to the top 5-10 most relevant results.`;
     const tools = [searchMediaTool, searchBooksTool, searchGamesTool, searchTavilyTool];
 
     // Use Genkit's automatic tool handling
-    const response = await ai.generate({
-      model: 'googleai/gemini-2.5-flash',
-      prompt: input.prompt, // Use the prompt from input
-      system: systemPrompt, // System prompt
-      tools,
-      output: { schema: AgentResponseSchema },
-      config: {
-        temperature: 0.5, // slightly creative but focused
-      },
-    });
+    try {
+      const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: input.prompt, // Use the prompt from input
+        system: systemPrompt, // System prompt
+        tools,
+        output: { schema: AgentResponseSchema },
+        config: {
+          temperature: 0.5, // slightly creative but focused
+        },
+      });
 
-    if (!response.output) {
-      throw new Error('Agent failed to produce a structured response.');
+      if (!response.output) {
+        throw new Error('Agent failed to produce a structured response.');
+      }
+
+      return response.output;
+    } catch (error) {
+      console.error('[mediaAgent] ai.generate failed:', {
+        error,
+        prompt: input.prompt,
+        language: input.language,
+      });
+      // Rethrow to let Genkit or the caller handle the error shape
+      throw error;
     }
-
-    return response.output;
   }
 );
