@@ -1,12 +1,10 @@
 const https = require('https');
 require('dotenv').config();
 
-
-const API_KEY = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
+const API_KEY = process.env.GOOGLE_GENAI_API_KEY;
 
 if (!API_KEY) {
-    console.error('Error: GOOGLE_GENAI_API_KEY is not set in .env or environment variables.');
-    console.error('Try running: GOOGLE_GENAI_API_KEY=your_key node scripts/list-models.cjs');
+    console.error('Error: GOOGLE_GENAI_API_KEY is not set in .env');
     process.exit(1);
 }
 

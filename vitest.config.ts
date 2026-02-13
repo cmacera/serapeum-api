@@ -18,7 +18,7 @@ export default defineConfig({
       ],
     },
     include: ['tests/**/*.test.ts'],
-    exclude: ['node_modules', 'dist'],
+    exclude: ['node_modules', 'dist', 'tests/e2e/**'],
     setupFiles: ['./tests/setup-media-agent.ts'],
     pool: 'threads',
     isolate: true,
