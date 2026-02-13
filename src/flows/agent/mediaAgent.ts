@@ -7,16 +7,20 @@ import { searchTavilyTool } from '../../tools/search-tavily-tool.js';
 // @ts-ignore
 import { googleAI } from '@genkit-ai/google-genai';
 
+
+// Define the output schema for reuse
+const MediaAgentOutputSchema = z.object({
+  text: z.string().describe('The response message or explanation'),
+  output: z.any().optional().describe('The structured result payload'),
+});
+
 export const mediaAgent = ai.defineFlow(
   {
     name: 'mediaAgent',
     inputSchema: z.object({
       prompt: z.string(),
     }),
-    outputSchema: z.object({
-      text: z.string(),
-      output: z.unknown().optional(),
-    }),
+    outputSchema: MediaAgentOutputSchema,
   },
   async (input) => {
     try {
@@ -31,6 +35,7 @@ If the user query is vague (e.g., "that movie about..."), use the Web Search too
 
 Always return the structured data from the database tools if possible.`,
         tools: [searchMediaTool, searchBooksTool, searchGamesTool, searchTavilyTool],
+        output: { schema: MediaAgentOutputSchema },
       });
 
       return { text, output };

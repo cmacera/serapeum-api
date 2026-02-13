@@ -21,7 +21,8 @@ vi.mock('@/lib/ai', () => ({
   },
   z: {
     object: (schema: any) => schema,
-    string: () => ({}),
+    string: () => ({ describe: () => ({}) }),
+    any: () => ({ optional: () => ({ describe: () => ({}) }) }),
     unknown: () => ({ optional: () => ({}) }),
   },
 }));
