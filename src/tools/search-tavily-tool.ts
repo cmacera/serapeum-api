@@ -14,6 +14,13 @@ export const TavilySearchResultSchema = z.object({
   published_date: z.string().optional(),
 });
 
+interface ErrorWithStatus {
+  status?: number;
+  response?: { status?: number };
+  message?: string;
+  code?: string;
+}
+
 export const searchTavilyTool = ai.defineTool(
   {
     name: 'searchTavilyTool',
@@ -55,7 +62,7 @@ export const searchTavilyTool = ai.defineTool(
       return results;
     } catch (error: unknown) {
       // Handle common API errors
-      const err = error as any;
+      const err = error as ErrorWithStatus;
       const status = err?.status || err?.response?.status;
 
       if (status === 401) {
