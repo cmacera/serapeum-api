@@ -96,11 +96,11 @@ describe('searchTavilyTool', () => {
             );
         });
 
-        it('should handle network failures', async () => {
-            mockSearch.mockRejectedValue(new Error('fetch failed'));
+        it('should handle network failures (ECONNREFUSED)', async () => {
+            mockSearch.mockRejectedValue({ code: 'ECONNREFUSED' });
 
             await expect(searchTavilyTool({ query: 'test' } as any)).rejects.toThrow(
-                'Tavily API error: fetch failed'
+                'Network error: Unable to reach Tavily API'
             );
         });
     });
