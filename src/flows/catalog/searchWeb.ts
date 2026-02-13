@@ -7,19 +7,19 @@ import { searchTavilyTool, TavilySearchResultSchema } from '../../tools/search-t
  * Allows testing the tool via Genkit UI.
  */
 export const searchWeb = ai.defineFlow(
-    {
-        name: 'searchWeb',
-        inputSchema: z.object({
-            query: z.string().min(1, 'Search query cannot be empty'),
-            searchDepth: z.enum(['basic', 'advanced']).optional().default('basic'),
-        }),
-        outputSchema: z.array(TavilySearchResultSchema),
-    },
-    async (input) => {
-        const results = await searchTavilyTool({
-            query: input.query,
-            searchDepth: input.searchDepth,
-        });
-        return results;
-    }
+  {
+    name: 'searchWeb',
+    inputSchema: z.object({
+      query: z.string().min(1, 'Search query cannot be empty'),
+      searchDepth: z.enum(['basic', 'advanced']).optional().default('basic'),
+    }),
+    outputSchema: z.array(TavilySearchResultSchema),
+  },
+  async (input) => {
+    const results = await searchTavilyTool({
+      query: input.query,
+      searchDepth: input.searchDepth,
+    });
+    return results;
+  }
 );
