@@ -1,19 +1,19 @@
 import { vi } from 'vitest';
+import { z } from 'zod';
 
-// Mock genkit tools and AI to avoid side effects and filesystem ops
-vi.mock('../src/lib/ai', () => ({
-  ai: {
-    defineFlow: (config: any, fn: any) => fn,
-    generate: vi.fn(),
-  },
-  z: {
-    object: () => ({}),
-    string: () => ({}),
-    unknown: () => ({}),
-  },
-}));
-
-vi.mock('../src/tools/search-media-tool', () => ({ searchMediaTool: {} }));
-vi.mock('../src/tools/search-books-tool', () => ({ searchBooksTool: {} }));
-vi.mock('../src/tools/search-games-tool', () => ({ searchGamesTool: {} }));
-vi.mock('../src/tools/search-tavily-tool', () => ({ searchTavilyTool: {} }));
+// Mock only the genkit-specific parts that have side effects
+// Allow z to work normally as it's used in tool/flow definitions
+vi.mock('../src/lib/ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/lib/ai')>();
+  return {
+    ...actual,
+    ai: {
+      ...actual.ai,
+      generate: vi.fn(),
+      defineFlow: vi.fn().mockImplementation((config, fn) => fn),
+      defineTool: vi.fn().mockImplementation((config, fn) => fn),
+    },
+    // Keep real z
+    z: z,
+  };
+});

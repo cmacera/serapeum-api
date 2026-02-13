@@ -21,7 +21,7 @@ export default defineConfig({
     exclude: ['node_modules', 'dist'],
     setupFiles: ['./tests/setup-media-agent.ts'],
     pool: 'threads',
-    isolate: false,
+    isolate: true,
   },
   resolve: {
     alias: {
