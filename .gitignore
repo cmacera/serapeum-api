@@ -39,4 +39,5 @@ temp/
 *.tmp
 .genkit/
 .npm_cache/
+.npm-cache/
 .vitest_tmp/
