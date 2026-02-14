@@ -69,6 +69,7 @@ vi.mock('@/lib/ai', () => ({
     },
     unknown: () => ({ optional: () => ({}) }),
   },
+  activeModel: 'mock-model',
 }));
 
 // Mock tools to avoid importing their dependencies

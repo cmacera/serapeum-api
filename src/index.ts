@@ -1,4 +1,5 @@
-import * as dotenv from 'dotenv';
+import 'dotenv/config';
+
 import { startFlowServer } from '@genkit-ai/express';
 
 import { searchMedia } from './flows/catalog/searchMedia.js';
@@ -7,9 +8,6 @@ import { searchGames } from './flows/catalog/searchGames.js';
 import { searchAll } from './flows/catalog/searchAll.js';
 import { searchWeb } from './flows/catalog/searchWeb.js';
 import { mediaAgent } from './flows/agent/mediaAgent.js';
-
-// Load environment variables
-dotenv.config();
 
 const parsePort = (value: string | undefined, fallback: number): number => {
   const parsed = parseInt(value || '', 10);

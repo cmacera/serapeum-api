@@ -1,4 +1,5 @@
-import { ai, z } from '../../lib/ai.js';
+import { ai, z, activeModel } from '../../lib/ai.js';
+import { GenkitError } from '@genkit-ai/core';
 import { searchMediaTool } from '../../tools/search-media-tool.js';
 import { searchBooksTool } from '../../tools/search-books-tool.js';
 import { searchGamesTool } from '../../tools/search-games-tool.js';
@@ -66,16 +67,15 @@ Limit the \`items\` list to the top 5-10 most relevant results.`;
 
     const tools = [searchMediaTool, searchBooksTool, searchGamesTool, searchTavilyTool];
 
-    // Use Genkit's automatic tool handling
     try {
       const response = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
-        prompt: input.prompt, // Use the prompt from input
-        system: systemPrompt, // System prompt
+        model: activeModel,
+        prompt: input.prompt,
+        system: systemPrompt,
         tools,
         output: { schema: AgentResponseSchema },
         config: {
-          temperature: 0.5, // slightly creative but focused
+          temperature: 0.5,
         },
       });
 
@@ -84,14 +84,49 @@ Limit the \`items\` list to the top 5-10 most relevant results.`;
       }
 
       return response.output;
-    } catch (error) {
-      console.error('[mediaAgent] ai.generate failed:', {
-        error,
-        prompt: input.prompt,
-        language: input.language,
-      });
-      // Rethrow to let Genkit or the caller handle the error shape
-      throw error;
+    } catch (error: unknown) {
+      console.error('[mediaAgent] ai.generate critical error:', JSON.stringify(error, null, 2));
+
+      // Check if it's a specific Genkit error
+      if (error instanceof GenkitError) {
+        console.error(`[mediaAgent] GenkitError: ${error.status} - ${error.message} `);
+        console.error(`[mediaAgent] Source: ${error.source} `);
+        console.error(`[mediaAgent] Detail: `, error.detail);
+      }
+
+      const isSchemaError =
+        (error instanceof GenkitError && error.status === 'INVALID_ARGUMENT') ||
+        (error instanceof Error && error.message.includes('Schema validation failed'));
+
+      const isLoopError =
+        (error instanceof GenkitError && error.status === 'ABORTED') ||
+        (error instanceof Error && error.message.includes('Exceeded maximum tool call iterations'));
+
+      if (isSchemaError) {
+        return {
+          summary:
+            'The agent gathered information but failed to format it correctly. Please try again with a more specific query.',
+          items: [],
+        };
+      }
+
+      if (isLoopError) {
+        return {
+          summary:
+            'The agent took too long to find the answer. Here is what I found so far (check logs for details).',
+          items: [],
+        };
+      }
+
+      // If it's a completely unknown error, we should rethrow it to let Genkit handle it,
+      // OR return a safe fallback if we want to prevent crashes at all costs.
+      // Given the user's frustration, let's return a safe fallback for now but log heavily.
+
+      return {
+        summary:
+          'An unexpected error occurred while processing your request. Please check the server logs.',
+        items: [],
+      };
     }
   }
 );
