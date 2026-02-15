@@ -152,6 +152,50 @@ describe('orchestratorFlow', () => {
     expect(result).toBe('I only know about media.');
   });
 
+  it('should return error object if Router fails', async () => {
+    (routerPrompt as any).mockResolvedValue({ output: null });
+
+    const result = await orchestratorFlow('Broken query');
+    expect(result).toHaveProperty('error', 'Router failed to generate response');
+  });
+
+  it('should return error object if Extractor fails', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'query',
+      },
+    });
+    (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
+    (extractorPrompt as any).mockRejectedValue(new Error('Extractor Error'));
+
+    const result = await orchestratorFlow('query');
+    expect(result).toHaveProperty('error', 'Failed to process search results');
+    expect(result).toHaveProperty('details', 'Extractor Error');
+  });
+
+  it('should return partial results if Synthesizer fails', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'query',
+      },
+    });
+    (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
+    (extractorPrompt as any).mockResolvedValue({ output: { titles: ['Movie A'] } });
+    (searchAll as any).mockResolvedValue({ movies: [{ title: 'Movie A' }] });
+    (synthesizerPrompt as any).mockRejectedValue(new Error('Synth Error'));
+
+    const result = await orchestratorFlow('query');
+
+    // Should return the enriched data but with a fallback text
+    expect(result).toHaveProperty('data');
+    expect((result as any).data.movies).toHaveLength(1);
+    expect((result as any).text).toContain("couldn't generate a summary");
+  });
+
   it('should handle queries where no titles are extracted (fallback to web context)', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {

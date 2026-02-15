@@ -39,7 +39,11 @@ export const orchestratorFlow = ai.defineFlow(
     const { output: route } = await routerPrompt({ query }, { model: activeModel });
 
     if (!route) {
-      throw new Error('Router failed to generate response');
+      console.error('[orchestratorFlow] Router failed to generate response');
+      return {
+        error: 'Router failed to generate response',
+        details: 'The AI router could not determine the intent of your query.',
+      };
     }
 
     // Path C: Guardrail
@@ -97,13 +101,30 @@ export const orchestratorFlow = ai.defineFlow(
       }
 
       // 2. Extract Titles
-      const { output: extraction } = await extractorPrompt(
-        { context: tavilyContext },
-        { model: activeModel }
-      );
+      let extraction;
+      try {
+        const extractionResult = await extractorPrompt(
+          { context: tavilyContext },
+          { model: activeModel }
+        );
+        extraction = extractionResult.output;
+      } catch (error) {
+        console.error(
+          `[orchestratorFlow] Extractor failed for context length ${tavilyContext.length}:`,
+          inspect(error, { depth: null, colors: true })
+        );
+        return {
+          error: 'Failed to process search results',
+          details: error instanceof Error ? error.message : String(error),
+        };
+      }
 
       if (!extraction) {
-        throw new Error('Extractor failed to generate response');
+        console.error('[orchestratorFlow] Extractor returned null output');
+        return {
+          error: 'Failed to extract information from search results',
+          details: 'Title extraction returned null.',
+        };
       }
 
       // 3. Search DBs for these titles (Enrichment)
@@ -145,23 +166,40 @@ export const orchestratorFlow = ai.defineFlow(
           if (result.value.movies) enrichmentResults.movies.push(...result.value.movies);
           if (result.value.books) enrichmentResults.books.push(...result.value.books);
           if (result.value.games) enrichmentResults.games.push(...result.value.games);
+        } else {
+          console.error(
+            '[orchestratorFlow] Enrichment promise rejected:',
+            inspect(result.reason, { depth: null, colors: true })
+          );
         }
       }
 
       // 4. Synthesize Answer
-      const synthesis = await synthesizerPrompt(
-        {
-          originalQuery: query,
-          webContext: tavilyContext,
-          apiDetails: JSON.stringify(enrichmentResults),
-        },
-        { model: activeModel }
-      );
+      try {
+        const synthesis = await synthesizerPrompt(
+          {
+            originalQuery: query,
+            webContext: tavilyContext,
+            apiDetails: JSON.stringify(enrichmentResults),
+          },
+          { model: activeModel }
+        );
 
-      return {
-        text: synthesis.text,
-        data: enrichmentResults,
-      };
+        return {
+          text: synthesis.text,
+          data: enrichmentResults,
+        };
+      } catch (error) {
+        console.error(
+          `[orchestratorFlow] Synthesizer failed for query "${query}":`,
+          inspect(error, { depth: null, colors: true })
+        );
+        // Fallback: return data with a generic message
+        return {
+          text: "I found some information but couldn't generate a summary. Please check the details below.",
+          data: enrichmentResults,
+        };
+      }
     }
 
     return "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.";
