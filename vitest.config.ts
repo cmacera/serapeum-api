@@ -5,6 +5,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    env: {
+      GEMINI_MODEL: 'gemini-2.5-flash',
+      OLLAMA_MODEL: 'llama3',
+      AI_PROVIDER: 'google',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

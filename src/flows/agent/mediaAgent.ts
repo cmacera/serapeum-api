@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
 import { GenkitError } from '@genkit-ai/core';
 import { searchMediaTool } from '../../tools/search-media-tool.js';
@@ -85,7 +86,10 @@ Limit the \`items\` list to the top 5-10 most relevant results.`;
 
       return response.output;
     } catch (error: unknown) {
-      console.error('[mediaAgent] ai.generate critical error:', JSON.stringify(error, null, 2));
+      console.error(
+        '[mediaAgent] ai.generate critical error:',
+        inspect(error, { depth: null, colors: true })
+      );
 
       // Check if it's a specific Genkit error
       if (error instanceof GenkitError) {

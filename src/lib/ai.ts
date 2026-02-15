@@ -1,13 +1,7 @@
 import { genkit } from 'genkit';
 import type { GenkitPlugin, GenkitPluginV2 } from 'genkit/plugin';
 import { z } from '@genkit-ai/core';
-import {
-  googlePlugin,
-  groqPlugin,
-  localPlugin,
-  ollamaPlugin,
-  openRouterPlugin,
-} from './aiConfig.js';
+import { googlePlugin, ollamaPlugin, openRouterPlugin } from './aiConfig.js';
 
 const provider = process.env['AI_PROVIDER'];
 console.log(
@@ -19,7 +13,7 @@ console.log(
  * Registers all available plugins (if configured in env).
  */
 export const ai = genkit({
-  plugins: [googlePlugin(), groqPlugin(), localPlugin(), ollamaPlugin(), openRouterPlugin()].filter(
+  plugins: [googlePlugin(), ollamaPlugin(), openRouterPlugin()].filter(
     (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
   ),
 });
@@ -32,16 +26,6 @@ export const activeModel: string = ((): string => {
   const modelName = (p: string): string | undefined => process.env[p];
 
   switch (provider) {
-    case 'groq':
-      if (!modelName('GROQ_MODEL')) {
-        throw new Error('GROQ_MODEL environment variable is missing');
-      }
-      return `groq/${modelName('GROQ_MODEL')}`;
-    case 'local':
-      if (!modelName('LM_STUDIO_MODEL')) {
-        throw new Error('LM_STUDIO_MODEL environment variable is missing');
-      }
-      return `local/${modelName('LM_STUDIO_MODEL')}`;
     case 'ollama':
       if (!modelName('OLLAMA_MODEL')) {
         throw new Error('OLLAMA_MODEL environment variable is missing for Ollama');
@@ -53,8 +37,13 @@ export const activeModel: string = ((): string => {
       }
       return `openrouter/${modelName('OPENROUTER_MODEL')}`;
     case 'google':
-    default:
-      return 'googleai/gemini-2.5-flash';
+    default: {
+      const geminiModel = modelName('GEMINI_MODEL');
+      if (!geminiModel) {
+        throw new Error('GEMINI_MODEL environment variable is missing (required for Google AI)');
+      }
+      return `googleai/${geminiModel}`;
+    }
   }
 })();
 
