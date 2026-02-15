@@ -37,8 +37,13 @@ export const activeModel: string = ((): string => {
       }
       return `openrouter/${modelName('OPENROUTER_MODEL')}`;
     case 'google':
-    default:
-      return `googleai/${modelName('GEMINI_MODEL')}`;
+    default: {
+      const geminiModel = modelName('GEMINI_MODEL');
+      if (!geminiModel) {
+        throw new Error('GEMINI_MODEL environment variable is missing (required for Google AI)');
+      }
+      return `googleai/${geminiModel}`;
+    }
   }
 })();
 

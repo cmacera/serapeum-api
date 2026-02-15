@@ -53,7 +53,7 @@
     "genkit": "^1.28.0",
     "genkitx-ollama": "^1.28.0",
     "genkitx-openai": "^0.30.0",
-    "zod": "^4.3.6"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",

@@ -12,7 +12,8 @@ import { openAI } from 'genkitx-openai';
  * Defaults to Google AI if no other provider is properly configured,
  * but strictly requires API key to function.
  */
-export const googlePlugin = (): GenkitPlugin | GenkitPluginV2 => {
+export const googlePlugin = (): GenkitPlugin | GenkitPluginV2 | null => {
+  if (!process.env['GOOGLE_GENAI_API_KEY']) return null;
   return googleAI();
 };
 
