@@ -7,6 +7,23 @@ import { searchGamesTool } from '../../tools/search-games-tool.js';
  * This flow does NOT use an LLM - it simply calls the searchGamesTool
  * and returns the raw results for UI consumption.
  */
+export const SearchGamesOutputSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    summary: z.string().optional(),
+    rating: z.number().optional(),
+    aggregated_rating: z.number().optional(),
+    released: z.string().optional(),
+    cover_url: z.string().optional(),
+    platforms: z.array(z.string()).optional(),
+    genres: z.array(z.string()).optional(),
+    developers: z.array(z.string()).optional(),
+    publishers: z.array(z.string()).optional(),
+    game_type: z.number().optional(),
+  })
+);
+
 export const searchGames = ai.defineFlow(
   {
     name: 'searchGames',
@@ -14,22 +31,7 @@ export const searchGames = ai.defineFlow(
       query: z.string().min(1, 'Search query cannot be empty'),
       language: z.string().optional(),
     }),
-    outputSchema: z.array(
-      z.object({
-        id: z.number(),
-        name: z.string(),
-        summary: z.string().optional(),
-        rating: z.number().optional(),
-        aggregated_rating: z.number().optional(),
-        released: z.string().optional(),
-        cover_url: z.string().optional(),
-        platforms: z.array(z.string()).optional(),
-        genres: z.array(z.string()).optional(),
-        developers: z.array(z.string()).optional(),
-        publishers: z.array(z.string()).optional(),
-        game_type: z.number().optional(),
-      })
-    ),
+    outputSchema: SearchGamesOutputSchema,
   },
   async (input) => {
     // Call the search tool directly and return results

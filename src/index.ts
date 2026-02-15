@@ -8,6 +8,10 @@ import { searchGames } from './flows/catalog/searchGames.js';
 import { searchAll } from './flows/catalog/searchAll.js';
 import { searchWeb } from './flows/catalog/searchWeb.js';
 import { mediaAgent } from './flows/agent/mediaAgent.js';
+import { orchestratorFlow } from './flows/agent/orchestratorFlow.js';
+import './prompts/routerPrompt.js';
+import './prompts/extractorPrompt.js';
+import './prompts/synthesizerPrompt.js';
 
 const parsePort = (value: string | undefined, fallback: number): number => {
   const parsed = parseInt(value || '', 10);
@@ -47,7 +51,15 @@ console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
 // Start the Genkit Flows Server
 startFlowServer({
-  flows: [searchMedia, searchBooks, searchGames, searchAll, searchWeb, mediaAgent],
+  flows: [
+    searchMedia,
+    searchBooks,
+    searchGames,
+    searchAll,
+    searchWeb,
+    mediaAgent,
+    orchestratorFlow,
+  ],
   port: PORT,
   cors: {
     origin: corsOrigins,
