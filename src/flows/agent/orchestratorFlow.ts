@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
 import { searchAll, SearchAllOutputSchema } from '../catalog/searchAll.js';
 import { searchMedia, SearchMediaOutputSchema } from '../catalog/searchMedia.js';
@@ -13,6 +14,11 @@ const GeneralDiscoveryResponseSchema = z.object({
   data: SearchAllOutputSchema,
 });
 
+const ErrorResponseSchema = z.object({
+  error: z.string(),
+  details: z.string().optional(),
+});
+
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
@@ -25,6 +31,7 @@ export const orchestratorFlow = ai.defineFlow(
       SearchMediaOutputSchema,
       SearchGamesOutputSchema,
       SearchBooksOutputSchema,
+      ErrorResponseSchema,
     ]),
   },
   async (query) => {
@@ -46,24 +53,48 @@ export const orchestratorFlow = ai.defineFlow(
     if (route.intent === 'SPECIFIC_ENTITY') {
       const input = { query: route.extractedQuery, language: 'en' };
 
-      switch (route.category) {
-        case 'MOVIE_TV':
-          return await searchMedia(input);
-        case 'GAME':
-          return await searchGames(input);
-        case 'BOOK':
-          return await searchBooks(input);
-        case 'ALL':
-        default:
-          return await searchAll(input);
+      try {
+        switch (route.category) {
+          case 'MOVIE_TV':
+            return await searchMedia(input);
+          case 'GAME':
+            return await searchGames(input);
+          case 'BOOK':
+            return await searchBooks(input);
+          case 'ALL':
+          default:
+            return await searchAll(input);
+        }
+      } catch (error) {
+        console.error(
+          `[orchestratorFlow] Specific Entity Search failed for query "${input.query}":`,
+          inspect(error, { depth: null, colors: true })
+        );
+        return {
+          error: 'Failed to retrieve specific entity details.',
+          details: error instanceof Error ? error.message : String(error),
+        };
       }
     }
 
     // Path B: General Discovery
     if (route.intent === 'GENERAL_DISCOVERY') {
       // 1. Search Tavily for context
-      const tavilyResults = await searchTavilyTool({ query: route.extractedQuery, maxResults: 5 });
-      const tavilyContext = tavilyResults.map((r) => r.content).join('\n');
+      let tavilyContext = '';
+      try {
+        const tavilyResults = await searchTavilyTool({
+          query: route.extractedQuery,
+          maxResults: 5,
+        });
+        tavilyContext = tavilyResults.map((r) => r.content).join('\n');
+      } catch (error) {
+        console.error(
+          `[orchestratorFlow] Tavily search failed for query "${route.extractedQuery}":`,
+          inspect(error, { depth: null, colors: true })
+        );
+        // Continue with empty context (or maybe fallback logic could be improved, but this prevents crash)
+        tavilyContext = '';
+      }
 
       // 2. Extract Titles
       const { output: extraction } = await extractorPrompt(
