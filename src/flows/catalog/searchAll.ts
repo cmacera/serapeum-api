@@ -8,6 +8,13 @@ const SearchErrorSchema = z.object({
   message: z.string(),
 });
 
+export const SearchAllOutputSchema = z.object({
+  movies: z.array(MediaSearchResultSchema),
+  books: z.array(BookSearchResultSchema),
+  games: z.array(GameSearchResultSchema),
+  errors: z.array(SearchErrorSchema).optional(),
+});
+
 export const searchAll = ai.defineFlow(
   {
     name: 'searchAll',
@@ -15,12 +22,7 @@ export const searchAll = ai.defineFlow(
       query: z.string().min(1, 'Search query cannot be empty'),
       language: z.string().optional().default('es-ES'),
     }),
-    outputSchema: z.object({
-      movies: z.array(MediaSearchResultSchema),
-      books: z.array(BookSearchResultSchema),
-      games: z.array(GameSearchResultSchema),
-      errors: z.array(SearchErrorSchema).optional(),
-    }),
+    outputSchema: SearchAllOutputSchema,
   },
   async (input) => {
     // Execute all searches in parallel using Promise.allSettled

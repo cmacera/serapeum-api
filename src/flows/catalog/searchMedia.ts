@@ -7,6 +7,17 @@ import { searchMediaTool } from '../../tools/search-media-tool.js';
  * This flow does NOT use an LLM - it simply calls the searchMediaTool
  * and returns the raw results for UI consumption.
  */
+export const SearchMediaOutputSchema = z.array(
+  z.object({
+    id: z.number(),
+    title: z.string().optional(),
+    name: z.string().optional(),
+    media_type: z.enum(['movie', 'tv']),
+    release_date: z.string().optional(),
+    poster_path: z.string().nullable().optional(),
+  })
+);
+
 export const searchMedia = ai.defineFlow(
   {
     name: 'searchMedia',
@@ -14,16 +25,7 @@ export const searchMedia = ai.defineFlow(
       query: z.string().min(1, 'Search query cannot be empty'),
       language: z.string().optional().default('es-ES'),
     }),
-    outputSchema: z.array(
-      z.object({
-        id: z.number(),
-        title: z.string().optional(),
-        name: z.string().optional(),
-        media_type: z.enum(['movie', 'tv']),
-        release_date: z.string().optional(),
-        poster_path: z.string().nullable().optional(),
-      })
-    ),
+    outputSchema: SearchMediaOutputSchema,
   },
   async (input) => {
     // Execute the searchMediaTool - no LLM processing required
