@@ -1,8 +1,13 @@
-import { genkit, z } from 'genkit';
-// @ts-ignore
-import { googleAI } from '@genkit-ai/google-genai';
-// @ts-ignore
-import { openAI } from 'genkitx-openai';
+import { genkit } from 'genkit';
+import type { GenkitPlugin, GenkitPluginV2 } from 'genkit/plugin';
+import { z } from '@genkit-ai/core';
+import {
+  googlePlugin,
+  groqPlugin,
+  localPlugin,
+  ollamaPlugin,
+  openRouterPlugin,
+} from './aiConfig.js';
 
 const provider = process.env['AI_PROVIDER'];
 console.log(
@@ -10,80 +15,43 @@ console.log(
 );
 
 /**
- * Selects and configures the Genkit plugins based on the provider.
- */
-const getPlugins = (providerName?: string) => {
-  switch (providerName) {
-    case 'groq':
-      const groqModelName = process.env['GROQ_MODEL'];
-      if (!groqModelName) throw new Error('GROQ_MODEL is required for Groq provider');
-      return [
-        openAI({
-          apiKey: process.env['GROQ_API_KEY'],
-          baseURL: 'https://api.groq.com/openai/v1',
-          models: [
-            {
-              name: groqModelName,
-              info: {
-                label: `Groq - ${groqModelName}`,
-                supports: { multiturn: true, tools: true, media: false, output: ['text', 'json'] },
-                versions: [],
-              },
-              configSchema: z.object({}).passthrough(),
-            },
-          ],
-        }),
-      ];
-    case 'local':
-      const localModelName = process.env['LOCAL_MODEL'];
-      if (!localModelName) throw new Error('LOCAL_MODEL is required for Local provider');
-      return [
-        openAI({
-          apiKey: 'no-key-required',
-          baseURL: process.env['LOCAL_URL'],
-          models: [
-            {
-              name: localModelName,
-              info: {
-                label: `Local - ${localModelName}`,
-                supports: { multiturn: true, tools: true, media: false, output: ['text', 'json'] },
-                versions: [],
-              },
-              configSchema: z.object({}).passthrough(),
-            },
-          ],
-        }),
-      ];
-    case 'google':
-    default:
-      return [googleAI()];
-  }
-};
-
-/**
  * Global Genkit instance configuration.
- * Dynamically selects provider based on AI_PROVIDER env var.
+ * Registers all available plugins (if configured in env).
  */
 export const ai = genkit({
-  plugins: getPlugins(provider),
+  plugins: [googlePlugin(), groqPlugin(), localPlugin(), ollamaPlugin(), openRouterPlugin()].filter(
+    (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
+  ),
 });
 
 /**
  * Active model configuration.
  * Exports the model to be used by flows based on the active provider.
  */
-export const activeModel = (() => {
+export const activeModel: string = ((): string => {
+  const modelName = (p: string): string | undefined => process.env[p];
+
   switch (provider) {
     case 'groq':
-      if (!process.env['GROQ_MODEL']) {
+      if (!modelName('GROQ_MODEL')) {
         throw new Error('GROQ_MODEL environment variable is missing');
       }
-      return `openai/${process.env['GROQ_MODEL']}`;
+      return `groq/${modelName('GROQ_MODEL')}`;
     case 'local':
-      if (!process.env['LOCAL_MODEL']) {
-        throw new Error('LOCAL_MODEL environment variable is missing');
+      if (!modelName('LM_STUDIO_MODEL')) {
+        throw new Error('LM_STUDIO_MODEL environment variable is missing');
       }
-      return `openai/${process.env['LOCAL_MODEL']}`;
+      return `local/${modelName('LM_STUDIO_MODEL')}`;
+    case 'ollama':
+      if (!modelName('OLLAMA_MODEL')) {
+        throw new Error('OLLAMA_MODEL environment variable is missing for Ollama');
+      }
+      return `ollama/${modelName('OLLAMA_MODEL')}`;
+    case 'openrouter':
+      if (!modelName('OPENROUTER_MODEL')) {
+        throw new Error('OPENROUTER_MODEL environment variable is missing');
+      }
+      return `openrouter/${modelName('OPENROUTER_MODEL')}`;
     case 'google':
     default:
       return 'googleai/gemini-2.5-flash';

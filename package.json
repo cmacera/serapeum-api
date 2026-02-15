@@ -51,7 +51,9 @@
     "axios": "^1.13.5",
     "dotenv": "^17.2.4",
     "genkit": "^1.28.0",
+    "genkitx-ollama": "^1.28.0",
     "genkitx-openai": "^0.30.0",
+    "openai": "^6.22.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
