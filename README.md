@@ -46,6 +46,29 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
 - `npm run typecheck` - Run TypeScript type checking
+- `npm run generate:openapi` - Regenerate `docs/openapi.yaml` from Zod schemas
+
+## 📄 OpenAPI Spec
+
+The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is auto-generated from the Zod schemas in each flow file.
+
+**Regenerate after any schema change:**
+
+```bash
+npm run generate:openapi
+```
+
+The spec covers all 5 endpoints:
+
+| Endpoint | Description |
+|---|---|
+| `POST /searchBooks` | Search Google Books API |
+| `POST /searchMedia` | Search TMDB (movies & TV) |
+| `POST /searchGames` | Search IGDB (video games) |
+| `POST /searchAll` | Search all sources in parallel |
+| `POST /orchestratorFlow` | AI natural language orchestrator |
+
+> **Note:** The schemas in `scripts/generate-openapi.ts` mirror the Zod schemas in the flow files. Keep them in sync when modifying flow output schemas.
 
 ## 🏗️ Project Structure
 

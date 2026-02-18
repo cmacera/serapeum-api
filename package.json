@@ -20,6 +20,7 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
+    "generate:openapi": "node --import tsx/esm scripts/generate-openapi.ts",
     "prepare": "husky"
   },
   "repository": {
@@ -43,6 +44,7 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@genkit-ai/ai": "^1.28.0",
     "@genkit-ai/core": "^1.28.0",
     "@genkit-ai/express": "^1.28.0",
