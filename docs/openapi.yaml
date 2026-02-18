@@ -7,6 +7,8 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development
+  - url: https://api.serapeum.app
+    description: Production
 components:
   schemas:
     Book:
@@ -215,6 +217,7 @@ paths:
       description: Searches the Google Books API and returns a list of matching books.
       tags:
         - Catalog
+      security: []
       requestBody:
         required: true
         content:
@@ -228,12 +231,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BooksResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /searchMedia:
     post:
       summary: Search for movies and TV shows
       description: Searches the TMDB API and returns a list of matching movies and TV shows.
       tags:
         - Catalog
+      security: []
       requestBody:
         required: true
         content:
@@ -247,12 +263,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /searchGames:
     post:
       summary: Search for video games
       description: Searches the IGDB API and returns a list of matching video games.
       tags:
         - Catalog
+      security: []
       requestBody:
         required: true
         content:
@@ -266,6 +295,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GamesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /searchAll:
     post:
       summary: Search across all media types
@@ -273,6 +314,7 @@ paths:
         aggregated results.
       tags:
         - Catalog
+      security: []
       requestBody:
         required: true
         content:
@@ -286,6 +328,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchAllResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /orchestratorFlow:
     post:
       summary: AI orchestrator
@@ -294,6 +348,7 @@ paths:
         plain text reply depending on the query intent.
       tags:
         - Agent
+      security: []
       requestBody:
         required: true
         content:
@@ -310,4 +365,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OrchestratorResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 webhooks: {}

@@ -17,6 +17,7 @@ import {
   OpenAPIRegistry,
 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import * as yaml from 'yaml';
 
 // Extend Zod with OpenAPI support (must be called before any schema definitions)
 extendZodWithOpenApi(z);
@@ -180,6 +181,7 @@ registry.registerPath({
   summary: 'Search for books',
   description: 'Searches the Google Books API and returns a list of matching books.',
   tags: ['Catalog'],
+  security: [],
   request: {
     body: {
       required: true,
@@ -191,6 +193,14 @@ registry.registerPath({
       description: 'List of matching books',
       content: { 'application/json': { schema: BooksResponseSchema } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
   },
 });
 
@@ -200,6 +210,7 @@ registry.registerPath({
   summary: 'Search for movies and TV shows',
   description: 'Searches the TMDB API and returns a list of matching movies and TV shows.',
   tags: ['Catalog'],
+  security: [],
   request: {
     body: {
       required: true,
@@ -211,6 +222,14 @@ registry.registerPath({
       description: 'List of matching movies and TV shows',
       content: { 'application/json': { schema: MediaResponseSchema } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
   },
 });
 
@@ -220,6 +239,7 @@ registry.registerPath({
   summary: 'Search for video games',
   description: 'Searches the IGDB API and returns a list of matching video games.',
   tags: ['Catalog'],
+  security: [],
   request: {
     body: {
       required: true,
@@ -231,6 +251,14 @@ registry.registerPath({
       description: 'List of matching video games',
       content: { 'application/json': { schema: GamesResponseSchema } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
   },
 });
 
@@ -241,6 +269,7 @@ registry.registerPath({
   description:
     'Searches books, movies/TV shows, and games in parallel and returns aggregated results.',
   tags: ['Catalog'],
+  security: [],
   request: {
     body: {
       required: true,
@@ -252,6 +281,14 @@ registry.registerPath({
       description: 'Aggregated results from all media sources',
       content: { 'application/json': { schema: SearchAllResponseSchema } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
   },
 });
 
@@ -262,6 +299,7 @@ registry.registerPath({
   description:
     'Routes a natural language query through the AI orchestrator. Returns structured catalog data, a synthesized text+data response, or a plain text reply depending on the query intent.',
   tags: ['Agent'],
+  security: [],
   request: {
     body: {
       required: true,
@@ -274,6 +312,14 @@ registry.registerPath({
     200: {
       description: 'Orchestrator response (varies by query intent)',
       content: { 'application/json': { schema: OrchestratorResponseSchema } },
+    },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
     },
   },
 });
@@ -292,10 +338,12 @@ const document = generator.generateDocument({
     description:
       'AI-powered media discovery API. Search for books, movies, TV shows, and video games, or use the orchestrator for natural language queries.',
   },
-  servers: [{ url: 'http://localhost:3000', description: 'Local development' }],
+  servers: [
+    { url: 'http://localhost:3000', description: 'Local development' },
+    { url: 'https://api.serapeum.app', description: 'Production' },
+  ],
 });
 
-const yaml = await import('yaml');
 const yamlString = yaml.stringify(document);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

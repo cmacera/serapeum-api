@@ -50,7 +50,9 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 
 ## 📄 OpenAPI Spec
 
-The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is auto-generated from the Zod schemas in each flow file.
+The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is generated from the Zod schemas defined inline in [`scripts/generate-openapi.ts`](./scripts/generate-openapi.ts), which mirror the schemas in `src/flows/*.ts`.
+
+> **Note:** When you change a flow's output schema in `src/flows/`, you must also update the corresponding mirrored schema in `scripts/generate-openapi.ts` and re-run `npm run generate:openapi`.
 
 **Regenerate after any schema change:**
 
