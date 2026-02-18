@@ -1,0 +1,380 @@
+openapi: 3.1.0
+info:
+  title: Serapeum API
+  version: 1.0.0
+  description: AI-powered media discovery API. Search for books, movies, TV shows,
+    and video games, or use the orchestrator for natural language queries.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: https://api.serapeum.app
+    description: Production
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        publisher:
+          type: string
+        publishedDate:
+          type: string
+        description:
+          type: string
+        isbn:
+          type: string
+        pageCount:
+          type: number
+        categories:
+          type: array
+          items:
+            type: string
+        imageLinks:
+          type: object
+          properties:
+            thumbnail:
+              type: string
+            smallThumbnail:
+              type: string
+        language:
+          type: string
+        previewLink:
+          type: string
+      required:
+        - id
+        - title
+    Media:
+      type: object
+      properties:
+        id:
+          type: number
+        title:
+          type: string
+        name:
+          type: string
+        media_type:
+          type: string
+          enum:
+            - movie
+            - tv
+        release_date:
+          type: string
+        poster_path:
+          type:
+            - string
+            - "null"
+        overview:
+          type: string
+        vote_average:
+          type: number
+        popularity:
+          type: number
+      required:
+        - id
+        - media_type
+    Game:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        summary:
+          type: string
+        rating:
+          type: number
+        aggregated_rating:
+          type: number
+        released:
+          type: string
+        cover_url:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        developers:
+          type: array
+          items:
+            type: string
+        publishers:
+          type: array
+          items:
+            type: string
+        game_type:
+          type: number
+      required:
+        - id
+        - name
+    SearchError:
+      type: object
+      properties:
+        source:
+          type: string
+          enum:
+            - movies
+            - books
+            - games
+        message:
+          type: string
+      required:
+        - source
+        - message
+    SearchAllResponse:
+      type: object
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Media"
+        books:
+          type: array
+          items:
+            $ref: "#/components/schemas/Book"
+        games:
+          type: array
+          items:
+            $ref: "#/components/schemas/Game"
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchError"
+      required:
+        - movies
+        - books
+        - games
+    BooksResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Book"
+    MediaResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Media"
+    GamesResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Game"
+    GeneralDiscoveryResponse:
+      type: object
+      properties:
+        text:
+          type: string
+          description: AI-generated summary text
+        data:
+          $ref: "#/components/schemas/SearchAllResponse"
+      required:
+        - text
+        - data
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
+    OrchestratorResponse:
+      anyOf:
+        - type: string
+          description: Plain text response (out-of-scope or fallback)
+        - $ref: "#/components/schemas/GeneralDiscoveryResponse"
+        - $ref: "#/components/schemas/BooksResponse"
+        - $ref: "#/components/schemas/MediaResponse"
+        - $ref: "#/components/schemas/GamesResponse"
+        - $ref: "#/components/schemas/ErrorResponse"
+    CatalogSearchInput:
+      type: object
+      properties:
+        query:
+          type: string
+          minLength: 1
+          description: Search query string
+          example: Dune
+        language:
+          type: string
+          description: BCP-47 language tag (e.g. en, es-ES)
+          example: en
+      required:
+        - query
+  parameters: {}
+paths:
+  /searchBooks:
+    post:
+      summary: Search for books
+      description: Searches the Google Books API and returns a list of matching books.
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSearchInput"
+      responses:
+        "200":
+          description: List of matching books
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BooksResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /searchMedia:
+    post:
+      summary: Search for movies and TV shows
+      description: Searches the TMDB API and returns a list of matching movies and TV shows.
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSearchInput"
+      responses:
+        "200":
+          description: List of matching movies and TV shows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /searchGames:
+    post:
+      summary: Search for video games
+      description: Searches the IGDB API and returns a list of matching video games.
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSearchInput"
+      responses:
+        "200":
+          description: List of matching video games
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GamesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /searchAll:
+    post:
+      summary: Search across all media types
+      description: Searches books, movies/TV shows, and games in parallel and returns
+        aggregated results.
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogSearchInput"
+      responses:
+        "200":
+          description: Aggregated results from all media sources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchAllResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /orchestratorFlow:
+    post:
+      summary: AI orchestrator
+      description: Routes a natural language query through the AI orchestrator.
+        Returns structured catalog data, a synthesized text+data response, or a
+        plain text reply depending on the query intent.
+      tags:
+        - Agent
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              minLength: 1
+              description: Natural language query for the AI orchestrator
+              example: Best sci-fi movies of 2024
+      responses:
+        "200":
+          description: Orchestrator response (varies by query intent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrchestratorResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+webhooks: {}

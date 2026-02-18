@@ -46,6 +46,31 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check code formatting
 - `npm run typecheck` - Run TypeScript type checking
+- `npm run generate:openapi` - Regenerate `docs/openapi.yaml` from Zod schemas
+
+## 📄 OpenAPI Spec
+
+The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is generated from the Zod schemas defined inline in [`scripts/generate-openapi.ts`](./scripts/generate-openapi.ts), which mirror the schemas in `src/flows/*.ts`.
+
+> **Note:** When you change a flow's output schema in `src/flows/`, you must also update the corresponding mirrored schema in `scripts/generate-openapi.ts` and re-run `npm run generate:openapi`.
+
+**Regenerate after any schema change:**
+
+```bash
+npm run generate:openapi
+```
+
+The spec covers all 5 endpoints:
+
+| Endpoint | Description |
+|---|---|
+| `POST /searchBooks` | Search Google Books API |
+| `POST /searchMedia` | Search TMDB (movies & TV) |
+| `POST /searchGames` | Search IGDB (video games) |
+| `POST /searchAll` | Search all sources in parallel |
+| `POST /orchestratorFlow` | AI natural language orchestrator |
+
+> **Note:** The schemas in `scripts/generate-openapi.ts` mirror the Zod schemas in the flow files. Keep them in sync when modifying flow output schemas.
 
 ## 🏗️ Project Structure
 
