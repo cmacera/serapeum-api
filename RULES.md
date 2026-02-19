@@ -112,6 +112,25 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
   - All changes must be staged or left in the working directory for user review.  
   - Commits to remote branches are strictly prohibited unless the user explicitly requests them (e.g. *"commit and push this"*).
 
+### 5.2 🤖 Agent PR Creation Protocol
+
+Every Pull Request opened by the AI agent **MUST** follow the workflow defined in `.agent/workflows/create-pr.md`. Key requirements:
+
+- **PR Title format (MANDATORY):**  
+  The `check-pr-title.yml` action validates: `/^(\[SER-\d+\]|SER-\d+)/`  
+  Both formats pass ✅:
+  ```text
+  [SER-47] feat(auth): implement Supabase JWT validation middleware
+  SER-47 feat(auth): implement Supabase JWT validation middleware
+  ```
+  Preferred: `[SER-47] ...` — matches Linear's own link style.  
+  > Any title **not** starting with `[SER-XXX]` or `SER-XXX` will **fail** CI.
+
+- **PR Description (MANDATORY):**  
+  Must contain `Closes SER-XXX` to auto-link the Linear issue and satisfy the Linear ↔ GitHub sync requirement.
+
+> ⚠️ Pull Requests missing a valid Linear ticket ID (either `SER-XXX` or `[SER-XXX]`) at the start of the title will be **blocked by CI**.
+
 ---
 
 ## 6. 🛂 CI Enforcement

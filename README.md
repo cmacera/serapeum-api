@@ -26,7 +26,7 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 3. **Configure environment**
    ```bash
    cp .env.example .env
-   # Edit .env and add your GOOGLE_GENAI_API_KEY
+   # Required: fill in GOOGLE_GENAI_API_KEY and SUPABASE_JWT_SECRET
    ```
 
 4. **Run development server**
@@ -77,8 +77,11 @@ The spec covers all 5 endpoints:
 ```
 src/
 ├── flows/          # Genkit Flows (API Logic)
-├── tools/          # External API integrations
-├── lib/            # Shared infrastructure (ai.ts, config)
+│   ├── catalog/    # searchMedia, searchBooks, searchGames, searchAll, searchWeb
+│   └── agent/      # mediaAgent, orchestratorFlow
+├── tools/          # External API integrations (TMDB, Books, IGDB, Tavily)
+├── lib/            # Shared infrastructure (ai.ts, auth.ts)
+├── middleware/     # verifyJwt.ts — Supabase JWT contextProvider
 ├── prompts/        # Dotprompt files
 └── index.ts        # Server entry point
 ```
@@ -109,7 +112,65 @@ docker run -p 3000:3000 \
   serapeum-api
 ```
 
-## 🔐 Environment Variables
+## 🔐 Authentication
+
+All endpoints require a valid **Supabase JWT** in the `Authorization` header:
+
+```http
+Authorization: Bearer <supabase_access_token>
+```
+
+Tokens are verified **locally** using `SUPABASE_JWT_SECRET` — no round-trip to Supabase. Requests without a token, or with an invalid/expired one, receive a `401 Unauthorized` response.
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full auth flow diagram.
+
+## 🧪 Testing Without a Flutter App
+
+You can generate a valid JWT locally with Node.js and use it with `curl`:
+
+**1. Start the server:**
+```bash
+npm run dev
+```
+
+**2. Generate a test token** (run once in a Node.js REPL or script):
+```js
+import { SignJWT } from 'jose';
+const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
+const token = await new SignJWT({ sub: 'test-user', email: 'dev@test.com' })
+  .setProtectedHeader({ alg: 'HS256' })
+  .setExpirationTime('24h')
+  .sign(secret);
+console.log(token);
+```
+
+Or run it directly:
+```bash
+node --input-type=module --env-file=.env <<'EOF'
+import { SignJWT } from 'jose';
+const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
+const token = await new SignJWT({ sub: 'test-user' })
+  .setProtectedHeader({ alg: 'HS256' }).setExpirationTime('24h').sign(secret);
+console.log(token);
+EOF
+```
+
+**3. Call an endpoint:**
+```bash
+curl -X POST http://localhost:3000/searchMedia \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token_from_step_2>" \
+  -d '{"data":{"query":"Inception"}}'
+```
+
+**4. Verify auth rejects unauthenticated requests:**
+```bash
+curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/searchMedia \
+  -H "Content-Type: application/json" -d '{"data":{"query":"Inception"}}'
+# Expected: 401
+```
+
+## 🔧 Environment Variables
 
 | Variable | Description | Required |
 |----------|-------------|----------|
@@ -117,6 +178,14 @@ docker run -p 3000:3000 \
 | `GOOGLE_GENAI_API_KEY` | Google AI API key | Yes |
 | `GENKIT_ENV` | Environment: `dev` or `prod` | No (default: dev) |
 | `CORS_ORIGINS` | Comma-separated allowed origins | No |
+| `SUPABASE_JWT_SECRET` | Supabase JWT secret for auth | **Yes** |
+| `SUPABASE_URL` | Supabase project URL | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | No |
+| `TMDB_API_KEY` | TMDB API key | Yes (for searchMedia) |
+| `GOOGLE_BOOKS_API_KEY` | Google Books API key | Yes (for searchBooks) |
+| `IGDB_CLIENT_ID` | IGDB client ID | Yes (for searchGames) |
+| `IGDB_CLIENT_SECRET` | IGDB client secret | Yes (for searchGames) |
+| `TAVILY_API_KEY` | Tavily API key | Yes (for searchWeb) |
 
 ## 📚 Documentation
 
