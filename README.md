@@ -202,7 +202,3 @@ This project follows strict coding standards:
 - **Commits**: Conventional Commits format enforced
 - **Branching**: All branches must start with Linear issue key (e.g., `SER-123/feature-name`)
 - **Quality**: Pre-commit hooks run linting, formatting, and type-checking
-
-## 📝 License
-
-ISC
