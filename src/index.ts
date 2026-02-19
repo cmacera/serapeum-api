@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
-import { startFlowServer } from '@genkit-ai/express';
+import { startFlowServer, withFlowOptions } from '@genkit-ai/express';
+import { jwtContextProvider } from './middleware/verifyJwt.js';
 
 import { searchMedia } from './flows/catalog/searchMedia.js';
 import { searchBooks } from './flows/catalog/searchBooks.js';
@@ -50,15 +51,16 @@ const corsOrigins = getCorsOrigins();
 console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
 // Start the Genkit Flows Server
+// All flows are protected with Supabase JWT validation via jwtContextProvider.
 startFlowServer({
   flows: [
-    searchMedia,
-    searchBooks,
-    searchGames,
-    searchAll,
-    searchWeb,
-    mediaAgent,
-    orchestratorFlow,
+    withFlowOptions(searchMedia, { contextProvider: jwtContextProvider }),
+    withFlowOptions(searchBooks, { contextProvider: jwtContextProvider }),
+    withFlowOptions(searchGames, { contextProvider: jwtContextProvider }),
+    withFlowOptions(searchAll, { contextProvider: jwtContextProvider }),
+    withFlowOptions(searchWeb, { contextProvider: jwtContextProvider }),
+    withFlowOptions(mediaAgent, { contextProvider: jwtContextProvider }),
+    withFlowOptions(orchestratorFlow, { contextProvider: jwtContextProvider }),
   ],
   port: PORT,
   cors: {

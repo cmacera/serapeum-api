@@ -27,26 +27,27 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 **Project organization:**  
 The project follows a **modular architecture**, with `index.ts` serving as the main entry point and bootstrapper.
 
+```
 src/
-├── flows/ # The API Logic (Genkit Flows)
-│ ├── entertainment/
-│ │ ├── recommendNextBook.ts
-│ │ └── analyzeMovieSentiment.ts
-│ └── user/
+├── flows/              # Genkit Flows (API logic)
+│   ├── catalog/        # searchMedia, searchBooks, searchGames, searchAll, searchWeb
+│   └── agent/          # mediaAgent, orchestratorFlow
 │
-├── tools/ # External Capabilities
-│ ├── tmdb/
-│ └── tavily/
+├── tools/              # External API wrappers (TMDB, Books, IGDB, Tavily)
 │
-├── lib/ # Shared Infrastructure
-│ ├── supabase.ts # Supabase Admin Client
-│ ├── ai.ts       # Genkit Instance Configuration
-│ └── auth.ts     # Middleware (Bearer Token validation)
+├── lib/                # Shared infrastructure
+│   ├── ai.ts           # Genkit instance + model configuration
+│   ├── aiConfig.ts     # Provider-specific AI setup
+│   └── auth.ts         # JWT verification (verifySupabaseJwt via jose)
 │
-├── prompts/ # Dotprompt Files
-└── index.ts # Server Entry Point (starts startFlowsServer)
+├── middleware/
+│   └── verifyJwt.ts    # Genkit contextProvider — validates Bearer token on every request
+│
+├── prompts/            # Dotprompt files (routerPrompt, extractorPrompt, synthesizerPrompt)
+└── index.ts            # Server entry point
+```
 
-Dockerfile # Production Image Definition
+Dockerfile  # Production image definition
 
 ---
 
@@ -54,27 +55,44 @@ Dockerfile # Production Image Definition
 
 ### 3.1 🧩 Standalone Server Pattern
 
-- **Entry Point:** `src/index.ts` must import all flows and call `startFlowsServer()`.  
-- **Port Binding:** The server must bind to `process.env.PORT` (default `3000` or `4000`) to comply with PaaS requirements.  
-- **CORS Policy:** Configure CORS to explicitly allow requests from the Flutter app’s **Bundle ID** or **authorized domains**.
+- **Entry Point:** `src/index.ts` imports all flows and calls `startFlowServer()`.
+- **Port Binding:** The server binds to `process.env.PORT` (default `3000`) to comply with PaaS requirements.
+- **CORS Policy:** Configure `CORS_ORIGINS` to explicitly allow requests from authorized clients.
 
 ---
 
-### 3.2 🧠 Flow Pattern
+### 3.2 🔐 Authentication Pattern
 
-- **Definition:** Logic units are instantiated via `ai.defineFlow`.  
-- **Exposure:** All flows are auto-exposed by Genkit under `POST /api/<flowName>`.  
-- **Auth Handling:** Flows must enforce authentication using the shared middleware from `lib/auth.ts`. Tokens are passed in `headers` or `context`.
+All endpoints are protected by a **Supabase JWT contextProvider** (`src/middleware/verifyJwt.ts`).
+
+```
+Request
+  └─▶ jwtContextProvider          (src/middleware/verifyJwt.ts)
+        ├── No Authorization header?   → 401
+        ├── Not a Bearer token?        → 401
+        ├── Invalid / tampered?        → 401
+        ├── Expired?                   → 401
+        └── Valid ✓
+              └─▶ Genkit Flow executes → 200
+```
+
+- Tokens are **verified locally** using the `SUPABASE_JWT_SECRET` — zero Supabase network latency.
+- Each flow is registered via `withFlowOptions(flow, { contextProvider: jwtContextProvider })` in `index.ts`.
+- The verified JWT payload is available to flows via `getFlowContext()` if needed.
 
 ---
 
-### 3.3 🗄️ Data Access
+### 3.3 🧠 Flow Pattern
 
-- **Storage Engine:** **Supabase** provides persistence via PostgreSQL.  
-- **Connection Details:**  
-  - `SUPABASE_URL`  
-  - `SUPABASE_SERVICE_ROLE_KEY`  
-  Defined in the environment at runtime and injected securely through environment variables.
+- **Definition:** Logic units are declared with `ai.defineFlow`.
+- **Exposure:** All flows are auto-exposed under `POST /<flowName>` by Genkit.
+
+---
+
+### 3.4 🗄️ Data Access
+
+- **Storage Engine:** **Supabase** provides persistence via PostgreSQL.
+- **Connection Variables:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, injected at runtime.
 
 ---
 
@@ -86,9 +104,18 @@ Dockerfile # Production Image Definition
 
 | Variable | Description |
 |-----------|-------------|
-| `PORT` | Server listening port |
+| `PORT` | Server listening port (default: `3000`) |
 | `GOOGLE_GENAI_API_KEY` | API key for Gemini models |
-| `GENKIT_ENV` | Defines environment: `"dev"` or `"prod"` |
+| `GENKIT_ENV` | Environment: `"dev"` or `"prod"` |
+| `CORS_ORIGINS` | Comma-separated allowed origins |
+| `SUPABASE_JWT_SECRET` | **Required** — shared secret for local JWT verification |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for admin DB access) |
+| `TMDB_API_KEY` | TMDB movie/TV search |
+| `GOOGLE_BOOKS_API_KEY` | Google Books search |
+| `IGDB_CLIENT_ID` | IGDB game search (client ID) |
+| `IGDB_CLIENT_SECRET` | IGDB game search (client secret) |
+| `TAVILY_API_KEY` | Tavily web search |
 
 ---
 
