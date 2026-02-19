@@ -28,11 +28,22 @@ function getJwtSecret(): Uint8Array {
  */
 export async function verifySupabaseJwt(token: string): Promise<JWTPayload> {
   const secret = getJwtSecret();
+  const supabaseUrl = process.env['SUPABASE_URL'];
+
+  if (!supabaseUrl) {
+    throw new GenkitError({
+      status: 'INTERNAL',
+      message: 'Server misconfiguration: SUPABASE_URL is not set.',
+    });
+  }
+
+  const issuer = `${supabaseUrl}/auth/v1`;
+
   try {
     const { payload } = await jwtVerify(token, secret, {
       algorithms: ['HS256'],
       audience: 'authenticated',
-      issuer: process.env['SUPABASE_URL'],
+      issuer,
     });
     return payload;
   } catch (err) {

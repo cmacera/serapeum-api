@@ -10,6 +10,7 @@ import { jwtContextProvider } from '../../../src/middleware/verifyJwt.js';
 const TEST_SECRET = 'test-secret-that-is-at-least-32-chars-long!';
 const TEST_SECRET_BYTES = new TextEncoder().encode(TEST_SECRET);
 const TEST_URL = 'https://abc123xyz.supabase.co';
+const TEST_ISSUER = `${TEST_URL}/auth/v1`;
 
 /**
  * Creates a signed HS256 JWT using the test secret.
@@ -22,7 +23,7 @@ async function signToken(
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setAudience('authenticated')
-    .setIssuer(TEST_URL)
+    .setIssuer(TEST_ISSUER)
     .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(TEST_SECRET_BYTES);
@@ -79,6 +80,8 @@ describe('jwtContextProvider', () => {
     const wrongSecretBytes = new TextEncoder().encode('wrong-secret-that-is-at-least-32-chars!');
     const badToken = await new SignJWT({ sub: 'attacker' })
       .setProtectedHeader({ alg: 'HS256' })
+      .setAudience('authenticated')
+      .setIssuer(TEST_ISSUER)
       .setExpirationTime('1h')
       .sign(wrongSecretBytes);
 
