@@ -119,7 +119,7 @@ Every Pull Request opened by the AI agent **MUST** follow the workflow defined i
 - **PR Title format (MANDATORY):**  
   The `check-pr-title.yml` action validates: `/^(\[SER-\d+\]|SER-\d+)/`  
   Both formats pass ✅:
-  ```
+  ```text
   [SER-47] feat(auth): implement Supabase JWT validation middleware
   SER-47 feat(auth): implement Supabase JWT validation middleware
   ```
@@ -129,7 +129,7 @@ Every Pull Request opened by the AI agent **MUST** follow the workflow defined i
 - **PR Description (MANDATORY):**  
   Must contain `Closes SER-XXX` to auto-link the Linear issue and satisfy the Linear ↔ GitHub sync requirement.
 
-> ⚠️ A PR submitted without `[SER-XXX]` in the title will be **blocked by CI** and require manual correction.
+> ⚠️ Pull Requests missing a valid Linear ticket ID (either `SER-XXX` or `[SER-XXX]`) at the start of the title will be **blocked by CI**.
 
 ---
 

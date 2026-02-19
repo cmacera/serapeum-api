@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GenkitError } from 'genkit';
 import { SignJWT } from 'jose';
-import { jwtContextProvider } from '@/middleware/verifyJwt';
+import { jwtContextProvider } from '../../../src/middleware/verifyJwt.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -29,7 +29,7 @@ async function signToken(
  * Builds a fake contextProvider argument as Genkit would provide it.
  */
 function makeContext(authHeader?: string): {
-  method: string;
+  method: 'POST';
   headers: Record<string, string>;
   input: unknown;
 } {
@@ -55,14 +55,17 @@ describe('jwtContextProvider', () => {
   });
 
   it('throws UNAUTHENTICATED when there is no Authorization header', async () => {
-    await expect(jwtContextProvider(makeContext())).rejects.toBeInstanceOf(GenkitError);
-    await expect(jwtContextProvider(makeContext())).rejects.toMatchObject({
+    const result = jwtContextProvider(makeContext());
+    await expect(result).rejects.toBeInstanceOf(GenkitError);
+    await expect(result).rejects.toMatchObject({
       status: 'UNAUTHENTICATED',
     });
   });
 
   it('throws UNAUTHENTICATED when the Authorization scheme is not Bearer', async () => {
-    await expect(jwtContextProvider(makeContext('Basic dXNlcjpwYXNz'))).rejects.toMatchObject({
+    const result = jwtContextProvider(makeContext('Basic dXNlcjpwYXNz'));
+    await expect(result).rejects.toBeInstanceOf(GenkitError);
+    await expect(result).rejects.toMatchObject({
       status: 'UNAUTHENTICATED',
     });
   });
@@ -75,7 +78,9 @@ describe('jwtContextProvider', () => {
       .setExpirationTime('1h')
       .sign(wrongSecretBytes);
 
-    await expect(jwtContextProvider(makeContext(`Bearer ${badToken}`))).rejects.toMatchObject({
+    const result = jwtContextProvider(makeContext(`Bearer ${badToken}`));
+    await expect(result).rejects.toBeInstanceOf(GenkitError);
+    await expect(result).rejects.toMatchObject({
       status: 'UNAUTHENTICATED',
     });
   });
@@ -83,7 +88,9 @@ describe('jwtContextProvider', () => {
   it('throws UNAUTHENTICATED when the token is expired', async () => {
     const expiredToken = await signToken({ sub: 'user-id' }, '-1s');
 
-    await expect(jwtContextProvider(makeContext(`Bearer ${expiredToken}`))).rejects.toMatchObject({
+    const result = jwtContextProvider(makeContext(`Bearer ${expiredToken}`));
+    await expect(result).rejects.toBeInstanceOf(GenkitError);
+    await expect(result).rejects.toMatchObject({
       status: 'UNAUTHENTICATED',
     });
   });

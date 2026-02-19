@@ -16,7 +16,7 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 | 🧩 Runtime | Node.js 22+ (LTS) |
 | 📝 Language | TypeScript 5.x (Strict Mode) |
 | ⚙️ Framework | Genkit Core + Google AI Plugin |
-| 🛰️ Server Mode | Genkit Standalone (`startFlowsServer`) or Express Adapter |
+| 🛰️ Server Mode | Genkit Standalone (`startFlowServer`) or Express Adapter |
 | 🗄️ Database | Supabase JS Client (PostgreSQL) |
 | 📦 Deployment | Docker / OCI Container |
 

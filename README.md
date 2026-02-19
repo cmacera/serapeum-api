@@ -116,7 +116,7 @@ docker run -p 3000:3000 \
 
 All endpoints require a valid **Supabase JWT** in the `Authorization` header:
 
-```
+```http
 Authorization: Bearer <supabase_access_token>
 ```
 

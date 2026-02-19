@@ -27,11 +27,11 @@ Follow these steps every time you open a PR. Missing step 2 will cause the `PR T
    > ⚠️ Any title that does **not** begin with `[SER-XXX]` or `SER-XXX` will **fail** the `Check PR Title` CI workflow.
 
 3. Write a PR description that includes a Linear close reference:
-   ```
+   ```markdown
    ## Summary
    <short explanation of what changed and why>
 
-   Closes SER-47
+   Closes SER-XXX
    ```
 
 4. Push the branch and open the PR:
