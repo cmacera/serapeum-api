@@ -9,17 +9,17 @@ Follow these steps every time you open a PR. Missing step 2 will cause the `PR T
 ## Steps
 
 1. Ensure your branch is named with the Linear ticket prefix:
-   ```
+   ```text
    SER-XXX/short-description
    ```
    Example: `SER-47/supabase-jwt-validation-middleware`
 
 2. **Set the PR title** — it MUST start with the Linear ticket ID. The `check-pr-title.yml` action validates against:
-   ```
+   ```text
    /^(\[SER-\d+\]|SER-\d+)/
    ```
    Both of these pass ✅:
-   ```
+   ```text
    [SER-47] feat(auth): implement Supabase JWT validation middleware
    SER-47 feat(auth): implement Supabase JWT validation middleware
    ```

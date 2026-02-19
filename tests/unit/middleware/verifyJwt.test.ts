@@ -9,6 +9,7 @@ import { jwtContextProvider } from '../../../src/middleware/verifyJwt.js';
 
 const TEST_SECRET = 'test-secret-that-is-at-least-32-chars-long!';
 const TEST_SECRET_BYTES = new TextEncoder().encode(TEST_SECRET);
+const TEST_URL = 'https://abc123xyz.supabase.co';
 
 /**
  * Creates a signed HS256 JWT using the test secret.
@@ -20,6 +21,8 @@ async function signToken(
 ): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
+    .setAudience('authenticated')
+    .setIssuer(TEST_URL)
     .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(TEST_SECRET_BYTES);
@@ -48,6 +51,7 @@ describe('jwtContextProvider', () => {
   beforeEach(() => {
     // Inject the test secret into process.env so auth.ts can read it
     vi.stubEnv('SUPABASE_JWT_SECRET', TEST_SECRET);
+    vi.stubEnv('SUPABASE_URL', TEST_URL);
   });
 
   afterEach(() => {

@@ -1,16 +1,11 @@
 import { GenkitError } from 'genkit';
 import { jwtVerify, type JWTPayload } from 'jose';
 
-let cachedJwtSecret: Uint8Array | null = null;
-
 /**
  * Returns the Supabase JWT secret as a Uint8Array, ready for use with `jose`.
- * The result is cached to avoid repeated TextEncoder allocations.
  * Throws a server error if `SUPABASE_JWT_SECRET` is not configured.
  */
 function getJwtSecret(): Uint8Array {
-  if (cachedJwtSecret) return cachedJwtSecret;
-
   const secret = process.env['SUPABASE_JWT_SECRET'];
   if (!secret) {
     throw new GenkitError({
@@ -19,8 +14,7 @@ function getJwtSecret(): Uint8Array {
     });
   }
 
-  cachedJwtSecret = new TextEncoder().encode(secret);
-  return cachedJwtSecret;
+  return new TextEncoder().encode(secret);
 }
 
 /**
@@ -37,6 +31,8 @@ export async function verifySupabaseJwt(token: string): Promise<JWTPayload> {
   try {
     const { payload } = await jwtVerify(token, secret, {
       algorithms: ['HS256'],
+      audience: 'authenticated',
+      issuer: process.env['SUPABASE_URL'],
     });
     return payload;
   } catch (err) {
