@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GenkitError } from 'genkit';
-import { exportJWK, generateKeyPair, SignJWT, type JWTPayload } from 'jose';
+import { exportJWK, generateKeyPair, SignJWT } from 'jose';
 import nock from 'nock';
 import { jwtContextProvider } from '../../../src/middleware/verifyJwt.js';
 
@@ -29,7 +29,7 @@ async function ensureKeys() {
 }
 
 /**
- * Creates a signed HS256 JWT using the test secret.
+ * Creates a signed RS256 JWT using the test private key.
  * Defaults to a 1-hour expiry so it is valid by default.
  */
 async function signToken(
@@ -70,6 +70,9 @@ describe('jwtContextProvider', () => {
     await ensureKeys();
     vi.stubEnv('SUPABASE_URL', TEST_URL);
 
+    // Disable real network calls for tests
+    nock.disableNetConnect();
+
     // Mock the JWKS endpoint
     nock(TEST_URL)
       .get(JWKS_PATH)
@@ -82,6 +85,7 @@ describe('jwtContextProvider', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     nock.cleanAll();
+    nock.enableNetConnect();
   });
 
   it('throws UNAUTHENTICATED when there is no Authorization header', async () => {
