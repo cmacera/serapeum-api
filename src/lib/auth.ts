@@ -1,25 +1,9 @@
 import { GenkitError } from 'genkit';
-import { jwtVerify, type JWTPayload } from 'jose';
+import { jwtVerify, createRemoteJWKSet, type JWTPayload } from 'jose';
 
 /**
- * Returns the Supabase JWT secret as a Uint8Array, ready for use with `jose`.
- * Throws a server error if `SUPABASE_JWT_SECRET` is not configured.
- */
-function getJwtSecret(): Uint8Array {
-  const secret = process.env['SUPABASE_JWT_SECRET'];
-  if (!secret) {
-    throw new GenkitError({
-      status: 'INTERNAL',
-      message: 'Server misconfiguration: SUPABASE_JWT_SECRET is not set.',
-    });
-  }
-
-  return new TextEncoder().encode(secret);
-}
-
-/**
- * Cryptographically verifies a Supabase JWT using the project's shared secret.
- * Verification is done **locally** — no network request to Supabase is made.
+ * Cryptographically verifies a Supabase JWT.
+ * Now strictly supports asymmetric keys (ES256/RS256) via the public JWKS endpoint.
  *
  * @param token - Raw JWT string (without the "Bearer " prefix).
  * @returns The verified JWT payload.
@@ -27,7 +11,6 @@ function getJwtSecret(): Uint8Array {
  *   is missing, invalid, expired, or has a bad signature.
  */
 export async function verifySupabaseJwt(token: string): Promise<JWTPayload> {
-  const secret = getJwtSecret();
   const supabaseUrl = process.env['SUPABASE_URL'];
 
   if (!supabaseUrl) {
@@ -40,12 +23,15 @@ export async function verifySupabaseJwt(token: string): Promise<JWTPayload> {
   const issuer = `${supabaseUrl}/auth/v1`;
 
   try {
-    const { payload } = await jwtVerify(token, secret, {
-      algorithms: ['HS256'],
+    const jwksUrl = new URL(`${issuer}/.well-known/jwks.json`);
+    const JWKS = createRemoteJWKSet(jwksUrl);
+
+    const result = await jwtVerify(token, JWKS, {
       audience: 'authenticated',
       issuer,
     });
-    return payload;
+
+    return result.payload;
   } catch (err) {
     if (err instanceof GenkitError) {
       throw err;
