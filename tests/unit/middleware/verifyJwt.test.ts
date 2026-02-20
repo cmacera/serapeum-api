@@ -1,16 +1,32 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GenkitError } from 'genkit';
-import { SignJWT } from 'jose';
+import { exportJWK, generateKeyPair, SignJWT, type JWTPayload } from 'jose';
+import nock from 'nock';
 import { jwtContextProvider } from '../../../src/middleware/verifyJwt.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const TEST_SECRET = 'test-secret-that-is-at-least-32-chars-long!';
-const TEST_SECRET_BYTES = new TextEncoder().encode(TEST_SECRET);
 const TEST_URL = 'https://abc123xyz.supabase.co';
 const TEST_ISSUER = `${TEST_URL}/auth/v1`;
+const JWKS_PATH = '/auth/v1/.well-known/jwks.json';
+
+let privateKey: any; // Using any to avoid complex jose KeyLike vs CryptoKey issues in different environments
+let publicKeyJWK: Record<string, any>;
+
+/**
+ * Generates a test RSA key pair for signing and JWKS mocking.
+ */
+async function ensureKeys() {
+  if (privateKey) return;
+  const { privateKey: priv, publicKey: pub } = await generateKeyPair('RS256');
+  privateKey = priv;
+  publicKeyJWK = (await exportJWK(pub)) as Record<string, any>;
+  publicKeyJWK.kid = 'test-kid';
+  publicKeyJWK.alg = 'RS256';
+  publicKeyJWK.use = 'sig';
+}
 
 /**
  * Creates a signed HS256 JWT using the test secret.
@@ -20,13 +36,14 @@ async function signToken(
   payload: Record<string, unknown> = { sub: 'user-test-id' },
   expiresIn = '1h'
 ): Promise<string> {
+  await ensureKeys();
   return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
+    .setProtectedHeader({ alg: 'RS256', kid: 'test-kid' })
     .setAudience('authenticated')
     .setIssuer(TEST_ISSUER)
     .setIssuedAt()
     .setExpirationTime(expiresIn)
-    .sign(TEST_SECRET_BYTES);
+    .sign(privateKey);
 }
 
 /**
@@ -49,14 +66,22 @@ function makeContext(authHeader?: string): {
 // ---------------------------------------------------------------------------
 
 describe('jwtContextProvider', () => {
-  beforeEach(() => {
-    // Inject the test secret into process.env so auth.ts can read it
-    vi.stubEnv('SUPABASE_JWT_SECRET', TEST_SECRET);
+  beforeEach(async () => {
+    await ensureKeys();
     vi.stubEnv('SUPABASE_URL', TEST_URL);
+
+    // Mock the JWKS endpoint
+    nock(TEST_URL)
+      .get(JWKS_PATH)
+      .reply(200, {
+        keys: [publicKeyJWK],
+      })
+      .persist();
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    nock.cleanAll();
   });
 
   it('throws UNAUTHENTICATED when there is no Authorization header', async () => {
@@ -76,14 +101,14 @@ describe('jwtContextProvider', () => {
   });
 
   it('throws UNAUTHENTICATED when the token has an invalid signature', async () => {
-    // Sign with a *different* secret than what is loaded in env
-    const wrongSecretBytes = new TextEncoder().encode('wrong-secret-that-is-at-least-32-chars!');
+    // Sign with a *different* key
+    const { privateKey: wrongKey } = await generateKeyPair('RS256');
     const badToken = await new SignJWT({ sub: 'attacker' })
-      .setProtectedHeader({ alg: 'HS256' })
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-kid' })
       .setAudience('authenticated')
       .setIssuer(TEST_ISSUER)
       .setExpirationTime('1h')
-      .sign(wrongSecretBytes);
+      .sign(wrongKey);
 
     const result = jwtContextProvider(makeContext(`Bearer ${badToken}`));
     await expect(result).rejects.toBeInstanceOf(GenkitError);
