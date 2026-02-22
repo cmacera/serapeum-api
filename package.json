@@ -9,7 +9,7 @@
     "genkit:start": "genkit start -- npx tsx watch src/index.ts",
     "dev:build": "tsc --watch",
     "dev:run": "node --watch dist/index.js",
-    "build": "tsc",
+    "build": "tsc && cp -r src/locales dist/",
     "start": "node dist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",

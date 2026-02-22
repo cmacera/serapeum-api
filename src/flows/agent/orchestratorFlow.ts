@@ -50,6 +50,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const localesDir = path.join(__dirname, '../../locales');
 
+const TranslationSchema = z.object({
+  router_failure: z.string(),
+  generic_refusal: z.string(),
+  specific_fallback: z.string(),
+  specific_error: z.string(),
+  synthesis_failure: z.string(),
+  unrecognized_intent: z.string(),
+  failedProcessSearchResults: z.string(),
+  failedExtractSearchResults: z.string(),
+});
+
 const TRANSLATIONS: Partial<Record<SupportedLanguage, Record<TranslationKeys, string>>> = {};
 
 function getTranslations(language: string): Record<TranslationKeys, string> {
@@ -60,13 +71,29 @@ function getTranslations(language: string): Record<TranslationKeys, string> {
 
   if (!TRANSLATIONS[lang]) {
     try {
-      const content = fs.readFileSync(path.join(localesDir, `${lang}.json`), 'utf-8');
-      TRANSLATIONS[lang] = JSON.parse(content);
+      const filePath = path.join(localesDir, `${lang}.json`);
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Translation file not found at: ${filePath}`);
+      }
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const parsed = JSON.parse(content);
+
+      const validation = TranslationSchema.safeParse(parsed);
+      if (!validation.success) {
+        throw new Error(
+          `Validation failed for ${lang} translation file: ${validation.error.message}`
+        );
+      }
+
+      TRANSLATIONS[lang] = validation.data as Record<TranslationKeys, string>;
     } catch (e) {
-      console.error(`[orchestratorFlow] Failed to load translations for ${lang}`, e);
-      // Fallback to en if localized file fails
-      if (lang !== 'en') return getTranslations('en');
-      throw e;
+      console.error(`[orchestratorFlow] getTranslations failed for ${lang}`, e);
+      // Fallback to en if localized file fails or validation fails
+      if (lang !== 'en') {
+        return getTranslations('en');
+      }
+      // If 'en' itself fails, we must throw to avoid returning undefined or invalid data
+      throw new Error(`Critical: Failed to load basic 'en' translations. ${e}`);
     }
   }
 
