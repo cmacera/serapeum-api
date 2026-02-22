@@ -8,6 +8,7 @@ export const synthesizerPrompt = ai.definePrompt(
         originalQuery: z.string(),
         webContext: z.string(),
         apiDetails: z.string(), // Passing JSON string as context
+        language: z.string().optional(),
       }),
     },
     // Output is just text, but definePrompt usually expects a structured output schema or just returns text if not specified?
@@ -22,6 +23,8 @@ Instruction:
 You are a witty and concise media assistant. The user will see detailed data cards below your answer, so DO NOT list the titles or repeat the data.
 Instead, provide a catchy, engaging phrase directly related to the user's query and include ONE interesting fact or valuable insight from the data (e.g., "Did you know...?" or "A top rated choice is...").
 Keep the response UNDER 300 characters.
+
+The requested response language is: {{language}}. You MUST translate your response into this language, but return it as a single localized string.
 
 Original Query: {{originalQuery}}
 

@@ -9,38 +9,54 @@ import { routerPrompt } from '../../prompts/routerPrompt.js';
 import { extractorPrompt } from '../../prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '../../prompts/synthesizerPrompt.js';
 
-const GeneralDiscoveryResponseSchema = z.object({
-  text: z.string(),
-  data: SearchAllOutputSchema,
-});
-
-const ErrorResponseSchema = z.object({
-  error: z.string(),
-  details: z.string().optional(),
-});
+export const AgentResponseSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('refusal'),
+    message: z.string(),
+  }),
+  z.object({
+    kind: z.literal('search_results'),
+    message: z.string(),
+    data: z.union([
+      SearchAllOutputSchema,
+      SearchMediaOutputSchema,
+      SearchGamesOutputSchema,
+      SearchBooksOutputSchema,
+    ]),
+  }),
+  z.object({
+    kind: z.literal('discovery'),
+    message: z.string(),
+    data: SearchAllOutputSchema,
+  }),
+  z.object({
+    kind: z.literal('error'),
+    error: z.string(),
+    details: z.string().optional(),
+  }),
+]);
 
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
     name: 'orchestratorFlow',
-    inputSchema: z.string(),
-    outputSchema: z.union([
-      z.string(),
-      GeneralDiscoveryResponseSchema,
-      SearchAllOutputSchema,
-      SearchMediaOutputSchema,
-      SearchGamesOutputSchema,
-      SearchBooksOutputSchema,
-      ErrorResponseSchema,
-    ]),
+    inputSchema: z.object({
+      query: z.string(),
+      language: z.enum(['en', 'es', 'fr', 'de', 'zh', 'ja']).optional().default('en'),
+    }),
+    outputSchema: AgentResponseSchema,
   },
-  async (query) => {
+  async (inputParam) => {
+    const query = inputParam.query;
+    const language = inputParam.language || 'en';
+
     // 1. Router
-    const { output: route } = await routerPrompt({ query }, { model: activeModel });
+    const { output: route } = await routerPrompt({ query, language }, { model: activeModel });
 
     if (!route) {
       console.error('[orchestratorFlow] Router failed to generate response');
       return {
+        kind: 'error' as const,
         error: 'Router failed to generate response',
         details: 'The AI router could not determine the intent of your query.',
       };
@@ -48,33 +64,68 @@ export const orchestratorFlow = ai.defineFlow(
 
     // Path C: Guardrail
     if (route.intent === 'OUT_OF_SCOPE') {
-      return (
-        route.refusalReason || "I'm sorry, I specialize only in Movies, Games, Books, and TV Shows."
-      );
+      return {
+        kind: 'refusal' as const,
+        message:
+          route.refusalReason ||
+          "I'm sorry, I specialize only in Movies, Games, Books, and TV Shows.",
+      };
     }
 
     // Path A: Specific Entity
     if (route.intent === 'SPECIFIC_ENTITY') {
-      const input = { query: route.extractedQuery, language: 'en' };
+      const input = { query: route.extractedQuery, language };
 
       try {
+        let executionResult;
+
         switch (route.category) {
           case 'MOVIE_TV':
-            return await searchMedia(input);
+            executionResult = await searchMedia(input);
+            break;
           case 'GAME':
-            return await searchGames(input);
+            executionResult = await searchGames(input);
+            break;
           case 'BOOK':
-            return await searchBooks(input);
+            executionResult = await searchBooks(input);
+            break;
           case 'ALL':
           default:
-            return await searchAll(input);
+            executionResult = await searchAll(input);
+            break;
         }
+
+        let generatedText = 'Here is what I found about that:';
+        try {
+          const synthesis = await synthesizerPrompt(
+            {
+              originalQuery: input.query,
+              webContext: '', // Empty context since it's a specific entity
+              apiDetails: JSON.stringify(executionResult),
+              language,
+            },
+            { model: activeModel }
+          );
+          generatedText = synthesis.text;
+        } catch (error) {
+          console.error(
+            `[orchestratorFlow] Synthesizer failed for specific entity "${input.query}":`,
+            inspect(error, { depth: null, colors: true })
+          );
+        }
+
+        return {
+          kind: 'search_results' as const,
+          message: generatedText,
+          data: executionResult,
+        };
       } catch (error) {
         console.error(
           `[orchestratorFlow] Specific Entity Search failed for query "${input.query}":`,
           inspect(error, { depth: null, colors: true })
         );
         return {
+          kind: 'error' as const,
           error: 'Failed to retrieve specific entity details.',
           details: error instanceof Error ? error.message : String(error),
         };
@@ -114,6 +165,7 @@ export const orchestratorFlow = ai.defineFlow(
           inspect(error, { depth: null, colors: true })
         );
         return {
+          kind: 'error' as const,
           error: 'Failed to process search results',
           details: error instanceof Error ? error.message : String(error),
         };
@@ -122,6 +174,7 @@ export const orchestratorFlow = ai.defineFlow(
       if (!extraction) {
         console.error('[orchestratorFlow] Extractor returned null output');
         return {
+          kind: 'error' as const,
           error: 'Failed to extract information from search results',
           details: 'Title extraction returned null.',
         };
@@ -130,7 +183,7 @@ export const orchestratorFlow = ai.defineFlow(
       // 3. Search DBs for these titles (Enrichment)
       // We'll search for each title in parallel using the appropriate flow based on category
       const enrichmentPromises = extraction.titles.map(async (title) => {
-        const input = { query: title, language: 'en' };
+        const input = { query: title, language };
 
         switch (route.category) {
           case 'MOVIE_TV': {
@@ -181,12 +234,14 @@ export const orchestratorFlow = ai.defineFlow(
             originalQuery: query,
             webContext: tavilyContext,
             apiDetails: JSON.stringify(enrichmentResults),
+            language,
           },
           { model: activeModel }
         );
 
         return {
-          text: synthesis.text,
+          kind: 'discovery' as const,
+          message: synthesis.text,
           data: enrichmentResults,
         };
       } catch (error) {
@@ -196,12 +251,18 @@ export const orchestratorFlow = ai.defineFlow(
         );
         // Fallback: return data with a generic message
         return {
-          text: "I found some information but couldn't generate a summary. Please check the details below.",
+          kind: 'discovery' as const,
+          message:
+            "I found some information but couldn't generate a summary. Please check the details below.",
           data: enrichmentResults,
         };
       }
     }
 
-    return "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.";
+    return {
+      kind: 'refusal' as const,
+      message:
+        "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.",
+    };
   }
 );

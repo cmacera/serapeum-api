@@ -29,7 +29,7 @@ export const searchGames = ai.defineFlow(
     name: 'searchGames',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
-      language: z.string().optional(),
+      language: z.string().optional().default('en'),
     }),
     outputSchema: SearchGamesOutputSchema,
   },
