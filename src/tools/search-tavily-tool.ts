@@ -28,6 +28,7 @@ export const searchTavilyTool = ai.defineTool(
       'Perform a comprehensive web search using the Tavily API. Use this tool to find up-to-date information, news, research data, or general web content that is not available in specialized tools.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
+      language: z.string().optional(),
       searchDepth: z.enum(['basic', 'advanced']).optional(),
       maxResults: z.number().min(1).max(10).optional(),
     }),

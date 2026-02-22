@@ -184,9 +184,7 @@ export const orchestratorFlow = ai.defineFlow(
       const input = { query: route.extractedQuery, language };
 
       try {
-        let executionResult: z.infer<typeof SearchAllOutputSchema>;
-
-        executionResult = await executeCategorySearch(
+        const executionResult = await executeCategorySearch(
           route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
           input
         );
@@ -203,7 +201,9 @@ export const orchestratorFlow = ai.defineFlow(
             },
             { model: activeModel }
           );
-          generatedText = synthesis.text;
+          if (synthesis.text && synthesis.text.trim()) {
+            generatedText = synthesis.text;
+          }
         } catch (error) {
           console.error(
             `[orchestratorFlow] Synthesizer failed for specific entity "${input.query}":`,
@@ -237,6 +237,7 @@ export const orchestratorFlow = ai.defineFlow(
       try {
         const tavilyResults = await searchTavilyTool({
           query: route.extractedQuery,
+          language,
           maxResults: 5,
         });
         tavilyContext = tavilyResults.map((r) => r.content).join('\n');
@@ -324,9 +325,13 @@ export const orchestratorFlow = ai.defineFlow(
           { model: activeModel }
         );
 
+        const t = getTranslations(language);
+        const finalMessage =
+          synthesis.text && synthesis.text.trim() ? synthesis.text : t['synthesis_failure'];
+
         return {
           kind: 'discovery' as const,
-          message: synthesis.text,
+          message: finalMessage,
           data: enrichmentResults,
         };
       } catch (error) {

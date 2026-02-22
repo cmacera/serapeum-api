@@ -14,7 +14,7 @@ describe('searchAll Flow', () => {
     vi.resetAllMocks();
   });
 
-  it('should aggregates results from all tools on success', async () => {
+  it('should aggregate results from all tools on success', async () => {
     // Mock successful responses
     const mockMovies = [{ id: 1, title: 'Movie', media_type: 'movie' }];
     const mockBooks = [{ id: 'b1', title: 'Book' }];

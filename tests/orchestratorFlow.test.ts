@@ -184,7 +184,7 @@ describe('orchestratorFlow', () => {
     expect(searchAll).not.toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
-      message: expect.any(String),
+      message: 'Mocked synthesizer response for Dune.',
       data: { movies: [], games: [], books: searchResult },
     });
   });
@@ -293,7 +293,11 @@ describe('orchestratorFlow', () => {
       { query: 'Best sci-fi movies 2023', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchTavilyTool).toHaveBeenCalledWith({ query: 'best sci-fi movies', maxResults: 5 });
+    expect(searchTavilyTool).toHaveBeenCalledWith({
+      query: 'best sci-fi movies',
+      maxResults: 5,
+      language: 'en',
+    });
     expect(extractorPrompt).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ model: expect.any(String) })
@@ -384,6 +388,41 @@ describe('orchestratorFlow', () => {
         books: [],
         games: gameResult,
       },
+    });
+  });
+
+  it('should return an error object when routerPrompt fails (resolves to null)', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({ output: null } as any);
+
+    const result = await orchestratorFlow({ query: 'test router failure', language: 'en' });
+
+    expect(result).toEqual({
+      kind: 'error',
+      error: expect.any(String),
+      details: expect.any(String),
+    });
+  });
+
+  it('should return discovery results with fallback message when synthesizerPrompt throws an error', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({
+      output: {
+        intent: 'SPECIFIC_ENTITY',
+        category: 'MOVIE_TV',
+        extractedQuery: 'Inception',
+      },
+    } as Awaited<ReturnType<typeof routerPrompt>>);
+
+    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
+    vi.mocked(searchMedia).mockResolvedValue(searchResult as any);
+
+    vi.mocked(synthesizerPrompt).mockRejectedValue(new Error('Synthesizer failed'));
+
+    const result = await orchestratorFlow({ query: 'Movie Inception', language: 'en' });
+
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: expect.any(String),
+      data: { movies: searchResult, books: [], games: [] },
     });
   });
 });
