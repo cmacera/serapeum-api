@@ -1,8 +1,6 @@
-import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
+import { getTranslations } from '../../lib/translations.js';
 import { searchAll, SearchAllOutputSchema } from '../catalog/searchAll.js';
 import { searchMedia } from '../catalog/searchMedia.js';
 import { searchGames } from '../catalog/searchGames.js';
@@ -33,72 +31,6 @@ export const AgentResponseSchema = z.discriminatedUnion('kind', [
     details: z.string().optional(),
   }),
 ]);
-
-type TranslationKeys =
-  | 'router_failure'
-  | 'generic_refusal'
-  | 'specific_fallback'
-  | 'specific_error'
-  | 'synthesis_failure'
-  | 'unrecognized_intent'
-  | 'failedProcessSearchResults'
-  | 'failedExtractSearchResults';
-
-type SupportedLanguage = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const localesDir = path.join(__dirname, '../../locales');
-
-const TranslationSchema = z.object({
-  router_failure: z.string(),
-  generic_refusal: z.string(),
-  specific_fallback: z.string(),
-  specific_error: z.string(),
-  synthesis_failure: z.string(),
-  unrecognized_intent: z.string(),
-  failedProcessSearchResults: z.string(),
-  failedExtractSearchResults: z.string(),
-});
-
-const TRANSLATIONS: Partial<Record<SupportedLanguage, Record<TranslationKeys, string>>> = {};
-
-function getTranslations(language: string): Record<TranslationKeys, string> {
-  const supported: SupportedLanguage[] = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
-  const lang = supported.includes(language as SupportedLanguage)
-    ? (language as SupportedLanguage)
-    : 'en';
-
-  if (!TRANSLATIONS[lang]) {
-    try {
-      const filePath = path.join(localesDir, `${lang}.json`);
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`Translation file not found at: ${filePath}`);
-      }
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const parsed = JSON.parse(content);
-
-      const validation = TranslationSchema.safeParse(parsed);
-      if (!validation.success) {
-        throw new Error(
-          `Validation failed for ${lang} translation file: ${validation.error.message}`
-        );
-      }
-
-      TRANSLATIONS[lang] = validation.data as Record<TranslationKeys, string>;
-    } catch (e) {
-      console.error(`[orchestratorFlow] getTranslations failed for ${lang}`, e);
-      // Fallback to en if localized file fails or validation fails
-      if (lang !== 'en') {
-        return getTranslations('en');
-      }
-      // If 'en' itself fails, we must throw to avoid returning undefined or invalid data
-      throw new Error(`Critical: Failed to load basic 'en' translations. ${e}`);
-    }
-  }
-
-  return TRANSLATIONS[lang]!;
-}
 
 /**
  * Helper to execute the appropriate category search and normalize the output to SearchAllOutputSchema
@@ -322,8 +254,20 @@ export const orchestratorFlow = ai.defineFlow(
         );
 
         const t = getTranslations(language);
-        const finalMessage =
-          synthesis.text && synthesis.text.trim() ? synthesis.text : t['synthesis_failure'];
+        let finalMessage =
+          synthesis.text && synthesis.text.trim() ? synthesis.text : t.synthesis_failure;
+
+        // Add a status message about partial failures if any
+        if (enrichmentResults.errors && enrichmentResults.errors.length > 0) {
+          const failedTitles = enrichmentResults.errors.map(
+            (e) => e.message.split('"')[1] || 'Unknown'
+          );
+          const uniqueFailures = [...new Set(failedTitles)].filter((t) => t !== 'Unknown');
+
+          if (uniqueFailures.length > 0) {
+            finalMessage += `\n\n(${t.failedProcessSearchResults}: ${uniqueFailures.join(', ')})`;
+          }
+        }
 
         return {
           kind: 'discovery' as const,
