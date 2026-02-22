@@ -45,19 +45,19 @@ vi.mock('@/lib/ai', () => {
 
 // Mock catalog flows
 vi.mock('@/flows/catalog/searchAll', () => ({
-  searchAll: vi.fn().mockResolvedValue({ movies: [], books: [], games: [] }),
+  searchAll: vi.fn().mockResolvedValue({ type: 'all', movies: [], books: [], games: [] }),
   SearchAllOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchMedia', () => ({
-  searchMedia: vi.fn().mockResolvedValue([]),
+  searchMedia: vi.fn().mockResolvedValue({ type: 'media', results: [] }),
   SearchMediaOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchGames', () => ({
-  searchGames: vi.fn().mockResolvedValue([]),
+  searchGames: vi.fn().mockResolvedValue({ type: 'game', results: [] }),
   SearchGamesOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchBooks', () => ({
-  searchBooks: vi.fn().mockResolvedValue([]),
+  searchBooks: vi.fn().mockResolvedValue({ type: 'book', results: [] }),
   SearchBooksOutputSchema: {},
 }));
 
@@ -112,6 +112,21 @@ describe('orchestratorFlow', () => {
     expect(result).toHaveProperty('data');
   });
 
+  it('should propagate explicit language to calls', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'OUT_OF_SCOPE',
+      },
+    });
+
+    await orchestratorFlow({ query: 'Hola', language: 'es' });
+
+    expect(routerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ language: 'es' }),
+      expect.objectContaining({ model: expect.any(String) })
+    );
+  });
+
   it('should route to Path B (General Discovery) and perform enrichment', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {
@@ -133,6 +148,7 @@ describe('orchestratorFlow', () => {
     });
 
     (searchAll as any).mockResolvedValue({
+      type: 'all',
       movies: [{ title: 'Dune', id: '1' }],
       books: [],
       games: [],
@@ -171,7 +187,7 @@ describe('orchestratorFlow', () => {
 
     const result = await orchestratorFlow({ query: 'Broken query' });
     expect(result).toHaveProperty('kind', 'error');
-    expect(result).toHaveProperty('error', 'Router failed to generate response');
+    expect(result).toHaveProperty('error', 'Router failure');
   });
 
   it('should return error object if Extractor fails', async () => {

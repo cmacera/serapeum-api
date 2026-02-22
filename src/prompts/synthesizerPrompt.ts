@@ -8,7 +8,7 @@ export const synthesizerPrompt = ai.definePrompt(
         originalQuery: z.string(),
         webContext: z.string(),
         apiDetails: z.string(), // Passing JSON string as context
-        language: z.string().optional(),
+        language: z.string().optional().default('en'),
       }),
     },
     // Output is just text, but definePrompt usually expects a structured output schema or just returns text if not specified?

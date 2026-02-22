@@ -21,7 +21,9 @@ export const RouterSchema = z.object({
 export const routerPrompt = ai.definePrompt(
   {
     name: 'routerPrompt',
-    input: { schema: z.object({ query: z.string(), language: z.string().optional() }) },
+    input: {
+      schema: z.object({ query: z.string(), language: z.string().optional().default('en') }),
+    },
     output: { schema: RouterSchema },
   },
   `Role: Domain Guard & Classifier.

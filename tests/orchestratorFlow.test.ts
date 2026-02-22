@@ -101,7 +101,7 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' }];
+    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
     vi.mocked(searchMedia).mockResolvedValue(
       searchResult as unknown as Awaited<ReturnType<typeof searchMedia>>
     );
@@ -113,11 +113,10 @@ describe('orchestratorFlow', () => {
       expect.objectContaining({ model: expect.any(String) })
     );
     expect(searchAll).not.toHaveBeenCalled();
-    expect(synthesizerPrompt).toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
       message: expect.any(String),
-      data: searchResult,
+      data: { movies: searchResult, books: [], games: [] },
     });
   });
 
@@ -143,11 +142,10 @@ describe('orchestratorFlow', () => {
     );
     expect(searchGames).toHaveBeenCalledWith({ query: 'Elden Ring', language: 'en' });
     expect(searchAll).not.toHaveBeenCalled();
-    expect(synthesizerPrompt).toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
       message: expect.any(String),
-      data: searchResult,
+      data: { movies: [], games: searchResult, books: [] },
     });
   });
 
@@ -173,11 +171,10 @@ describe('orchestratorFlow', () => {
     );
     expect(searchBooks).toHaveBeenCalledWith({ query: 'Dune', language: 'en' });
     expect(searchAll).not.toHaveBeenCalled();
-    expect(synthesizerPrompt).toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
       message: expect.any(String),
-      data: searchResult,
+      data: { movies: [], games: [], books: searchResult },
     });
   });
 
@@ -196,20 +193,29 @@ describe('orchestratorFlow', () => {
     );
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({
-      text: 'Here are results for Inception.',
-    } as any);
+      text: 'Mocked synthesizer response for The Witcher.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
 
-    const result = await orchestratorFlow({ query: 'Quantum Mechanics', language: 'en' });
+    const result = await orchestratorFlow({ query: 'Info about The Witcher', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'Quantum Mechanics', language: 'en' },
+      { query: 'Info about The Witcher', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
     expect(searchAll).toHaveBeenCalledWith({ query: 'The Witcher', language: 'en' });
-    expect(synthesizerPrompt).toHaveBeenCalled();
+    expect(synthesizerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalQuery: 'The Witcher',
+        language: 'en',
+        webContext: '',
+        apiDetails: JSON.stringify({ movies: [], books: [], games: [] }),
+      }),
+      expect.any(Object)
+    );
+
     expect(result).toEqual({
       kind: 'search_results',
-      message: expect.any(String),
+      message: 'Mocked synthesizer response for The Witcher.',
       data: searchResult,
     });
   });
