@@ -119,7 +119,7 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Inception.',
-      data: { movies: searchResult, books: [], games: [] },
+      data: { media: searchResult, books: [], games: [] },
     });
   });
 
@@ -152,7 +152,7 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Elden Ring.',
-      data: { movies: [], games: searchResult, books: [] },
+      data: { media: [], games: searchResult, books: [] },
     });
   });
 
@@ -185,7 +185,7 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Dune.',
-      data: { movies: [], games: [], books: searchResult },
+      data: { media: [], games: [], books: searchResult },
     });
   });
 
@@ -198,7 +198,7 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = { games: [], movies: [], books: [] };
+    const searchResult = { games: [], media: [], books: [] };
     vi.mocked(searchAll).mockResolvedValue(
       searchResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
@@ -219,7 +219,7 @@ describe('orchestratorFlow', () => {
         originalQuery: 'The Witcher',
         language: 'en',
         webContext: '',
-        apiDetails: JSON.stringify({ movies: [], books: [], games: [] }),
+        apiDetails: JSON.stringify({ media: [], books: [], games: [] }),
       }),
       expect.any(Object)
     );
@@ -273,7 +273,7 @@ describe('orchestratorFlow', () => {
 
     // 4. searchAll for enrichment
     const enrichmentData = {
-      movies: [{ title: 'Dune Part 2', id: 456, media_type: 'movie' }],
+      media: [{ title: 'Dune Part 2', id: 456, media_type: 'movie' }],
       games: [],
       books: [],
     };
@@ -346,7 +346,7 @@ describe('orchestratorFlow', () => {
       kind: 'discovery',
       message: 'Smile 2 is a scary movie.',
       data: {
-        movies: mediaResult,
+        media: mediaResult,
         books: [],
         games: [],
       },
@@ -384,7 +384,7 @@ describe('orchestratorFlow', () => {
       kind: 'discovery',
       message: 'BG3 is great.',
       data: {
-        movies: [],
+        media: [],
         books: [],
         games: gameResult,
       },
@@ -422,7 +422,7 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: expect.any(String),
-      data: { movies: searchResult, books: [], games: [] },
+      data: { media: searchResult, books: [], games: [] },
     });
   });
 });

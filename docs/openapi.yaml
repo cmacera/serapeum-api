@@ -123,7 +123,7 @@ components:
         source:
           type: string
           enum:
-            - movies
+            - media
             - books
             - games
         message:
@@ -134,7 +134,7 @@ components:
     SearchAllResponse:
       type: object
       properties:
-        movies:
+        media:
           type: array
           items:
             $ref: "#/components/schemas/Media"
@@ -151,7 +151,7 @@ components:
           items:
             $ref: "#/components/schemas/SearchError"
       required:
-        - movies
+        - media
         - books
         - games
     BooksResponse:

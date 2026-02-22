@@ -44,7 +44,7 @@ vi.mock('@/lib/ai', () => {
 
 // Mock catalog flows
 vi.mock('@/flows/catalog/searchAll', () => ({
-  searchAll: vi.fn().mockResolvedValue({ movies: [], books: [], games: [] }),
+  searchAll: vi.fn().mockResolvedValue({ media: [], books: [], games: [] }),
   SearchAllOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchMedia', () => ({
@@ -147,7 +147,7 @@ describe('orchestratorFlow', () => {
     });
 
     (searchAll as any).mockResolvedValue({
-      movies: [{ title: 'Dune', id: '1' }],
+      media: [{ title: 'Dune', id: '1' }],
       books: [],
       games: [],
     });
@@ -215,7 +215,7 @@ describe('orchestratorFlow', () => {
     });
     (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
     (extractorPrompt as any).mockResolvedValue({ output: { titles: ['Movie A'] } });
-    (searchAll as any).mockResolvedValue({ movies: [{ title: 'Movie A' }] });
+    (searchAll as any).mockResolvedValue({ media: [{ title: 'Movie A' }] });
     (synthesizerPrompt as any).mockRejectedValue(new Error('Synth Error'));
 
     const result = await orchestratorFlow({ query: 'query', language: 'en' });
@@ -223,7 +223,7 @@ describe('orchestratorFlow', () => {
     // Should return the enriched data but with a fallback text
     expect(result).toHaveProperty('kind', 'discovery');
     expect(result).toHaveProperty('data');
-    expect((result as any).data.movies).toHaveLength(1);
+    expect((result as any).data.media).toHaveLength(1);
     expect((result as any).message).toContain("couldn't generate a summary");
   });
 

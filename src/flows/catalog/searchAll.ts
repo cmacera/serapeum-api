@@ -4,12 +4,12 @@ import { searchBooksTool, BookSearchResultSchema } from '../../tools/search-book
 import { searchGamesTool, GameSearchResultSchema } from '../../tools/search-games-tool.js';
 
 const SearchErrorSchema = z.object({
-  source: z.enum(['movies', 'books', 'games']),
+  source: z.enum(['media', 'books', 'games']),
   message: z.string(),
 });
 
 export const SearchAllOutputSchema = z.object({
-  movies: z.array(MediaSearchResultSchema),
+  media: z.array(MediaSearchResultSchema),
   books: z.array(BookSearchResultSchema),
   games: z.array(GameSearchResultSchema),
   errors: z.array(SearchErrorSchema).optional(),
@@ -40,16 +40,16 @@ export const searchAll = ai.defineFlow(
     const bookResult = results[1];
     const gameResult = results[2];
 
-    const movies = movieResult.status === 'fulfilled' ? movieResult.value : [];
+    const media = movieResult.status === 'fulfilled' ? movieResult.value : [];
     const books = bookResult.status === 'fulfilled' ? bookResult.value : [];
     const games = gameResult.status === 'fulfilled' ? gameResult.value : [];
 
-    const errors: Array<{ source: 'movies' | 'books' | 'games'; message: string }> = [];
+    const errors: Array<{ source: 'media' | 'books' | 'games'; message: string }> = [];
 
     if (movieResult.status === 'rejected') {
-      console.error('SearchMovies failed:', movieResult.reason);
+      console.error('SearchMedia failed:', movieResult.reason);
       errors.push({
-        source: 'movies',
+        source: 'media',
         message:
           movieResult.reason instanceof Error
             ? movieResult.reason.message
@@ -78,7 +78,7 @@ export const searchAll = ai.defineFlow(
     }
 
     return {
-      movies,
+      media,
       books,
       games,
       errors: errors.length > 0 ? errors : undefined,

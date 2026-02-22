@@ -85,14 +85,14 @@ const GameSchema = z
 // SearchAll (mirrors SearchAllOutputSchema in searchAll.ts)
 const SearchErrorSchema = z
   .object({
-    source: z.enum(['movies', 'books', 'games']),
+    source: z.enum(['media', 'books', 'games']),
     message: z.string(),
   })
   .openapi('SearchError');
 
 const SearchAllResponseSchema = z
   .object({
-    movies: z.array(MediaSchema),
+    media: z.array(MediaSchema),
     books: z.array(BookSchema),
     games: z.array(GameSchema),
     errors: z.array(SearchErrorSchema).optional(),
