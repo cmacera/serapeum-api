@@ -169,7 +169,7 @@ describe('searchGamesTool', () => {
       expect(normalize(capturedBody)).toBe(normalize(expectedQuery));
     });
 
-    it('should include language in Apicalypse query when provided', async () => {
+    it('should accept language parameter without affecting Apicalypse query', async () => {
       const query = 'The Witcher 3';
       let capturedBody = '';
 
@@ -182,8 +182,8 @@ describe('searchGamesTool', () => {
 
       await searchGamesTool({ query, language: 'es' });
 
-      // The tool translates the language into the expected IGDB syntax, actually let's just check the body
-      // We know it translates or passes to IGDB. I'll just ensure it runs successfully without crashing.
+      // IGDB search does not support language filtering directly in the query.
+      // This parameter is accepted for API consistency with other search tools.
       expect(capturedBody).toContain('search "The Witcher 3";');
     });
 

@@ -1,0 +1,10 @@
+{
+    "router_failure": "Le routeur d'IA n'a pas pu déterminer l'intention de votre requête.",
+    "generic_refusal": "Je suis désolé, je me spécialise uniquement dans les films, les jeux, les livres et les émissions de télévision.",
+    "specific_fallback": "Voici ce que j'ai trouvé à ce sujet :",
+    "specific_error": "Échec de la récupération des détails de l'entité spécifique.",
+    "synthesis_failure": "J'ai trouvé quelques informations mais je n'ai pas pu générer de résumé. Veuillez vérifier les détails ci-dessous.",
+    "unrecognized_intent": "Je ne savais pas trop comment gérer cette requête, mais je suis là pour vous aider avec les films, les jeux et les livres.",
+    "failedProcessSearchResults": "Échec du traitement des résultats de recherche",
+    "failedExtractSearchResults": "Échec de l'extraction des informations à partir des résultats de recherche"
+}

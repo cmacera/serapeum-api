@@ -71,8 +71,15 @@ describe('mediaAgent Flow', () => {
   });
 
   it('should propagate language parameter to downstream tools', async () => {
+    // @ts-ignore
+    const aiModule = await import('@/lib/ai');
     const result = await mediaAgent({ prompt: 'Inception movie', language: 'es' });
-    // This is mostly verifying the TS interface permits it and it flows into the defineFlow wrapper
+
+    expect(aiModule.ai.generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        system: expect.stringContaining('"es"'),
+      })
+    );
     expect(result.summary).toBeDefined();
     expect(result.items).toBeDefined();
   });

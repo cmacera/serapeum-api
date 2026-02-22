@@ -1,0 +1,10 @@
+{
+    "router_failure": "El enrutador de IA no pudo determinar la intención de tu consulta.",
+    "generic_refusal": "Lo siento, solo me especializo en películas, juegos, libros y programas de televisión.",
+    "specific_fallback": "Esto es lo que encontré al respecto:",
+    "specific_error": "Error al recuperar los detalles de la entidad específica.",
+    "synthesis_failure": "Encontré algo de información pero no pude generar un resumen. Consulta los detalles a continuación.",
+    "unrecognized_intent": "No estaba seguro de cómo manejar esa consulta, pero estoy aquí para ayudarte con películas, juegos y libros.",
+    "failedProcessSearchResults": "Error al procesar los resultados de búsqueda",
+    "failedExtractSearchResults": "Error al extraer información de los resultados de búsqueda"
+}

@@ -1,0 +1,10 @@
+{
+    "router_failure": "The AI router could not determine the intent of your query.",
+    "generic_refusal": "I'm sorry, I specialize only in Movies, Games, Books, and TV Shows.",
+    "specific_fallback": "Here is what I found about that:",
+    "specific_error": "Failed to retrieve specific entity details.",
+    "synthesis_failure": "I found some information but couldn't generate a summary. Please check the details below.",
+    "unrecognized_intent": "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.",
+    "failedProcessSearchResults": "Failed to process search results",
+    "failedExtractSearchResults": "Failed to extract information from search results"
+}

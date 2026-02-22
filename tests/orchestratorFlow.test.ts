@@ -403,7 +403,7 @@ describe('orchestratorFlow', () => {
     });
   });
 
-  it('should return discovery results with fallback message when synthesizerPrompt throws an error', async () => {
+  it('should return search_results with fallback message when synthesizerPrompt throws an error', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'SPECIFIC_ENTITY',

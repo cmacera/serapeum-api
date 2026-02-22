@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
 import { searchAll, SearchAllOutputSchema } from '../catalog/searchAll.js';
@@ -37,79 +40,37 @@ type TranslationKeys =
   | 'specific_fallback'
   | 'specific_error'
   | 'synthesis_failure'
-  | 'unrecognized_intent';
+  | 'unrecognized_intent'
+  | 'failedProcessSearchResults'
+  | 'failedExtractSearchResults';
 
 type SupportedLanguage = 'en' | 'es' | 'fr' | 'de' | 'zh' | 'ja';
 
-const TRANSLATIONS: Record<SupportedLanguage, Record<TranslationKeys, string>> = {
-  en: {
-    router_failure: 'The AI router could not determine the intent of your query.',
-    generic_refusal: "I'm sorry, I specialize only in Movies, Games, Books, and TV Shows.",
-    specific_fallback: 'Here is what I found about that:',
-    specific_error: 'Failed to retrieve specific entity details.',
-    synthesis_failure:
-      "I found some information but couldn't generate a summary. Please check the details below.",
-    unrecognized_intent:
-      "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.",
-  },
-  es: {
-    router_failure: 'El enrutador de IA no pudo determinar la intención de tu consulta.',
-    generic_refusal:
-      'Lo siento, solo me especializo en películas, juegos, libros y programas de televisión.',
-    specific_fallback: 'Esto es lo que encontré al respecto:',
-    specific_error: 'Error al recuperar los detalles de la entidad específica.',
-    synthesis_failure:
-      'Encontré algo de información pero no pude generar un resumen. Consulta los detalles a continuación.',
-    unrecognized_intent:
-      'No estaba seguro de cómo manejar esa consulta, pero estoy aquí para ayudarte con películas, juegos y libros.',
-  },
-  fr: {
-    router_failure: "Le routeur d'IA n'a pas pu déterminer l'intention de votre requête.",
-    generic_refusal:
-      'Je suis désolé, je me spécialise uniquement dans les films, les jeux, les livres et les émissions de télévision.',
-    specific_fallback: "Voici ce que j'ai trouvé à ce sujet :",
-    specific_error: "Échec de la récupération des détails de l'entité spécifique.",
-    synthesis_failure:
-      "J'ai trouvé quelques informations mais je n'ai pas pu générer de résumé. Veuillez vérifier les détails ci-dessous.",
-    unrecognized_intent:
-      'Je ne savais pas trop comment gérer cette requête, mais je suis là pour vous aider avec les films, les jeux et les livres.',
-  },
-  de: {
-    router_failure: 'Der KI-Router konnte die Absicht Ihrer Anfrage nicht bestimmen.',
-    generic_refusal:
-      'Es tut mir leid, ich bin nur auf Filme, Spiele, Bücher und Fernsehsendungen spezialisiert.',
-    specific_fallback: 'Hier ist, was ich dazu gefunden habe:',
-    specific_error: 'Fehler beim Abrufen spezifischer Entitätsdetails.',
-    synthesis_failure:
-      'Ich habe einige Informationen gefunden, konnte aber keine Zusammenfassung erstellen. Bitte überprüfen Sie die Details unten.',
-    unrecognized_intent:
-      'Ich war mir nicht sicher, wie ich diese Anfrage bearbeiten soll, aber ich bin hier, um bei Filmen, Spielen und Büchern zu helfen.',
-  },
-  zh: {
-    router_failure: 'AI 路由无法确定您的查询意图。',
-    generic_refusal: '抱歉，我仅专门从事电影、游戏、书籍和电视节目。',
-    specific_fallback: '这是我找到的相关信息：',
-    specific_error: '无法检索特定实体详细信息。',
-    synthesis_failure: '我找到了一些信息，但无法生成摘要。请查看下面的详细信息。',
-    unrecognized_intent: '我不确定如何处理该查询，但我在这里为您提供电影、游戏和书籍方面的帮助。',
-  },
-  ja: {
-    router_failure: 'AIルーターがクエリの意図を判断できませんでした。',
-    generic_refusal: '申し訳ありませんが、私は映画、ゲーム、本、テレビ番組のみを専門としています。',
-    specific_fallback: 'それについて見つかった情報は次のとおりです：',
-    specific_error: '特定のエンティティの詳細を取得できませんでした。',
-    synthesis_failure:
-      'いくつかの情報が見つかりましたが、要約を生成できませんでした。以下の詳細を確認してください。',
-    unrecognized_intent:
-      'そのクエリの処理方法がわかりませんでしたが、映画、ゲーム、本に関するお手伝いをいたします。',
-  },
-};
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const localesDir = path.join(__dirname, '../../locales');
+
+const TRANSLATIONS: Partial<Record<SupportedLanguage, Record<TranslationKeys, string>>> = {};
 
 function getTranslations(language: string): Record<TranslationKeys, string> {
-  if (language in TRANSLATIONS) {
-    return TRANSLATIONS[language as SupportedLanguage];
+  const supported: SupportedLanguage[] = ['en', 'es', 'fr', 'de', 'zh', 'ja'];
+  const lang = supported.includes(language as SupportedLanguage)
+    ? (language as SupportedLanguage)
+    : 'en';
+
+  if (!TRANSLATIONS[lang]) {
+    try {
+      const content = fs.readFileSync(path.join(localesDir, `${lang}.json`), 'utf-8');
+      TRANSLATIONS[lang] = JSON.parse(content);
+    } catch (e) {
+      console.error(`[orchestratorFlow] Failed to load translations for ${lang}`, e);
+      // Fallback to en if localized file fails
+      if (lang !== 'en') return getTranslations('en');
+      throw e;
+    }
   }
-  return TRANSLATIONS['en'];
+
+  return TRANSLATIONS[lang]!;
 }
 
 /**
@@ -263,18 +224,20 @@ export const orchestratorFlow = ai.defineFlow(
           `[orchestratorFlow] Extractor failed for context length ${tavilyContext.length}:`,
           inspect(error, { depth: null, colors: true })
         );
+        const t = getTranslations(language);
         return {
           kind: 'error' as const,
-          error: 'Failed to process search results',
+          error: t['failedProcessSearchResults'],
           details: error instanceof Error ? error.message : String(error),
         };
       }
 
       if (!extraction) {
         console.error('[orchestratorFlow] Extractor returned null output');
+        const t = getTranslations(language);
         return {
           kind: 'error' as const,
-          error: 'Failed to extract information from search results',
+          error: t['failedExtractSearchResults'],
           details: 'Title extraction returned null.',
         };
       }
@@ -297,6 +260,7 @@ export const orchestratorFlow = ai.defineFlow(
         movies: [],
         books: [],
         games: [],
+        errors: [],
       };
 
       for (const result of enrichmentResultsRaw) {
@@ -305,12 +269,17 @@ export const orchestratorFlow = ai.defineFlow(
           if (result.value.movies) enrichmentResults.movies.push(...result.value.movies);
           if (result.value.books) enrichmentResults.books.push(...result.value.books);
           if (result.value.games) enrichmentResults.games.push(...result.value.games);
+          if (result.value.errors) enrichmentResults.errors!.push(...result.value.errors);
         } else {
           console.error(
             '[orchestratorFlow] Enrichment promise rejected:',
             inspect(result.reason, { depth: null, colors: true })
           );
         }
+      }
+
+      if (enrichmentResults.errors && enrichmentResults.errors.length === 0) {
+        delete enrichmentResults.errors;
       }
 
       // 4. Synthesize Answer
