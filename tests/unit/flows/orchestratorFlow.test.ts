@@ -215,7 +215,7 @@ describe('orchestratorFlow', () => {
     });
     (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
     (extractorPrompt as any).mockResolvedValue({ output: { titles: ['Movie A'] } });
-    (searchAll as any).mockResolvedValue({ media: [{ title: 'Movie A' }] });
+    (searchAll as any).mockResolvedValue({ media: [{ title: 'Movie A' }], books: [], games: [] });
     (synthesizerPrompt as any).mockRejectedValue(new Error('Synth Error'));
 
     const result = await orchestratorFlow({ query: 'query', language: 'en' });
