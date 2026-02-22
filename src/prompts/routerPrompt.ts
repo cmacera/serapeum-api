@@ -4,7 +4,8 @@ export const RouterSchema = z.object({
   intent: z.enum(['SPECIFIC_ENTITY', 'GENERAL_DISCOVERY', 'OUT_OF_SCOPE']),
   category: z
     .enum(['MOVIE_TV', 'GAME', 'BOOK', 'ALL'])
-    .describe('The specific media category if the user explicitly mentions it, otherwise ALL'),
+    .describe('The specific media category if the user explicitly mentions it, otherwise ALL')
+    .default('ALL'),
   extractedQuery: z
     .string()
     .describe(
@@ -21,7 +22,9 @@ export const RouterSchema = z.object({
 export const routerPrompt = ai.definePrompt(
   {
     name: 'routerPrompt',
-    input: { schema: z.object({ query: z.string() }) },
+    input: {
+      schema: z.object({ query: z.string(), language: z.string().optional().default('en') }),
+    },
     output: { schema: RouterSchema },
   },
   `Role: Domain Guard & Classifier.
@@ -30,8 +33,9 @@ Domain Definition: This agent ONLY handles topics related to Movies, TV Series, 
 
 Instruction:
 Analyze the user's query: {{query}}
+Requested Language: {{language}}
 
-1. If the user asks about anything outside this domain (e.g., "Weather in London", "How to cook pasta", "Politics", "Math"), classify as OUT_OF_SCOPE. Generate a polite refusalReason.
+1. If the user asks about anything outside this domain (e.g., "Weather in London", "How to cook pasta", "Politics", "Math"), classify as OUT_OF_SCOPE. Generate a polite refusalReason. Ensure the refusalReason is translated into the Requested Language if one is provided.
 
 2. If inside the domain, classify intent as:
    - SPECIFIC_ENTITY: If it's a direct request for a specific title (e.g., "Tell me about The Witcher 3", "Inception movie").
@@ -43,5 +47,5 @@ Analyze the user's query: {{query}}
     - BOOK: If the user explicitly asks for a book (e.g., "book Dune", "read Harry Potter").
     - ALL: If the category is ambiguous, mixed, or not specified (e.g., "The Witcher" could be book, game, or show).
 
-Return the intent, category, and the extracted/refined query.`
+Return the intent, category, and the extracted/refined query. Ensure that the refusalReason (if applicable) is returned in the Requested Language.`
 );

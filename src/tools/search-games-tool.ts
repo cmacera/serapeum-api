@@ -31,7 +31,7 @@ export const searchGamesTool = ai.defineTool(
       query: z.string().min(1, 'Search query cannot be empty'),
       // Note: IGDB API does not support language filtering in search queries
       // This parameter is accepted for consistency across search tools but is not used
-      language: z.string().optional(),
+      language: z.string().optional().default('en'),
     }),
     outputSchema: z.array(GameSearchResultSchema),
   },

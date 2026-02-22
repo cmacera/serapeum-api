@@ -52,7 +52,7 @@ export const searchBooksTool = ai.defineTool(
       'Search for books using the Google Books API. Returns detailed book information including title, authors, publisher, ISBN, description, and cover images.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
-      language: z.string().optional(),
+      language: z.string().optional().default('en'),
     }),
     outputSchema: z.array(BookSearchResultSchema),
   },
@@ -65,7 +65,7 @@ export const searchBooksTool = ai.defineTool(
 
     try {
       // Normalize language to ISO 639-1 (e.g., 'es-ES' -> 'es')
-      const normalizedLang = input.language?.split('-')[0];
+      const normalizedLang = input.language.split('-')[0];
 
       const response = await axios.get<GoogleBooksSearchResponse>(
         'https://www.googleapis.com/books/v1/volumes',

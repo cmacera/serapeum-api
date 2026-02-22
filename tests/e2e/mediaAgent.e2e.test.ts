@@ -41,6 +41,7 @@ describe('mediaAgent E2E', () => {
 
     // Verify first item structure
     const firstItem = result.items[0];
+    expect(firstItem).toBeDefined();
     expect(firstItem.id).toBeDefined();
     expect(firstItem.title).toBeDefined();
     expect(firstItem.type).toBeDefined();

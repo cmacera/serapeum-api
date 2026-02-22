@@ -1,0 +1,10 @@
+{
+    "router_failure": "AI 路由无法确定您的查询意图。",
+    "generic_refusal": "抱歉，我仅专门从事电影、游戏、书籍和电视节目。",
+    "specific_fallback": "这是我找到的相关信息：",
+    "specific_error": "无法检索特定实体详细信息。",
+    "synthesis_failure": "我找到了一些信息，但无法生成摘要。请查看下面的详细信息。",
+    "unrecognized_intent": "我不确定如何处理该查询，但我在这里为您提供电影、游戏和书籍方面的帮助。",
+    "failedProcessSearchResults": "处理搜索结果失败",
+    "failedExtractSearchResults": "无法从搜索结果中提取信息"
+}

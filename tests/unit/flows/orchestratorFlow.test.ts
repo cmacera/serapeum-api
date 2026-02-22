@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// @ts-ignore
-import { orchestratorFlow } from '@/flows/agent/orchestratorFlow';
+import { orchestratorFlow } from '@/flows/agent/orchestratorFlow.js';
 
 // Mock the AI library
 vi.mock('@/lib/ai', () => {
@@ -13,12 +12,13 @@ vi.mock('@/lib/ai', () => {
     passthrough: () => mockSchema,
     or: () => mockSchema,
     and: () => mockSchema,
+    default: () => mockSchema,
   };
 
   return {
     ai: {
-      defineFlow: (config: any, fn: any) => fn,
-      definePrompt: (config: any, prompt: string) => {
+      defineFlow: (_config: any, fn: any) => fn,
+      definePrompt: (_config: any, _prompt: string) => {
         // Return a function that mimics calling the prompt
         return vi.fn();
       },
@@ -34,6 +34,8 @@ vi.mock('@/lib/ai', () => {
       unknown: () => mockSchema,
       record: () => mockSchema,
       any: () => mockSchema,
+      literal: () => mockSchema,
+      discriminatedUnion: () => mockSchema,
       infer: {} as any,
     },
     activeModel: 'mock-model',
@@ -75,12 +77,12 @@ vi.mock('@/prompts/synthesizerPrompt', () => ({
 }));
 
 // Import mocked prompts to set implementation
-import { routerPrompt } from '@/prompts/routerPrompt';
-import { extractorPrompt } from '@/prompts/extractorPrompt';
-import { synthesizerPrompt } from '@/prompts/synthesizerPrompt';
-import { searchAll } from '@/flows/catalog/searchAll';
-import { searchTavilyTool } from '@/tools/search-tavily-tool';
-import { searchMedia } from '@/flows/catalog/searchMedia';
+import { routerPrompt } from '@/prompts/routerPrompt.js';
+import { extractorPrompt } from '@/prompts/extractorPrompt.js';
+import { synthesizerPrompt } from '@/prompts/synthesizerPrompt.js';
+import { searchAll } from '@/flows/catalog/searchAll.js';
+import { searchTavilyTool } from '@/tools/search-tavily-tool.js';
+import { searchMedia } from '@/flows/catalog/searchMedia.js';
 
 describe('orchestratorFlow', () => {
   beforeEach(() => {
@@ -96,9 +98,32 @@ describe('orchestratorFlow', () => {
       },
     });
 
-    await orchestratorFlow('Tell me about Inception');
+    (synthesizerPrompt as any).mockResolvedValue({
+      text: 'Mocked synthesizer response for Inception.',
+    });
+
+    const result = await orchestratorFlow({ query: 'Tell me about Inception', language: 'en' });
 
     expect(searchMedia).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
+    expect(synthesizerPrompt).toHaveBeenCalled();
+    expect(result).toHaveProperty('kind', 'search_results');
+    expect(result).toHaveProperty('message');
+    expect(result).toHaveProperty('data');
+  });
+
+  it('should propagate explicit language to calls', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'OUT_OF_SCOPE',
+      },
+    });
+
+    await orchestratorFlow({ query: 'Hola', language: 'es' });
+
+    expect(routerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ language: 'es' }),
+      expect.objectContaining({ model: expect.any(String) })
+    );
   });
 
   it('should route to Path B (General Discovery) and perform enrichment', async () => {
@@ -131,13 +156,15 @@ describe('orchestratorFlow', () => {
       text: 'Here are some great sci-fi movies.',
     });
 
-    const result = await orchestratorFlow('Best sci-fi movies');
+    const result = await orchestratorFlow({ query: 'best sci-fi movies', language: 'en' });
 
+    expect(routerPrompt).toHaveBeenCalled();
     expect(searchTavilyTool).toHaveBeenCalled();
     expect(extractorPrompt).toHaveBeenCalled();
     expect(searchAll).toHaveBeenCalledTimes(2); // One for each extracted title
     expect(synthesizerPrompt).toHaveBeenCalled();
-    expect(result).toHaveProperty('text', 'Here are some great sci-fi movies.');
+    expect(result).toHaveProperty('kind', 'discovery');
+    expect(result).toHaveProperty('message', 'Here are some great sci-fi movies.');
   });
 
   it('should handle OUT_OF_SCOPE queries', async () => {
@@ -148,15 +175,17 @@ describe('orchestratorFlow', () => {
       },
     });
 
-    const result = await orchestratorFlow('Weather in London');
-    expect(result).toBe('I only know about media.');
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
+    expect(result).toHaveProperty('kind', 'refusal');
+    expect(result).toHaveProperty('message', 'I only know about media.');
   });
 
   it('should return error object if Router fails', async () => {
     (routerPrompt as any).mockResolvedValue({ output: null });
 
-    const result = await orchestratorFlow('Broken query');
-    expect(result).toHaveProperty('error', 'Router failed to generate response');
+    const result = await orchestratorFlow({ query: 'Broken query', language: 'en' });
+    expect(result).toHaveProperty('kind', 'error');
+    expect(result).toHaveProperty('error', 'Router failure');
   });
 
   it('should return error object if Extractor fails', async () => {
@@ -170,7 +199,8 @@ describe('orchestratorFlow', () => {
     (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
     (extractorPrompt as any).mockRejectedValue(new Error('Extractor Error'));
 
-    const result = await orchestratorFlow('query');
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
+    expect(result).toHaveProperty('kind', 'error');
     expect(result).toHaveProperty('error', 'Failed to process search results');
     expect(result).toHaveProperty('details', 'Extractor Error');
   });
@@ -188,12 +218,13 @@ describe('orchestratorFlow', () => {
     (searchAll as any).mockResolvedValue({ movies: [{ title: 'Movie A' }] });
     (synthesizerPrompt as any).mockRejectedValue(new Error('Synth Error'));
 
-    const result = await orchestratorFlow('query');
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
 
     // Should return the enriched data but with a fallback text
+    expect(result).toHaveProperty('kind', 'discovery');
     expect(result).toHaveProperty('data');
     expect((result as any).data.movies).toHaveLength(1);
-    expect((result as any).text).toContain("couldn't generate a summary");
+    expect((result as any).message).toContain("couldn't generate a summary");
   });
 
   it('should handle queries where no titles are extracted (fallback to web context)', async () => {
@@ -219,13 +250,14 @@ describe('orchestratorFlow', () => {
       text: 'Based on the web search, here is some info.',
     });
 
-    const result = await orchestratorFlow('weird abstract query');
+    const result = await orchestratorFlow({ query: 'weird abstract query', language: 'en' });
 
     expect(searchTavilyTool).toHaveBeenCalled();
     expect(extractorPrompt).toHaveBeenCalled();
     expect(searchAll).not.toHaveBeenCalled();
     expect(synthesizerPrompt).toHaveBeenCalled();
-    expect(result).toHaveProperty('text', 'Based on the web search, here is some info.');
+    expect(result).toHaveProperty('kind', 'discovery');
+    expect(result).toHaveProperty('message', 'Based on the web search, here is some info.');
   });
 
   // Test for Error Handling in Path A
@@ -240,9 +272,10 @@ describe('orchestratorFlow', () => {
 
     (searchMedia as any).mockRejectedValue(new Error('KB Error'));
 
-    const result = await orchestratorFlow('Inception');
+    const result = await orchestratorFlow({ query: 'Inception', language: 'en' });
 
     expect(searchMedia).toHaveBeenCalled();
+    expect(result).toHaveProperty('kind', 'error');
     expect(result).toHaveProperty('error', 'Failed to retrieve specific entity details.');
     expect(result).toHaveProperty('details', 'KB Error');
   });
@@ -263,11 +296,11 @@ describe('orchestratorFlow', () => {
     (extractorPrompt as any).mockResolvedValue({ output: { titles: [] } });
     (synthesizerPrompt as any).mockResolvedValue({ text: 'Recovered.' });
 
-    const result = await orchestratorFlow('best movies');
+    const result = await orchestratorFlow({ query: 'best movies', language: 'en' });
 
     expect(searchTavilyTool).toHaveBeenCalled();
     // Should fallback to empty context and continue
     expect(extractorPrompt).toHaveBeenCalled();
-    expect(result).toHaveProperty('text', 'Recovered.');
+    expect(result).toHaveProperty('message', 'Recovered.');
   });
 });

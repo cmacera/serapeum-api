@@ -1,81 +1,150 @@
 import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
+import { getTranslations } from '../../lib/translations.js';
 import { searchAll, SearchAllOutputSchema } from '../catalog/searchAll.js';
-import { searchMedia, SearchMediaOutputSchema } from '../catalog/searchMedia.js';
-import { searchGames, SearchGamesOutputSchema } from '../catalog/searchGames.js';
-import { searchBooks, SearchBooksOutputSchema } from '../catalog/searchBooks.js';
+import { searchMedia } from '../catalog/searchMedia.js';
+import { searchGames } from '../catalog/searchGames.js';
+import { searchBooks } from '../catalog/searchBooks.js';
 import { searchTavilyTool } from '../../tools/search-tavily-tool.js';
 import { routerPrompt } from '../../prompts/routerPrompt.js';
 import { extractorPrompt } from '../../prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '../../prompts/synthesizerPrompt.js';
 
-const GeneralDiscoveryResponseSchema = z.object({
-  text: z.string(),
-  data: SearchAllOutputSchema,
-});
+export const AgentResponseSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('refusal'),
+    message: z.string(),
+  }),
+  z.object({
+    kind: z.literal('search_results'),
+    message: z.string(),
+    data: SearchAllOutputSchema,
+  }),
+  z.object({
+    kind: z.literal('discovery'),
+    message: z.string(),
+    data: SearchAllOutputSchema,
+  }),
+  z.object({
+    kind: z.literal('error'),
+    error: z.string(),
+    details: z.string().optional(),
+  }),
+]);
 
-const ErrorResponseSchema = z.object({
-  error: z.string(),
-  details: z.string().optional(),
-});
+/**
+ * Helper to execute the appropriate category search and normalize the output to SearchAllOutputSchema
+ */
+async function executeCategorySearch(
+  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+  input: { query: string; language: string }
+): Promise<z.infer<typeof SearchAllOutputSchema>> {
+  switch (category) {
+    case 'MOVIE_TV': {
+      const res = await searchMedia(input);
+      return { movies: res, books: [], games: [] };
+    }
+    case 'GAME': {
+      const res = await searchGames(input);
+      return { movies: [], books: [], games: res };
+    }
+    case 'BOOK': {
+      const res = await searchBooks(input);
+      return { movies: [], books: res, games: [] };
+    }
+    case 'ALL': {
+      const res = await searchAll(input);
+      return { movies: res.movies, books: res.books, games: res.games, errors: res.errors };
+    }
+    default: {
+      const _exhaustiveCheck: never = category;
+      throw new Error(`Unhandled category: ${_exhaustiveCheck}`);
+    }
+  }
+}
 
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
     name: 'orchestratorFlow',
-    inputSchema: z.string(),
-    outputSchema: z.union([
-      z.string(),
-      GeneralDiscoveryResponseSchema,
-      SearchAllOutputSchema,
-      SearchMediaOutputSchema,
-      SearchGamesOutputSchema,
-      SearchBooksOutputSchema,
-      ErrorResponseSchema,
-    ]),
+    inputSchema: z.object({
+      query: z.string(),
+      language: z.enum(['en', 'es', 'fr', 'de', 'zh', 'ja']).optional().default('en'),
+    }),
+    outputSchema: AgentResponseSchema,
   },
-  async (query) => {
+  async (inputParam) => {
+    const query = inputParam.query;
+    const language = inputParam.language;
+
     // 1. Router
-    const { output: route } = await routerPrompt({ query }, { model: activeModel });
+    const { output: route } = await routerPrompt({ query, language }, { model: activeModel });
 
     if (!route) {
       console.error('[orchestratorFlow] Router failed to generate response');
+      const t = getTranslations(language);
       return {
-        error: 'Router failed to generate response',
-        details: 'The AI router could not determine the intent of your query.',
+        kind: 'error' as const,
+        error: 'Router failure',
+        details: t['router_failure'],
       };
     }
 
     // Path C: Guardrail
     if (route.intent === 'OUT_OF_SCOPE') {
-      return (
-        route.refusalReason || "I'm sorry, I specialize only in Movies, Games, Books, and TV Shows."
-      );
+      const t = getTranslations(language);
+      return {
+        kind: 'refusal' as const,
+        message: route.refusalReason || t['generic_refusal'],
+      };
     }
 
     // Path A: Specific Entity
     if (route.intent === 'SPECIFIC_ENTITY') {
-      const input = { query: route.extractedQuery, language: 'en' };
+      const input = { query: route.extractedQuery, language };
 
       try {
-        switch (route.category) {
-          case 'MOVIE_TV':
-            return await searchMedia(input);
-          case 'GAME':
-            return await searchGames(input);
-          case 'BOOK':
-            return await searchBooks(input);
-          case 'ALL':
-          default:
-            return await searchAll(input);
+        const executionResult = await executeCategorySearch(
+          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+          input
+        );
+
+        const t = getTranslations(language);
+        let generatedText = t['specific_fallback'];
+        try {
+          const synthesis = await synthesizerPrompt(
+            {
+              originalQuery: input.query,
+              webContext: '', // Empty context since it's a specific entity
+              apiDetails: JSON.stringify(executionResult),
+              language,
+            },
+            { model: activeModel }
+          );
+          if (synthesis.text && synthesis.text.trim()) {
+            generatedText = synthesis.text;
+          }
+        } catch (error) {
+          console.error(
+            `[orchestratorFlow] Synthesizer failed for specific entity "${input.query}":`,
+            inspect(error, { depth: null, colors: true })
+          );
         }
+
+        return {
+          kind: 'search_results' as const,
+          message: generatedText,
+          data: executionResult,
+        };
       } catch (error) {
         console.error(
           `[orchestratorFlow] Specific Entity Search failed for query "${input.query}":`,
           inspect(error, { depth: null, colors: true })
         );
+        const t = getTranslations(language);
         return {
-          error: 'Failed to retrieve specific entity details.',
+          kind: 'error' as const,
+          error: t['specific_error'],
           details: error instanceof Error ? error.message : String(error),
         };
       }
@@ -88,6 +157,7 @@ export const orchestratorFlow = ai.defineFlow(
       try {
         const tavilyResults = await searchTavilyTool({
           query: route.extractedQuery,
+          language,
           maxResults: 5,
         });
         tavilyContext = tavilyResults.map((r) => r.content).join('\n');
@@ -113,16 +183,20 @@ export const orchestratorFlow = ai.defineFlow(
           `[orchestratorFlow] Extractor failed for context length ${tavilyContext.length}:`,
           inspect(error, { depth: null, colors: true })
         );
+        const t = getTranslations(language);
         return {
-          error: 'Failed to process search results',
+          kind: 'error' as const,
+          error: t['failedProcessSearchResults'],
           details: error instanceof Error ? error.message : String(error),
         };
       }
 
       if (!extraction) {
         console.error('[orchestratorFlow] Extractor returned null output');
+        const t = getTranslations(language);
         return {
-          error: 'Failed to extract information from search results',
+          kind: 'error' as const,
+          error: t['failedExtractSearchResults'],
           details: 'Title extraction returned null.',
         };
       }
@@ -130,25 +204,12 @@ export const orchestratorFlow = ai.defineFlow(
       // 3. Search DBs for these titles (Enrichment)
       // We'll search for each title in parallel using the appropriate flow based on category
       const enrichmentPromises = extraction.titles.map(async (title) => {
-        const input = { query: title, language: 'en' };
+        const input = { query: title, language };
 
-        switch (route.category) {
-          case 'MOVIE_TV': {
-            const movies = await searchMedia(input);
-            return { movies, books: [], games: [] };
-          }
-          case 'GAME': {
-            const games = await searchGames(input);
-            return { movies: [], books: [], games };
-          }
-          case 'BOOK': {
-            const books = await searchBooks(input);
-            return { movies: [], books, games: [] };
-          }
-          case 'ALL':
-          default:
-            return await searchAll(input);
-        }
+        return await executeCategorySearch(
+          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+          input
+        );
       });
 
       const enrichmentResultsRaw = await Promise.allSettled(enrichmentPromises);
@@ -158,6 +219,7 @@ export const orchestratorFlow = ai.defineFlow(
         movies: [],
         books: [],
         games: [],
+        errors: [],
       };
 
       for (const result of enrichmentResultsRaw) {
@@ -166,12 +228,17 @@ export const orchestratorFlow = ai.defineFlow(
           if (result.value.movies) enrichmentResults.movies.push(...result.value.movies);
           if (result.value.books) enrichmentResults.books.push(...result.value.books);
           if (result.value.games) enrichmentResults.games.push(...result.value.games);
+          if (result.value.errors) enrichmentResults.errors!.push(...result.value.errors);
         } else {
           console.error(
             '[orchestratorFlow] Enrichment promise rejected:',
             inspect(result.reason, { depth: null, colors: true })
           );
         }
+      }
+
+      if (enrichmentResults.errors && enrichmentResults.errors.length === 0) {
+        delete enrichmentResults.errors;
       }
 
       // 4. Synthesize Answer
@@ -181,12 +248,30 @@ export const orchestratorFlow = ai.defineFlow(
             originalQuery: query,
             webContext: tavilyContext,
             apiDetails: JSON.stringify(enrichmentResults),
+            language,
           },
           { model: activeModel }
         );
 
+        const t = getTranslations(language);
+        let finalMessage =
+          synthesis.text && synthesis.text.trim() ? synthesis.text : t.synthesis_failure;
+
+        // Add a status message about partial failures if any
+        if (enrichmentResults.errors && enrichmentResults.errors.length > 0) {
+          const failedTitles = enrichmentResults.errors.map(
+            (e) => e.message.split('"')[1] || 'Unknown'
+          );
+          const uniqueFailures = [...new Set(failedTitles)].filter((t) => t !== 'Unknown');
+
+          if (uniqueFailures.length > 0) {
+            finalMessage += `\n\n(${t.failedProcessSearchResults}: ${uniqueFailures.join(', ')})`;
+          }
+        }
+
         return {
-          text: synthesis.text,
+          kind: 'discovery' as const,
+          message: finalMessage,
           data: enrichmentResults,
         };
       } catch (error) {
@@ -195,13 +280,19 @@ export const orchestratorFlow = ai.defineFlow(
           inspect(error, { depth: null, colors: true })
         );
         // Fallback: return data with a generic message
+        const t = getTranslations(language);
         return {
-          text: "I found some information but couldn't generate a summary. Please check the details below.",
+          kind: 'discovery' as const,
+          message: t['synthesis_failure'],
           data: enrichmentResults,
         };
       }
     }
 
-    return "I wasn't sure how to handle that query, but I'm here to help with movies, games, and books.";
+    const t = getTranslations(language);
+    return {
+      kind: 'refusal' as const,
+      message: t['unrecognized_intent'],
+    };
   }
 );

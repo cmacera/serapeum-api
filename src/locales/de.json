@@ -1,0 +1,10 @@
+{
+    "router_failure": "Der KI-Router konnte die Absicht Ihrer Anfrage nicht bestimmen.",
+    "generic_refusal": "Es tut mir leid, ich bin nur auf Filme, Spiele, Bücher und Fernsehsendungen spezialisiert.",
+    "specific_fallback": "Hier ist, was ich dazu gefunden habe:",
+    "specific_error": "Fehler beim Abrufen spezifischer Entitätsdetails.",
+    "synthesis_failure": "Ich habe einige Informationen gefunden, konnte aber keine Zusammenfassung erstellen. Bitte überprüfen Sie die Details unten.",
+    "unrecognized_intent": "Ich war mir nicht sicher, wie ich diese Anfrage bearbeiten soll, aber ich bin hier, um bei Filmen, Spielen und Büchern zu helfen.",
+    "failedProcessSearchResults": "Fehler beim Verarbeiten der Suchergebnisse",
+    "failedExtractSearchResults": "Fehler beim Extrahieren von Informationen aus den Suchergebnissen"
+}

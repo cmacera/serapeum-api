@@ -1,0 +1,10 @@
+{
+    "router_failure": "AIルーターがクエリの意図を判断できませんでした。",
+    "generic_refusal": "申し訳ありませんが、私は映画、ゲーム、本、テレビ番組のみを専門としています。",
+    "specific_fallback": "それについて見つかった情報は次のとおりです：",
+    "specific_error": "特定のエンティティの詳細を取得できませんでした。",
+    "synthesis_failure": "いくつかの情報が見つかりましたが、要約を生成できませんでした。以下の詳細を確認してください。",
+    "unrecognized_intent": "そのクエリの処理方法がわかりませんでしたが、映画、ゲーム、本に関するお手伝いをいたします。",
+    "failedProcessSearchResults": "検索結果の処理に失敗しました",
+    "failedExtractSearchResults": "検索結果からの情報の抽出に失敗しました"
+}

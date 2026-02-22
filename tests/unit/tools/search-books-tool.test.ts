@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
 import { searchBooksTool } from '../../../src/tools/search-books-tool.js';
 import type { GoogleBooksSearchResponse } from '../../../src/lib/google-books-types.js';
@@ -9,7 +9,7 @@ describe('searchBooksTool', () => {
 
   beforeEach(() => {
     // Set up environment variable
-    process.env.GOOGLE_BOOKS_API_KEY = mockApiKey;
+    process.env['GOOGLE_BOOKS_API_KEY'] = mockApiKey;
 
     // Clean all HTTP mocks before each test
     nock.cleanAll();
@@ -17,7 +17,7 @@ describe('searchBooksTool', () => {
 
   afterEach(() => {
     // Restore environment
-    delete process.env.GOOGLE_BOOKS_API_KEY;
+    delete process.env['GOOGLE_BOOKS_API_KEY'];
   });
 
   describe('Successful searches', () => {
@@ -62,10 +62,11 @@ describe('searchBooksTool', () => {
           maxResults: 10,
           printType: 'books',
           orderBy: 'relevance',
+          langRestrict: 'en',
         })
         .reply(200, mockResponse);
 
-      const result = await searchBooksTool({ query: 'The Great Gatsby' });
+      const result = await searchBooksTool({ query: 'The Great Gatsby', language: 'en' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -95,7 +96,7 @@ describe('searchBooksTool', () => {
 
       nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
 
-      const result = await searchBooksTool({ query: 'nonexistentbook12345' });
+      const result = await searchBooksTool({ query: 'nonexistentbook12345', language: 'en' });
 
       expect(result).toEqual([]);
     });
@@ -120,10 +121,10 @@ describe('searchBooksTool', () => {
 
       nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
 
-      const result = await searchBooksTool({ query: 'test' });
+      const result = await searchBooksTool({ query: 'test', language: 'en' });
 
       expect(result).toHaveLength(1);
-      expect(result[0].isbn).toBeUndefined();
+      expect(result[0]?.isbn).toBeUndefined();
     });
 
     it('should prefer ISBN-13 over ISBN-10', async () => {
@@ -149,17 +150,17 @@ describe('searchBooksTool', () => {
 
       nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
 
-      const result = await searchBooksTool({ query: 'test' });
+      const result = await searchBooksTool({ query: 'test', language: 'en' });
 
-      expect(result[0].isbn).toBe('9781234567890');
+      expect(result[0]?.isbn).toBe('9781234567890');
     });
   });
 
   describe('Error handling', () => {
     it('should throw error when API key is missing', async () => {
-      delete process.env.GOOGLE_BOOKS_API_KEY;
+      delete process.env['GOOGLE_BOOKS_API_KEY'];
 
-      await expect(searchBooksTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchBooksTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'GOOGLE_BOOKS_API_KEY environment variable is not configured'
       );
     });
@@ -175,7 +176,7 @@ describe('searchBooksTool', () => {
           },
         });
 
-      await expect(searchBooksTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchBooksTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'Google Books API authentication failed. Please check your API key.'
       );
     });
@@ -191,7 +192,7 @@ describe('searchBooksTool', () => {
           },
         });
 
-      await expect(searchBooksTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchBooksTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'Google Books API rate limit exceeded. Please try again later.'
       );
     });
@@ -202,7 +203,7 @@ describe('searchBooksTool', () => {
         .query(true)
         .replyWithError('Network error');
 
-      await expect(searchBooksTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchBooksTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'Network error: Unable to reach Google Books API'
       );
     });
@@ -211,7 +212,7 @@ describe('searchBooksTool', () => {
   describe('Input validation', () => {
     it('should handle empty query string', async () => {
       // Zod validation should catch this before the API call
-      await expect(searchBooksTool({ query: '' })).rejects.toThrow();
+      await expect(searchBooksTool({ query: '', language: 'en' })).rejects.toThrow();
     });
   });
 });

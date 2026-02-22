@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { orchestratorFlow } from '../src/flows/agent/orchestratorFlow.js';
-import { ai } from '../src/lib/ai.js';
 import { searchAll } from '../src/flows/catalog/searchAll.js';
 import { searchMedia } from '../src/flows/catalog/searchMedia.js';
 import { searchGames } from '../src/flows/catalog/searchGames.js';
@@ -101,20 +100,27 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' }];
+    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
     vi.mocked(searchMedia).mockResolvedValue(
       searchResult as unknown as Awaited<ReturnType<typeof searchMedia>>
     );
 
-    const result = await orchestratorFlow('Movie Inception');
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Inception.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
+    const result = await orchestratorFlow({ query: 'Movie Inception', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'Movie Inception' },
+      { query: 'Movie Inception', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchMedia).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
     expect(searchAll).not.toHaveBeenCalled();
-    expect(result).toEqual(searchResult);
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: 'Mocked synthesizer response for Inception.',
+      data: { movies: searchResult, books: [], games: [] },
+    });
   });
 
   it('should route to searchGames when intent is SPECIFIC_ENTITY and category is GAME', async () => {
@@ -131,15 +137,23 @@ describe('orchestratorFlow', () => {
       searchResult as unknown as Awaited<ReturnType<typeof searchGames>>
     );
 
-    const result = await orchestratorFlow('Game Elden Ring');
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Elden Ring.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
+    const result = await orchestratorFlow({ query: 'Game Elden Ring', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'Game Elden Ring' },
+      { query: 'Game Elden Ring', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
     expect(searchGames).toHaveBeenCalledWith({ query: 'Elden Ring', language: 'en' });
     expect(searchAll).not.toHaveBeenCalled();
-    expect(result).toEqual(searchResult);
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: 'Mocked synthesizer response for Elden Ring.',
+      data: { movies: [], games: searchResult, books: [] },
+    });
   });
 
   it('should route to searchBooks when intent is SPECIFIC_ENTITY and category is BOOK', async () => {
@@ -156,15 +170,23 @@ describe('orchestratorFlow', () => {
       searchResult as unknown as Awaited<ReturnType<typeof searchBooks>>
     );
 
-    const result = await orchestratorFlow('Book Dune');
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Dune.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
+    const result = await orchestratorFlow({ query: 'Book Dune', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'Book Dune' },
+      { query: 'Book Dune', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
     expect(searchBooks).toHaveBeenCalledWith({ query: 'Dune', language: 'en' });
     expect(searchAll).not.toHaveBeenCalled();
-    expect(result).toEqual(searchResult);
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: 'Mocked synthesizer response for Dune.',
+      data: { movies: [], games: [], books: searchResult },
+    });
   });
 
   it('should route to searchAll when intent is SPECIFIC_ENTITY and category is ALL', async () => {
@@ -181,14 +203,32 @@ describe('orchestratorFlow', () => {
       searchResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
 
-    const result = await orchestratorFlow('The Witcher');
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for The Witcher.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
+    const result = await orchestratorFlow({ query: 'Info about The Witcher', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'The Witcher' },
+      { query: 'Info about The Witcher', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
     expect(searchAll).toHaveBeenCalledWith({ query: 'The Witcher', language: 'en' });
-    expect(result).toEqual(searchResult);
+    expect(synthesizerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalQuery: 'The Witcher',
+        language: 'en',
+        webContext: '',
+        apiDetails: JSON.stringify({ movies: [], books: [], games: [] }),
+      }),
+      expect.any(Object)
+    );
+
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: 'Mocked synthesizer response for The Witcher.',
+      data: searchResult,
+    });
   });
 
   it('should handle OUT_OF_SCOPE intent', async () => {
@@ -200,8 +240,11 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const result = await orchestratorFlow('How to cook pasta');
-    expect(result).toBe('I cannot help with pasta.');
+    const result = await orchestratorFlow({ query: 'How to cook pasta', language: 'en' });
+    expect(result).toEqual({
+      kind: 'refusal',
+      message: 'I cannot help with pasta.',
+    });
     expect(routerPrompt).toHaveBeenCalledTimes(1);
     expect(searchAll).not.toHaveBeenCalled();
   });
@@ -211,6 +254,7 @@ describe('orchestratorFlow', () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
         extractedQuery: 'best sci-fi movies',
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
@@ -243,13 +287,17 @@ describe('orchestratorFlow', () => {
       text: 'Here are the best sci-fi movies: Dune Part 2...',
     } as any);
 
-    const result = await orchestratorFlow('Best sci-fi movies 2023');
+    const result = await orchestratorFlow({ query: 'Best sci-fi movies 2023', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
-      { query: 'Best sci-fi movies 2023' },
+      { query: 'Best sci-fi movies 2023', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchTavilyTool).toHaveBeenCalledWith({ query: 'best sci-fi movies', maxResults: 5 });
+    expect(searchTavilyTool).toHaveBeenCalledWith({
+      query: 'best sci-fi movies',
+      maxResults: 5,
+      language: 'en',
+    });
     expect(extractorPrompt).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ model: expect.any(String) })
@@ -261,7 +309,8 @@ describe('orchestratorFlow', () => {
     );
 
     expect(result).toEqual({
-      text: 'Here are the best sci-fi movies: Dune Part 2...',
+      kind: 'discovery',
+      message: 'Here are the best sci-fi movies: Dune Part 2...',
       data: enrichmentData,
     });
   });
@@ -286,7 +335,7 @@ describe('orchestratorFlow', () => {
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({ text: 'Smile 2 is a scary movie.' } as any);
 
-    const result = await orchestratorFlow('Best horror movies');
+    const result = await orchestratorFlow({ query: 'Best horror movies', language: 'en' });
 
     expect(searchMedia).toHaveBeenCalledWith({ query: 'Smile 2', language: 'en' });
     expect(searchGames).not.toHaveBeenCalled();
@@ -294,7 +343,8 @@ describe('orchestratorFlow', () => {
     expect(searchAll).not.toHaveBeenCalled();
 
     expect(result).toEqual({
-      text: 'Smile 2 is a scary movie.',
+      kind: 'discovery',
+      message: 'Smile 2 is a scary movie.',
       data: {
         movies: mediaResult,
         books: [],
@@ -324,19 +374,55 @@ describe('orchestratorFlow', () => {
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({ text: 'BG3 is great.' } as any);
 
-    const result = await orchestratorFlow('Best RPGs');
+    const result = await orchestratorFlow({ query: 'Best RPGs', language: 'en' });
 
     expect(searchGames).toHaveBeenCalledWith({ query: "Baldur's Gate 3", language: 'en' });
     expect(searchMedia).not.toHaveBeenCalled();
     expect(searchBooks).not.toHaveBeenCalled();
 
     expect(result).toEqual({
-      text: 'BG3 is great.',
+      kind: 'discovery',
+      message: 'BG3 is great.',
       data: {
         movies: [],
         books: [],
         games: gameResult,
       },
+    });
+  });
+
+  it('should return an error object when routerPrompt fails (resolves to null)', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({ output: null } as any);
+
+    const result = await orchestratorFlow({ query: 'test router failure', language: 'en' });
+
+    expect(result).toEqual({
+      kind: 'error',
+      error: expect.any(String),
+      details: expect.any(String),
+    });
+  });
+
+  it('should return search_results with fallback message when synthesizerPrompt throws an error', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({
+      output: {
+        intent: 'SPECIFIC_ENTITY',
+        category: 'MOVIE_TV',
+        extractedQuery: 'Inception',
+      },
+    } as Awaited<ReturnType<typeof routerPrompt>>);
+
+    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
+    vi.mocked(searchMedia).mockResolvedValue(searchResult as any);
+
+    vi.mocked(synthesizerPrompt).mockRejectedValue(new Error('Synthesizer failed'));
+
+    const result = await orchestratorFlow({ query: 'Movie Inception', language: 'en' });
+
+    expect(result).toEqual({
+      kind: 'search_results',
+      message: expect.any(String),
+      data: { movies: searchResult, books: [], games: [] },
     });
   });
 });
