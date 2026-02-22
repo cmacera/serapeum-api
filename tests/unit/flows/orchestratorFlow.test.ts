@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// @ts-ignore
-import { orchestratorFlow } from '@/flows/agent/orchestratorFlow';
+import { orchestratorFlow } from '@/flows/agent/orchestratorFlow.js';
 
 // Mock the AI library
 vi.mock('@/lib/ai', () => {
@@ -18,8 +17,8 @@ vi.mock('@/lib/ai', () => {
 
   return {
     ai: {
-      defineFlow: (config: any, fn: any) => fn,
-      definePrompt: (config: any, prompt: string) => {
+      defineFlow: (_config: any, fn: any) => fn,
+      definePrompt: (_config: any, _prompt: string) => {
         // Return a function that mimics calling the prompt
         return vi.fn();
       },
@@ -45,19 +44,19 @@ vi.mock('@/lib/ai', () => {
 
 // Mock catalog flows
 vi.mock('@/flows/catalog/searchAll', () => ({
-  searchAll: vi.fn().mockResolvedValue({ type: 'all', movies: [], books: [], games: [] }),
+  searchAll: vi.fn().mockResolvedValue({ movies: [], books: [], games: [] }),
   SearchAllOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchMedia', () => ({
-  searchMedia: vi.fn().mockResolvedValue({ type: 'media', results: [] }),
+  searchMedia: vi.fn().mockResolvedValue([]),
   SearchMediaOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchGames', () => ({
-  searchGames: vi.fn().mockResolvedValue({ type: 'game', results: [] }),
+  searchGames: vi.fn().mockResolvedValue([]),
   SearchGamesOutputSchema: {},
 }));
 vi.mock('@/flows/catalog/searchBooks', () => ({
-  searchBooks: vi.fn().mockResolvedValue({ type: 'book', results: [] }),
+  searchBooks: vi.fn().mockResolvedValue([]),
   SearchBooksOutputSchema: {},
 }));
 
@@ -67,23 +66,23 @@ vi.mock('@/tools/search-tavily-tool', () => ({
 }));
 
 // Mock prompts
-vi.mock('../../../src/prompts/routerPrompt', () => ({
+vi.mock('@/prompts/routerPrompt', () => ({
   routerPrompt: vi.fn(),
 }));
-vi.mock('../../../src/prompts/extractorPrompt', () => ({
+vi.mock('@/prompts/extractorPrompt', () => ({
   extractorPrompt: vi.fn(),
 }));
-vi.mock('../../../src/prompts/synthesizerPrompt', () => ({
+vi.mock('@/prompts/synthesizerPrompt', () => ({
   synthesizerPrompt: vi.fn(),
 }));
 
 // Import mocked prompts to set implementation
-import { routerPrompt } from '../../../src/prompts/routerPrompt';
-import { extractorPrompt } from '../../../src/prompts/extractorPrompt';
-import { synthesizerPrompt } from '../../../src/prompts/synthesizerPrompt';
-import { searchAll } from '../../../src/flows/catalog/searchAll';
-import { searchTavilyTool } from '../../../src/tools/search-tavily-tool';
-import { searchMedia } from '../../../src/flows/catalog/searchMedia';
+import { routerPrompt } from '@/prompts/routerPrompt.js';
+import { extractorPrompt } from '@/prompts/extractorPrompt.js';
+import { synthesizerPrompt } from '@/prompts/synthesizerPrompt.js';
+import { searchAll } from '@/flows/catalog/searchAll.js';
+import { searchTavilyTool } from '@/tools/search-tavily-tool.js';
+import { searchMedia } from '@/flows/catalog/searchMedia.js';
 
 describe('orchestratorFlow', () => {
   beforeEach(() => {
@@ -103,7 +102,7 @@ describe('orchestratorFlow', () => {
       text: 'Mocked synthesizer response for Inception.',
     });
 
-    const result = await orchestratorFlow({ query: 'Tell me about Inception' });
+    const result = await orchestratorFlow({ query: 'Tell me about Inception', language: 'en' });
 
     expect(searchMedia).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
     expect(synthesizerPrompt).toHaveBeenCalled();
@@ -148,7 +147,6 @@ describe('orchestratorFlow', () => {
     });
 
     (searchAll as any).mockResolvedValue({
-      type: 'all',
       movies: [{ title: 'Dune', id: '1' }],
       books: [],
       games: [],
@@ -158,7 +156,7 @@ describe('orchestratorFlow', () => {
       text: 'Here are some great sci-fi movies.',
     });
 
-    const result = await orchestratorFlow({ query: 'best sci-fi movies' });
+    const result = await orchestratorFlow({ query: 'best sci-fi movies', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalled();
     expect(searchTavilyTool).toHaveBeenCalled();
@@ -177,7 +175,7 @@ describe('orchestratorFlow', () => {
       },
     });
 
-    const result = await orchestratorFlow({ query: 'query' });
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
     expect(result).toHaveProperty('kind', 'refusal');
     expect(result).toHaveProperty('message', 'I only know about media.');
   });
@@ -185,7 +183,7 @@ describe('orchestratorFlow', () => {
   it('should return error object if Router fails', async () => {
     (routerPrompt as any).mockResolvedValue({ output: null });
 
-    const result = await orchestratorFlow({ query: 'Broken query' });
+    const result = await orchestratorFlow({ query: 'Broken query', language: 'en' });
     expect(result).toHaveProperty('kind', 'error');
     expect(result).toHaveProperty('error', 'Router failure');
   });
@@ -201,7 +199,7 @@ describe('orchestratorFlow', () => {
     (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
     (extractorPrompt as any).mockRejectedValue(new Error('Extractor Error'));
 
-    const result = await orchestratorFlow({ query: 'query' });
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
     expect(result).toHaveProperty('kind', 'error');
     expect(result).toHaveProperty('error', 'Failed to process search results');
     expect(result).toHaveProperty('details', 'Extractor Error');
@@ -220,7 +218,7 @@ describe('orchestratorFlow', () => {
     (searchAll as any).mockResolvedValue({ movies: [{ title: 'Movie A' }] });
     (synthesizerPrompt as any).mockRejectedValue(new Error('Synth Error'));
 
-    const result = await orchestratorFlow({ query: 'query' });
+    const result = await orchestratorFlow({ query: 'query', language: 'en' });
 
     // Should return the enriched data but with a fallback text
     expect(result).toHaveProperty('kind', 'discovery');
@@ -252,7 +250,7 @@ describe('orchestratorFlow', () => {
       text: 'Based on the web search, here is some info.',
     });
 
-    const result = await orchestratorFlow({ query: 'weird abstract query' });
+    const result = await orchestratorFlow({ query: 'weird abstract query', language: 'en' });
 
     expect(searchTavilyTool).toHaveBeenCalled();
     expect(extractorPrompt).toHaveBeenCalled();
@@ -274,7 +272,7 @@ describe('orchestratorFlow', () => {
 
     (searchMedia as any).mockRejectedValue(new Error('KB Error'));
 
-    const result = await orchestratorFlow({ query: 'Inception' });
+    const result = await orchestratorFlow({ query: 'Inception', language: 'en' });
 
     expect(searchMedia).toHaveBeenCalled();
     expect(result).toHaveProperty('kind', 'error');
@@ -298,7 +296,7 @@ describe('orchestratorFlow', () => {
     (extractorPrompt as any).mockResolvedValue({ output: { titles: [] } });
     (synthesizerPrompt as any).mockResolvedValue({ text: 'Recovered.' });
 
-    const result = await orchestratorFlow({ query: 'best movies' });
+    const result = await orchestratorFlow({ query: 'best movies', language: 'en' });
 
     expect(searchTavilyTool).toHaveBeenCalled();
     // Should fallback to empty context and continue

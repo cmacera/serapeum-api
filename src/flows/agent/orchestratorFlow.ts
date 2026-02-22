@@ -116,7 +116,7 @@ function getTranslations(language: string): Record<TranslationKeys, string> {
  * Helper to execute the appropriate category search and normalize the output to SearchAllOutputSchema
  */
 async function executeCategorySearch(
-  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL' | string,
+  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
   input: { query: string; language: string }
 ): Promise<z.infer<typeof SearchAllOutputSchema>> {
   switch (category) {
@@ -132,10 +132,13 @@ async function executeCategorySearch(
       const res = await searchBooks(input);
       return { movies: [], books: res, games: [] };
     }
-    case 'ALL':
-    default: {
+    case 'ALL': {
       const res = await searchAll(input);
-      return { movies: res.movies, books: res.books, games: res.games };
+      return { movies: res.movies, books: res.books, games: res.games, errors: res.errors };
+    }
+    default: {
+      const _exhaustiveCheck: never = category;
+      throw new Error(`Unhandled category: ${_exhaustiveCheck}`);
     }
   }
 }
@@ -152,7 +155,7 @@ export const orchestratorFlow = ai.defineFlow(
   },
   async (inputParam) => {
     const query = inputParam.query;
-    const language = inputParam.language || 'en';
+    const language = inputParam.language;
 
     // 1. Router
     const { output: route } = await routerPrompt({ query, language }, { model: activeModel });
@@ -183,7 +186,10 @@ export const orchestratorFlow = ai.defineFlow(
       try {
         let executionResult: z.infer<typeof SearchAllOutputSchema>;
 
-        executionResult = await executeCategorySearch(route.category, input);
+        executionResult = await executeCategorySearch(
+          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+          input
+        );
 
         const t = getTranslations(language);
         let generatedText = t['specific_fallback'];
@@ -277,7 +283,10 @@ export const orchestratorFlow = ai.defineFlow(
       const enrichmentPromises = extraction.titles.map(async (title) => {
         const input = { query: title, language };
 
-        return await executeCategorySearch(route.category, input);
+        return await executeCategorySearch(
+          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+          input
+        );
       });
 
       const enrichmentResultsRaw = await Promise.allSettled(enrichmentPromises);

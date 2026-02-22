@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
 import { searchBooksTool } from '../../../src/tools/search-books-tool.js';
 import type { GoogleBooksSearchResponse } from '../../../src/lib/google-books-types.js';
@@ -9,7 +9,7 @@ describe('searchBooksTool', () => {
 
   beforeEach(() => {
     // Set up environment variable
-    process.env.GOOGLE_BOOKS_API_KEY = mockApiKey;
+    process.env['GOOGLE_BOOKS_API_KEY'] = mockApiKey;
 
     // Clean all HTTP mocks before each test
     nock.cleanAll();
@@ -17,7 +17,7 @@ describe('searchBooksTool', () => {
 
   afterEach(() => {
     // Restore environment
-    delete process.env.GOOGLE_BOOKS_API_KEY;
+    delete process.env['GOOGLE_BOOKS_API_KEY'];
   });
 
   describe('Successful searches', () => {
@@ -124,7 +124,7 @@ describe('searchBooksTool', () => {
       const result = await searchBooksTool({ query: 'test', language: 'en' });
 
       expect(result).toHaveLength(1);
-      expect(result[0].isbn).toBeUndefined();
+      expect(result[0]?.isbn).toBeUndefined();
     });
 
     it('should prefer ISBN-13 over ISBN-10', async () => {
@@ -152,13 +152,13 @@ describe('searchBooksTool', () => {
 
       const result = await searchBooksTool({ query: 'test', language: 'en' });
 
-      expect(result[0].isbn).toBe('9781234567890');
+      expect(result[0]?.isbn).toBe('9781234567890');
     });
   });
 
   describe('Error handling', () => {
     it('should throw error when API key is missing', async () => {
-      delete process.env.GOOGLE_BOOKS_API_KEY;
+      delete process.env['GOOGLE_BOOKS_API_KEY'];
 
       await expect(searchBooksTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'GOOGLE_BOOKS_API_KEY environment variable is not configured'

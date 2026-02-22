@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
 import { searchMediaTool } from '../../../src/tools/search-media-tool.js';
 import type { TMDBSearchResponse } from '../../../src/lib/tmdb-types.js';
@@ -9,7 +9,7 @@ describe('searchMediaTool', () => {
 
   beforeEach(() => {
     // Set up environment variable
-    process.env.TMDB_API_KEY = mockApiKey;
+    process.env['TMDB_API_KEY'] = mockApiKey;
 
     // Clean all HTTP mocks before each test
     nock.cleanAll();
@@ -17,7 +17,7 @@ describe('searchMediaTool', () => {
 
   afterEach(() => {
     // Restore environment
-    delete process.env.TMDB_API_KEY;
+    delete process.env['TMDB_API_KEY'];
   });
 
   describe('Successful searches', () => {
@@ -43,7 +43,7 @@ describe('searchMediaTool', () => {
 
       nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
 
-      const result = await searchMediaTool({ query: 'Fight Club' });
+      const result = await searchMediaTool({ query: 'Fight Club', language: 'en' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -82,7 +82,7 @@ describe('searchMediaTool', () => {
 
       nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
 
-      const result = await searchMediaTool({ query: 'Breaking Bad' });
+      const result = await searchMediaTool({ query: 'Breaking Bad', language: 'en' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -130,11 +130,11 @@ describe('searchMediaTool', () => {
 
       nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
 
-      const result = await searchMediaTool({ query: 'Matrix' });
+      const result = await searchMediaTool({ query: 'Matrix', language: 'en' });
 
       expect(result).toHaveLength(2);
-      expect(result[0].media_type).toBe('movie');
-      expect(result[1].media_type).toBe('tv');
+      expect(result[0]?.media_type).toBe('movie');
+      expect(result[1]?.media_type).toBe('tv');
     });
 
     it('should handle empty results', async () => {
@@ -147,7 +147,7 @@ describe('searchMediaTool', () => {
 
       nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
 
-      const result = await searchMediaTool({ query: 'NonexistentMovie12345' });
+      const result = await searchMediaTool({ query: 'NonexistentMovie12345', language: 'en' });
 
       expect(result).toEqual([]);
     });
@@ -188,7 +188,7 @@ describe('searchMediaTool', () => {
 
       nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
 
-      const result = await searchMediaTool({ query: 'test' });
+      const result = await searchMediaTool({ query: 'test', language: 'en' });
 
       expect(result).toHaveLength(2);
       expect(result.every((r) => r.media_type === 'movie' || r.media_type === 'tv')).toBe(true);
@@ -225,9 +225,9 @@ describe('searchMediaTool', () => {
 
   describe('Error handling', () => {
     it('should throw error when API key is missing', async () => {
-      delete process.env.TMDB_API_KEY;
+      delete process.env['TMDB_API_KEY'];
 
-      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'TMDB_API_KEY environment variable is not configured'
       );
     });
@@ -238,7 +238,7 @@ describe('searchMediaTool', () => {
         .query(true)
         .reply(401, { status_message: 'Invalid API key', status_code: 7 });
 
-      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'TMDB API authentication failed. Please check your API key.'
       );
     });
@@ -249,7 +249,7 @@ describe('searchMediaTool', () => {
         .query(true)
         .reply(429, { status_message: 'Rate limit exceeded', status_code: 25 });
 
-      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'TMDB API rate limit exceeded. Please try again later.'
       );
     });
@@ -257,7 +257,7 @@ describe('searchMediaTool', () => {
     it('should handle network failures', async () => {
       nock(TMDB_API_URL).get('/3/search/multi').query(true).replyWithError('Network error');
 
-      await expect(searchMediaTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchMediaTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'Network error: Unable to reach TMDB API. Please check your internet connection.'
       );
     });

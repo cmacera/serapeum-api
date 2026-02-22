@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { orchestratorFlow } from '../src/flows/agent/orchestratorFlow.js';
-import { ai } from '../src/lib/ai.js';
 import { searchAll } from '../src/flows/catalog/searchAll.js';
 import { searchMedia } from '../src/flows/catalog/searchMedia.js';
 import { searchGames } from '../src/flows/catalog/searchGames.js';
@@ -106,6 +105,10 @@ describe('orchestratorFlow', () => {
       searchResult as unknown as Awaited<ReturnType<typeof searchMedia>>
     );
 
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Inception.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
     const result = await orchestratorFlow({ query: 'Movie Inception', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
@@ -115,7 +118,7 @@ describe('orchestratorFlow', () => {
     expect(searchAll).not.toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
-      message: expect.any(String),
+      message: 'Mocked synthesizer response for Inception.',
       data: { movies: searchResult, books: [], games: [] },
     });
   });
@@ -134,6 +137,10 @@ describe('orchestratorFlow', () => {
       searchResult as unknown as Awaited<ReturnType<typeof searchGames>>
     );
 
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Elden Ring.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
+
     const result = await orchestratorFlow({ query: 'Game Elden Ring', language: 'en' });
 
     expect(routerPrompt).toHaveBeenCalledWith(
@@ -144,7 +151,7 @@ describe('orchestratorFlow', () => {
     expect(searchAll).not.toHaveBeenCalled();
     expect(result).toEqual({
       kind: 'search_results',
-      message: expect.any(String),
+      message: 'Mocked synthesizer response for Elden Ring.',
       data: { movies: [], games: searchResult, books: [] },
     });
   });
@@ -162,6 +169,10 @@ describe('orchestratorFlow', () => {
     vi.mocked(searchBooks).mockResolvedValue(
       searchResult as unknown as Awaited<ReturnType<typeof searchBooks>>
     );
+
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'Mocked synthesizer response for Dune.',
+    } as Awaited<ReturnType<typeof synthesizerPrompt>>);
 
     const result = await orchestratorFlow({ query: 'Book Dune', language: 'en' });
 
@@ -243,6 +254,7 @@ describe('orchestratorFlow', () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
         extractedQuery: 'best sci-fi movies',
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);

@@ -24,7 +24,7 @@ describe('searchAll Flow', () => {
     vi.mocked(searchBooksTool).mockResolvedValue(mockBooks as any);
     vi.mocked(searchGamesTool).mockResolvedValue(mockGames as any);
 
-    const result = await searchAll({ query: 'test' });
+    const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
       movies: mockMovies,
@@ -33,9 +33,9 @@ describe('searchAll Flow', () => {
       errors: undefined,
     });
 
-    expect(searchMediaTool).toHaveBeenCalledWith({ query: 'test' });
-    expect(searchBooksTool).toHaveBeenCalledWith({ query: 'test' });
-    expect(searchGamesTool).toHaveBeenCalledWith({ query: 'test' });
+    expect(searchMediaTool).toHaveBeenCalledWith({ query: 'test', language: 'en' });
+    expect(searchBooksTool).toHaveBeenCalledWith({ query: 'test', language: 'en' });
+    expect(searchGamesTool).toHaveBeenCalledWith({ query: 'test', language: 'en' });
   });
 
   it('should handle partial failures gracefully', async () => {
@@ -47,7 +47,7 @@ describe('searchAll Flow', () => {
     vi.mocked(searchBooksTool).mockResolvedValue(mockBooks as any);
     vi.mocked(searchGamesTool).mockResolvedValue(mockGames as any);
 
-    const result = await searchAll({ query: 'test' });
+    const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
       movies: [],
@@ -62,7 +62,7 @@ describe('searchAll Flow', () => {
     vi.mocked(searchBooksTool).mockRejectedValue(new Error('Google Books Error'));
     vi.mocked(searchGamesTool).mockRejectedValue(new Error('IGDB Error'));
 
-    const result = await searchAll({ query: 'test' });
+    const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
       movies: [],
@@ -81,7 +81,7 @@ describe('searchAll Flow', () => {
     vi.mocked(searchBooksTool).mockResolvedValue([]);
     vi.mocked(searchGamesTool).mockResolvedValue([]);
 
-    const result = await searchAll({ query: 'test' });
+    const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
       movies: [],

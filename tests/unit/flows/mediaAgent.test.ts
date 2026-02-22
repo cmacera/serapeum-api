@@ -6,7 +6,7 @@ import { mediaAgent } from '@/flows/agent/mediaAgent';
 vi.mock('@/lib/ai', () => ({
   ai: {
     // defineFlow typically wraps the function, here we just return it to execute directly or wrapped
-    defineFlow: (config: any, fn: any) => fn,
+    defineFlow: (_config: any, fn: any) => fn,
     generate: vi.fn().mockImplementation(async ({ prompt }) => {
       let resultText = 'Mocked Result';
       if (prompt.includes('Inception')) resultText = 'Mocked TMDB Result';

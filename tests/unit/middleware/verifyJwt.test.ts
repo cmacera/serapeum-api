@@ -23,9 +23,9 @@ async function ensureKeys() {
   const { privateKey: priv, publicKey: pub } = await generateKeyPair('RS256');
   privateKey = priv;
   publicKeyJWK = (await exportJWK(pub)) as Record<string, any>;
-  publicKeyJWK.kid = 'test-kid';
-  publicKeyJWK.alg = 'RS256';
-  publicKeyJWK.use = 'sig';
+  publicKeyJWK['kid'] = 'test-kid';
+  publicKeyJWK['alg'] = 'RS256';
+  publicKeyJWK['use'] = 'sig';
 }
 
 /**

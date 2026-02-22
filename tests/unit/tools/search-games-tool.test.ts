@@ -11,7 +11,7 @@ describe('searchGamesTool', () => {
 
   beforeEach(() => {
     // Set up environment variable
-    process.env.IGDB_CLIENT_ID = mockClientId;
+    process.env['IGDB_CLIENT_ID'] = mockClientId;
 
     // Mock getAccessToken to avoid actual auth calls
     vi.spyOn(igdbAuth, 'getAccessToken').mockResolvedValue(mockAccessToken);
@@ -22,7 +22,7 @@ describe('searchGamesTool', () => {
 
   afterEach(() => {
     // Restore environment
-    delete process.env.IGDB_CLIENT_ID;
+    delete process.env['IGDB_CLIENT_ID'];
     vi.restoreAllMocks();
   });
 
@@ -51,7 +51,7 @@ describe('searchGamesTool', () => {
 
       nock(IGDB_API_URL).post('/v4/games').reply(200, mockResponse);
 
-      const result = await searchGamesTool({ query: 'The Witcher 3' });
+      const result = await searchGamesTool({ query: 'The Witcher 3', language: 'en' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -80,7 +80,7 @@ describe('searchGamesTool', () => {
 
       nock(IGDB_API_URL).post('/v4/games').reply(200, mockResponse);
 
-      const result = await searchGamesTool({ query: 'Minimal' });
+      const result = await searchGamesTool({ query: 'Minimal', language: 'en' });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -102,9 +102,9 @@ describe('searchGamesTool', () => {
 
   describe('Error handling', () => {
     it('should throw an error if IGDB_CLIENT_ID is missing', async () => {
-      delete process.env.IGDB_CLIENT_ID;
+      delete process.env['IGDB_CLIENT_ID'];
 
-      await expect(searchGamesTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'IGDB_CLIENT_ID environment variable is not configured'
       );
     });
@@ -112,7 +112,7 @@ describe('searchGamesTool', () => {
     it('should handle authentication failure (401)', async () => {
       nock(IGDB_API_URL).post('/v4/games').reply(401);
 
-      await expect(searchGamesTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'IGDB authentication failed. Access token may have expired.'
       );
     });
@@ -120,7 +120,7 @@ describe('searchGamesTool', () => {
     it('should handle rate limiting (429)', async () => {
       nock(IGDB_API_URL).post('/v4/games').reply(429);
 
-      await expect(searchGamesTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'IGDB API rate limit exceeded. Please try again later.'
       );
     });
@@ -128,7 +128,7 @@ describe('searchGamesTool', () => {
     it('should handle general API errors', async () => {
       nock(IGDB_API_URL).post('/v4/games').reply(500, 'Internal Server Error');
 
-      await expect(searchGamesTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'IGDB API request failed: 500 Internal Server Error'
       );
     });
@@ -136,7 +136,7 @@ describe('searchGamesTool', () => {
     it('should propagate auth errors', async () => {
       vi.spyOn(igdbAuth, 'getAccessToken').mockRejectedValue(new Error('Auth failed'));
 
-      await expect(searchGamesTool({ query: 'test' })).rejects.toThrow(
+      await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'Failed to search games: Auth failed'
       );
     });
@@ -155,7 +155,7 @@ describe('searchGamesTool', () => {
         })
         .reply(200, []);
 
-      await searchGamesTool({ query });
+      await searchGamesTool({ query, language: 'en' });
 
       const expectedQuery = `
         search "${query}";
@@ -180,7 +180,7 @@ describe('searchGamesTool', () => {
         })
         .reply(200, []);
 
-      await searchGamesTool({ query });
+      await searchGamesTool({ query, language: 'en' });
 
       // Expect the quote to be escaped: "Game \"Inject\" Test"
       // In the body string it looks like: search "Game \"Inject\" Test";
@@ -199,7 +199,7 @@ describe('searchGamesTool', () => {
 
       nock(IGDB_API_URL).post('/v4/games').reply(200, mockGames);
 
-      const results = await searchGamesTool({ query: 'Types Test' });
+      const results = await searchGamesTool({ query: 'Types Test', language: 'en' });
 
       expect(results).toHaveLength(6);
       expect(results.find((g) => g.id === 1)?.game_type).toBe(0);
