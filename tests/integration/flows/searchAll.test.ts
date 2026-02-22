@@ -27,7 +27,7 @@ describe('searchAll Flow', () => {
     const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
-      movies: mockMovies,
+      media: mockMovies,
       books: mockBooks,
       games: mockGames,
       errors: undefined,
@@ -50,10 +50,10 @@ describe('searchAll Flow', () => {
     const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
-      movies: [],
+      media: [],
       books: mockBooks,
       games: mockGames,
-      errors: [{ source: 'movies', message: 'TMDB Error' }],
+      errors: [{ source: 'media', message: 'TMDB Error' }],
     });
   });
 
@@ -65,11 +65,11 @@ describe('searchAll Flow', () => {
     const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
-      movies: [],
+      media: [],
       books: [],
       games: [],
       errors: [
-        { source: 'movies', message: 'TMDB Error' },
+        { source: 'media', message: 'TMDB Error' },
         { source: 'books', message: 'Google Books Error' },
         { source: 'games', message: 'IGDB Error' },
       ],
@@ -84,7 +84,7 @@ describe('searchAll Flow', () => {
     const result = await searchAll({ query: 'test', language: 'en' });
 
     expect(result).toEqual({
-      movies: [],
+      media: [],
       books: [],
       games: [],
       errors: undefined,

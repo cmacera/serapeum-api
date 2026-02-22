@@ -42,19 +42,19 @@ async function executeCategorySearch(
   switch (category) {
     case 'MOVIE_TV': {
       const res = await searchMedia(input);
-      return { movies: res, books: [], games: [] };
+      return { media: res, books: [], games: [] };
     }
     case 'GAME': {
       const res = await searchGames(input);
-      return { movies: [], books: [], games: res };
+      return { media: [], books: [], games: res };
     }
     case 'BOOK': {
       const res = await searchBooks(input);
-      return { movies: [], books: res, games: [] };
+      return { media: [], books: res, games: [] };
     }
     case 'ALL': {
       const res = await searchAll(input);
-      return { movies: res.movies, books: res.books, games: res.games, errors: res.errors };
+      return { media: res.media, books: res.books, games: res.games, errors: res.errors };
     }
     default: {
       const _exhaustiveCheck: never = category;
@@ -216,7 +216,7 @@ export const orchestratorFlow = ai.defineFlow(
 
       // Aggregate results
       const enrichmentResults: z.infer<typeof SearchAllOutputSchema> = {
-        movies: [],
+        media: [],
         books: [],
         games: [],
         errors: [],
@@ -224,8 +224,8 @@ export const orchestratorFlow = ai.defineFlow(
 
       for (const result of enrichmentResultsRaw) {
         if (result.status === 'fulfilled') {
-          // result.value will always have { movies, books, games } structure now
-          if (result.value.movies) enrichmentResults.movies.push(...result.value.movies);
+          // result.value will always have { media, books, games } structure now
+          if (result.value.media) enrichmentResults.media.push(...result.value.media);
           if (result.value.books) enrichmentResults.books.push(...result.value.books);
           if (result.value.games) enrichmentResults.games.push(...result.value.games);
           if (result.value.errors) enrichmentResults.errors!.push(...result.value.errors);
