@@ -11,11 +11,14 @@ jobs:
   check-title:
     name: Check PR Title
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/github-script@v8
         with:
           script: |
+            if (context.actor === 'dependabot[bot]') {
+              console.log('Skipping title check for Dependabot.');
+              return;
+            }
             const title = context.payload.pull_request.title;
             const regex = /^(\[SER-\d+\]|SER-\d+)/;
             if (!regex.test(title)) {
