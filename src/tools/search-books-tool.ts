@@ -52,7 +52,11 @@ export const searchBooksTool = ai.defineTool(
       'Search for books using the Google Books API. Returns detailed book information including title, authors, publisher, ISBN, description, and cover images.',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
-      language: z.string().optional().default('en'),
+      language: z
+        .string()
+        .regex(/^[a-z]{2}$/i, 'Language must be a 2-letter ISO 639-1 code')
+        .optional()
+        .default('en'),
     }),
     outputSchema: z.array(BookSearchResultSchema),
   },
@@ -73,7 +77,7 @@ export const searchBooksTool = ai.defineTool(
             maxResults: 10,
             printType: 'books', // Exclude magazines
             orderBy: 'relevance',
-            ...(input.language && { langRestrict: input.language }),
+            langRestrict: input.language,
           },
           headers: {
             Accept: 'application/json',
