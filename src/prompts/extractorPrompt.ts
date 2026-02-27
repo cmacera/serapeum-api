@@ -14,7 +14,15 @@ export const extractorPrompt = ai.definePrompt(
 
 Instruction:
 Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the user's original intent.
-Return them as a strict string array. Limit to a maximum of 3 titles.
+
+IMPORTANT: Return ONLY the JSON object following the schema. Do NOT explain the schema, do NOT include the schema definition, and do NOT wrap the data in a "properties" key unless required by the schema itself.
+
+Few-shot Examples:
+- Context: "Spider-Man: No Way Home is a 2021 American superhero film... also mentioned are Spider-Man: Into the Spider-Verse and The Amazing Spider-Man 2."
+  Output: {"titles": ["Spider-Man: No Way Home", "Spider-Man: Into the Spider-Verse", "The Amazing Spider-Man 2"]}
+
+- Context: "The Last of Us Part II is a 2020 action-adventure game... other titles include God of War and Horizon Zero Dawn."
+  Output: {"titles": ["The Last of Us Part II", "God of War", "Horizon Zero Dawn"]}
 
 Context:
 {{context}}`
