@@ -60,13 +60,14 @@ The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is
 npm run generate:openapi
 ```
 
-The spec covers all 5 endpoints:
+The spec covers all 6 endpoints:
 
 | Endpoint | Description |
 |---|---|
 | `POST /searchBooks` | Search Google Books API |
 | `POST /searchMedia` | Search TMDB (movies & TV) |
 | `POST /searchGames` | Search IGDB (video games) |
+| `POST /searchWeb` | Search the web using Tavily |
 | `POST /searchAll` | Search all sources in parallel |
 | `POST /orchestratorFlow` | AI natural language orchestrator |
 
