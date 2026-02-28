@@ -71,4 +71,7 @@ export interface BookSearchResult {
   };
   language?: string;
   previewLink?: string;
+  averageRating?: number;
+  printType?: string;
+  maturityRating?: string;
 }
