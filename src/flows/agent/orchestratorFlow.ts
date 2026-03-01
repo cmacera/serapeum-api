@@ -63,6 +63,68 @@ async function executeCategorySearch(
   }
 }
 
+type FeaturedResult = NonNullable<z.infer<typeof SearchAllOutputSchema>['featured']>;
+type AnySearchResult =
+  | z.infer<typeof SearchAllOutputSchema>['media'][number]
+  | z.infer<typeof SearchAllOutputSchema>['books'][number]
+  | z.infer<typeof SearchAllOutputSchema>['games'][number];
+
+/**
+ * Helper to find the best match to feature among the search results.
+ * Returns undefined if no result meets the minimum relevance threshold (partial match).
+ */
+function findBestMatch(
+  query: string,
+  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+  results: z.infer<typeof SearchAllOutputSchema>
+): FeaturedResult | undefined {
+  const queryLower = query.trim().toLowerCase();
+  if (!queryLower) return undefined;
+
+  const getMatchScore = (title: string): number => {
+    const tLower = title.trim().toLowerCase();
+    if (!tLower) return 10; // Empty title — no meaningful match
+    if (tLower === queryLower) return 100;
+    if (tLower.includes(queryLower) || queryLower.includes(tLower)) return 50;
+    return 10; // Baseline — below the minimum threshold
+  };
+
+  let bestScore = -1;
+  let bestMatch: FeaturedResult | undefined;
+
+  const evaluateAndSet = (items: AnySearchResult[], type: 'media' | 'book' | 'game'): void => {
+    for (const item of items) {
+      const rec = item as { title?: string; name?: string };
+      const itemTitle = rec.title || rec.name || '';
+      let score = getMatchScore(itemTitle);
+
+      // Boost score only when there is already a meaningful textual match
+      // (score >= 50 means at least a partial match, not just the baseline)
+      if (
+        score >= 50 &&
+        ((category === 'MOVIE_TV' && type === 'media') ||
+          (category === 'GAME' && type === 'game') ||
+          (category === 'BOOK' && type === 'book'))
+      ) {
+        score += 200;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = { type, item } as FeaturedResult;
+      }
+    }
+  };
+
+  evaluateAndSet(results.media || [], 'media');
+  evaluateAndSet(results.games || [], 'game');
+  evaluateAndSet(results.books || [], 'book');
+
+  // Only feature if there is at least a partial or category-boosted match
+  if (bestScore < 50) return undefined;
+  return bestMatch;
+}
+
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
@@ -104,10 +166,15 @@ export const orchestratorFlow = ai.defineFlow(
       const input = { query: route.extractedQuery, language };
 
       try {
-        const executionResult = await executeCategorySearch(
-          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
-          input
-        );
+        // We run an 'ALL' search to enrich results with other categories
+        const executionResult = await executeCategorySearch('ALL', input);
+
+        // Find the best match to feature
+        const featuredMatch = findBestMatch(route.extractedQuery, route.category, executionResult);
+
+        if (featuredMatch) {
+          executionResult.featured = featuredMatch;
+        }
 
         const t = getTranslations(language);
         let generatedText = t['specific_fallback'];

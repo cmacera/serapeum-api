@@ -82,8 +82,6 @@ import { extractorPrompt } from '@/prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '@/prompts/synthesizerPrompt.js';
 import { searchAll } from '@/flows/catalog/searchAll.js';
 import { searchTavilyTool } from '@/tools/search-tavily-tool.js';
-import { searchMedia } from '@/flows/catalog/searchMedia.js';
-
 describe('orchestratorFlow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -98,13 +96,19 @@ describe('orchestratorFlow', () => {
       },
     });
 
+    (searchAll as any).mockResolvedValue({
+      media: [{ title: 'Inception', id: 1, media_type: 'movie' }],
+      books: [],
+      games: [],
+    });
+
     (synthesizerPrompt as any).mockResolvedValue({
       text: 'Mocked synthesizer response for Inception.',
     });
 
     const result = await orchestratorFlow({ query: 'Tell me about Inception', language: 'en' });
 
-    expect(searchMedia).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
+    expect(searchAll).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
     expect(synthesizerPrompt).toHaveBeenCalled();
     expect(result).toHaveProperty('kind', 'search_results');
     expect(result).toHaveProperty('message');
@@ -270,11 +274,11 @@ describe('orchestratorFlow', () => {
       },
     });
 
-    (searchMedia as any).mockRejectedValue(new Error('KB Error'));
+    (searchAll as any).mockRejectedValue(new Error('KB Error'));
 
     const result = await orchestratorFlow({ query: 'Inception', language: 'en' });
 
-    expect(searchMedia).toHaveBeenCalled();
+    expect(searchAll).toHaveBeenCalled();
     expect(result).toHaveProperty('kind', 'error');
     expect(result).toHaveProperty('error', 'Failed to retrieve specific entity details.');
     expect(result).toHaveProperty('details', 'KB Error');

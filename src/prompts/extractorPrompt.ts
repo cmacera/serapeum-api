@@ -1,7 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 
 export const ExtractorSchema = z.object({
-  titles: z.array(z.string()).describe('List of exact titles found in the search results (max 3)'),
+  titles: z.array(z.string()).describe('List of exact titles found in the search results (max 9)'),
 });
 
 export const extractorPrompt = ai.definePrompt(
@@ -13,7 +13,7 @@ export const extractorPrompt = ai.definePrompt(
   `Role: Data Extractor.
 
 Instruction:
-Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the user's original intent.
+Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the user's original intent. Extract up to 9 titles if available.
 
 IMPORTANT: Return ONLY the JSON object following the schema. Do NOT explain the schema, do NOT include the schema definition, and do NOT wrap the data in a "properties" key unless required by the schema itself.
 
