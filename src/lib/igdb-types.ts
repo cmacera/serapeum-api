@@ -146,7 +146,7 @@ export function transformGame(game: IGDBGame): GameSearchResult {
     themes: game.themes?.map((t) => t.name),
     game_modes: game.game_modes?.map((m) => m.name),
     age_ratings: game.age_ratings
-      ?.filter((ar) => ar.category !== undefined && ar.rating !== undefined)
+      ?.filter((ar) => typeof ar.category === 'number' && typeof ar.rating === 'number')
       .map((ar) => ({ category: ar.category, rating: ar.rating })),
     similar_games: game.similar_games?.map((sg) => ({ id: sg.id, name: sg.name })),
   };

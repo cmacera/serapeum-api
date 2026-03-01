@@ -44,11 +44,13 @@ export const activeModel: string = ((): string => {
   }
 })();
 
-console.log(
-  `[AI Setup] Initializing with provider: '${
-    provider || 'undefined (defaulting to google)'
-  }' using model: '${activeModel}'`
-);
+if (process.env['DEBUG']) {
+  console.log(
+    `[AI Setup] Initializing with provider: '${
+      provider || 'undefined (defaulting to google)'
+    }' using model: '${activeModel}'`
+  );
+}
 
 // Export Zod for convenience in flows
 export { z };

@@ -13,7 +13,6 @@ export const RouterSchema = z.object({
     ),
   refusalReason: z
     .string()
-    .nullable()
     .optional()
     .describe(
       'A polite message explaining why the query is out of scope (only if intent is OUT_OF_SCOPE)'
