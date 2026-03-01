@@ -82,6 +82,7 @@ function findBestMatch(
 
   const getMatchScore = (title: string): number => {
     const tLower = title.toLowerCase();
+    if (!tLower.trim()) return 10; // Empty title — no meaningful match
     if (tLower === queryLower) return 100;
     if (tLower.includes(queryLower) || queryLower.includes(tLower)) return 50;
     return 10; // Baseline — below the minimum threshold
