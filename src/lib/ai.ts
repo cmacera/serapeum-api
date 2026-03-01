@@ -4,9 +4,6 @@ import { z } from '@genkit-ai/core';
 import { googlePlugin, ollamaPlugin, openRouterPlugin } from './aiConfig.js';
 
 const provider = process.env['AI_PROVIDER'];
-console.log(
-  `[AI Setup] Initializing with provider: '${provider || 'undefined (defaulting to google)'}'`
-);
 
 /**
  * Global Genkit instance configuration.
@@ -35,7 +32,7 @@ export const activeModel: string = ((): string => {
       if (!modelName('OPENROUTER_MODEL')) {
         throw new Error('OPENROUTER_MODEL environment variable is missing');
       }
-      return `openrouter/${modelName('OPENROUTER_MODEL')}`;
+      return `openai/${modelName('OPENROUTER_MODEL')}`;
     case 'google':
     default: {
       const geminiModel = modelName('GEMINI_MODEL');
@@ -46,6 +43,14 @@ export const activeModel: string = ((): string => {
     }
   }
 })();
+
+if (process.env['DEBUG']) {
+  console.log(
+    `[AI Setup] Initializing with provider: '${
+      provider || 'undefined (defaulting to google)'
+    }' using model: '${activeModel}'`
+  );
+}
 
 // Export Zod for convenience in flows
 export { z };

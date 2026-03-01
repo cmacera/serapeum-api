@@ -40,6 +40,9 @@ export const BookSearchResultSchema = z.object({
     .optional(),
   language: z.string().optional(),
   previewLink: z.string().optional(),
+  averageRating: z.number().optional(),
+  printType: z.string().optional(),
+  maturityRating: z.string().optional(),
 });
 
 /**
@@ -105,6 +108,9 @@ export const searchBooksTool = ai.defineTool(
             : undefined,
           language: item.volumeInfo.language,
           previewLink: item.volumeInfo.previewLink,
+          averageRating: item.volumeInfo.averageRating,
+          printType: item.volumeInfo.printType,
+          maturityRating: item.volumeInfo.maturityRating,
         })) || [];
 
       return results;

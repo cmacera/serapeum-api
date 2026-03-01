@@ -20,6 +20,12 @@ export const GameSearchResultSchema = z.object({
   developers: z.array(z.string()).optional(),
   publishers: z.array(z.string()).optional(),
   game_type: z.number().optional(),
+  screenshots: z.array(z.string()).optional(),
+  videos: z.array(z.string()).optional(),
+  themes: z.array(z.string()).optional(),
+  game_modes: z.array(z.string()).optional(),
+  age_ratings: z.array(z.object({ category: z.number(), rating: z.number() })).optional(),
+  similar_games: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
 });
 
 export const searchGamesTool = ai.defineTool(
@@ -53,7 +59,7 @@ export const searchGamesTool = ai.defineTool(
       // Expand nested fields to get names instead of IDs
       const apicalypseQuery = `
         search "${sanitizedQuery}";
-        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;
+        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.category,age_ratings.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
         limit 10;
       `.trim();

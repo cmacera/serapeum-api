@@ -46,6 +46,12 @@ describe('searchGamesTool', () => {
             { id: 1, company: { id: 1, name: 'CD Projekt RED' }, developer: true, publisher: true },
           ],
           game_type: 0, // Main Game
+          screenshots: [{ id: 10, image_id: 'sc_abc' }],
+          videos: [{ id: 20, video_id: 'yt123' }],
+          themes: [{ id: 1, name: 'Action' }],
+          game_modes: [{ id: 1, name: 'Single player' }],
+          age_ratings: [{ id: 1, category: 1, rating: 6 }],
+          similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
         },
       ];
 
@@ -67,6 +73,12 @@ describe('searchGamesTool', () => {
         developers: ['CD Projekt RED'],
         publishers: ['CD Projekt RED'],
         game_type: 0,
+        screenshots: ['https://images.igdb.com/igdb/image/upload/t_screenshot_med/sc_abc.jpg'],
+        videos: ['yt123'],
+        themes: ['Action'],
+        game_modes: ['Single player'],
+        age_ratings: [{ category: 1, rating: 6 }],
+        similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
       });
     });
 
@@ -96,7 +108,33 @@ describe('searchGamesTool', () => {
         developers: undefined,
         publishers: undefined,
         game_type: undefined,
+        screenshots: undefined,
+        videos: undefined,
+        themes: undefined,
+        game_modes: undefined,
+        age_ratings: undefined,
+        similar_games: undefined,
       });
+    });
+
+    it('should filter out age_ratings with missing category or rating', async () => {
+      const mockResponse: IGDBGame[] = [
+        {
+          id: 3,
+          name: 'Partial Ratings Game',
+          age_ratings: [
+            { id: 1, category: 1, rating: 6 }, // valid
+            { id: 2, category: undefined as unknown as number, rating: 3 }, // invalid — missing category
+            { id: 3, category: 2, rating: undefined as unknown as number }, // invalid — missing rating
+          ],
+        },
+      ];
+
+      nock(IGDB_API_URL).post('/v4/games').reply(200, mockResponse);
+
+      const result = await searchGamesTool({ query: 'Partial Ratings', language: 'en' });
+
+      expect(result[0].age_ratings).toEqual([{ category: 1, rating: 6 }]);
     });
   });
 
@@ -159,7 +197,7 @@ describe('searchGamesTool', () => {
 
       const expectedQuery = `
         search "${query}";
-        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher;
+        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.category,age_ratings.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
         limit 10;
             `.trim();
