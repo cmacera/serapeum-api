@@ -78,11 +78,12 @@ function findBestMatch(
   category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
   results: z.infer<typeof SearchAllOutputSchema>
 ): FeaturedResult | undefined {
-  const queryLower = query.toLowerCase();
+  const queryLower = query.trim().toLowerCase();
+  if (!queryLower) return undefined;
 
   const getMatchScore = (title: string): number => {
-    const tLower = title.toLowerCase();
-    if (!tLower.trim()) return 10; // Empty title — no meaningful match
+    const tLower = title.trim().toLowerCase();
+    if (!tLower) return 10; // Empty title — no meaningful match
     if (tLower === queryLower) return 100;
     if (tLower.includes(queryLower) || queryLower.includes(tLower)) return 50;
     return 10; // Baseline — below the minimum threshold
@@ -97,11 +98,13 @@ function findBestMatch(
       const itemTitle = rec.title || rec.name || '';
       let score = getMatchScore(itemTitle);
 
-      // Boost score significantly if it matches the distinctly requested category
+      // Boost score only when there is already a meaningful textual match
+      // (score >= 50 means at least a partial match, not just the baseline)
       if (
-        (category === 'MOVIE_TV' && type === 'media') ||
-        (category === 'GAME' && type === 'game') ||
-        (category === 'BOOK' && type === 'book')
+        score >= 50 &&
+        ((category === 'MOVIE_TV' && type === 'media') ||
+          (category === 'GAME' && type === 'game') ||
+          (category === 'BOOK' && type === 'book'))
       ) {
         score += 200;
       }
