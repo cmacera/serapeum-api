@@ -9,6 +9,13 @@ const SearchErrorSchema = z.object({
 });
 
 export const SearchAllOutputSchema = z.object({
+  featured: z
+    .discriminatedUnion('type', [
+      z.object({ type: z.literal('media'), item: MediaSearchResultSchema }),
+      z.object({ type: z.literal('book'), item: BookSearchResultSchema }),
+      z.object({ type: z.literal('game'), item: GameSearchResultSchema }),
+    ])
+    .optional(),
   media: z.array(MediaSearchResultSchema),
   books: z.array(BookSearchResultSchema),
   games: z.array(GameSearchResultSchema),

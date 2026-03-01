@@ -91,7 +91,7 @@ describe('orchestratorFlow', () => {
     expect(orchestratorFlow).toBeDefined();
   });
 
-  it('should route to searchMedia when intent is SPECIFIC_ENTITY and category is MOVIE_TV', async () => {
+  it('should enrich search results and feature a media item when intent is SPECIFIC_ENTITY and category is MOVIE_TV', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'SPECIFIC_ENTITY',
@@ -100,9 +100,13 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
-    vi.mocked(searchMedia).mockResolvedValue(
-      searchResult as unknown as Awaited<ReturnType<typeof searchMedia>>
+    const enrichResult = {
+      media: [{ title: 'Inception', id: 1, media_type: 'movie' as const }],
+      games: [],
+      books: [],
+    };
+    vi.mocked(searchAll).mockResolvedValue(
+      enrichResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({
@@ -115,15 +119,20 @@ describe('orchestratorFlow', () => {
       { query: 'Movie Inception', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchAll).not.toHaveBeenCalled();
+    expect(searchAll).toHaveBeenCalledWith({ query: 'Inception', language: 'en' });
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Inception.',
-      data: { media: searchResult, books: [], games: [] },
+      data: {
+        featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
+        media: enrichResult.media,
+        books: [],
+        games: [],
+      },
     });
   });
 
-  it('should route to searchGames when intent is SPECIFIC_ENTITY and category is GAME', async () => {
+  it('should enrich search results and feature a game when intent is SPECIFIC_ENTITY and category is GAME', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'SPECIFIC_ENTITY',
@@ -132,9 +141,13 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ name: 'Elden Ring', id: 123 }];
-    vi.mocked(searchGames).mockResolvedValue(
-      searchResult as unknown as Awaited<ReturnType<typeof searchGames>>
+    const enrichResult = {
+      media: [],
+      games: [{ name: 'Elden Ring', id: 123 }],
+      books: [],
+    };
+    vi.mocked(searchAll).mockResolvedValue(
+      enrichResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({
@@ -147,16 +160,20 @@ describe('orchestratorFlow', () => {
       { query: 'Game Elden Ring', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchGames).toHaveBeenCalledWith({ query: 'Elden Ring', language: 'en' });
-    expect(searchAll).not.toHaveBeenCalled();
+    expect(searchAll).toHaveBeenCalledWith({ query: 'Elden Ring', language: 'en' });
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Elden Ring.',
-      data: { media: [], games: searchResult, books: [] },
+      data: {
+        featured: { type: 'game', item: { name: 'Elden Ring', id: 123 } },
+        media: [],
+        games: enrichResult.games,
+        books: [],
+      },
     });
   });
 
-  it('should route to searchBooks when intent is SPECIFIC_ENTITY and category is BOOK', async () => {
+  it('should enrich search results and feature a book when intent is SPECIFIC_ENTITY and category is BOOK', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'SPECIFIC_ENTITY',
@@ -165,9 +182,13 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ title: 'Dune', id: '1' }];
-    vi.mocked(searchBooks).mockResolvedValue(
-      searchResult as unknown as Awaited<ReturnType<typeof searchBooks>>
+    const enrichResult = {
+      media: [{ title: 'Dune movie', id: 2, media_type: 'movie' as const }],
+      games: [],
+      books: [{ title: 'Dune', id: '1' }],
+    };
+    vi.mocked(searchAll).mockResolvedValue(
+      enrichResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({
@@ -180,16 +201,20 @@ describe('orchestratorFlow', () => {
       { query: 'Book Dune', language: 'en' },
       expect.objectContaining({ model: expect.any(String) })
     );
-    expect(searchBooks).toHaveBeenCalledWith({ query: 'Dune', language: 'en' });
-    expect(searchAll).not.toHaveBeenCalled();
+    expect(searchAll).toHaveBeenCalledWith({ query: 'Dune', language: 'en' });
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for Dune.',
-      data: { media: [], games: [], books: searchResult },
+      data: {
+        featured: { type: 'book', item: { title: 'Dune', id: '1' } },
+        media: enrichResult.media,
+        games: [],
+        books: enrichResult.books,
+      },
     });
   });
 
-  it('should route to searchAll when intent is SPECIFIC_ENTITY and category is ALL', async () => {
+  it('should enrich search results and pick best feature when intent is SPECIFIC_ENTITY and category is ALL', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {
         intent: 'SPECIFIC_ENTITY',
@@ -198,9 +223,13 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = { games: [], media: [], books: [] };
+    const enrichResult = {
+      games: [{ name: 'The Witcher 3', id: 10 }],
+      media: [{ title: 'The Witcher', id: 20, media_type: 'tv' }], // Exact match wins
+      books: [],
+    };
     vi.mocked(searchAll).mockResolvedValue(
-      searchResult as unknown as Awaited<ReturnType<typeof searchAll>>
+      enrichResult as unknown as Awaited<ReturnType<typeof searchAll>>
     );
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({
@@ -219,7 +248,7 @@ describe('orchestratorFlow', () => {
         originalQuery: 'The Witcher',
         language: 'en',
         webContext: '',
-        apiDetails: JSON.stringify({ media: [], books: [], games: [] }),
+        apiDetails: expect.any(String),
       }),
       expect.any(Object)
     );
@@ -227,7 +256,12 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: 'Mocked synthesizer response for The Witcher.',
-      data: searchResult,
+      data: {
+        featured: { type: 'media', item: enrichResult.media[0] },
+        games: enrichResult.games,
+        media: enrichResult.media,
+        books: [],
+      },
     });
   });
 
@@ -412,8 +446,12 @@ describe('orchestratorFlow', () => {
       },
     } as Awaited<ReturnType<typeof routerPrompt>>);
 
-    const searchResult = [{ title: 'Inception', id: 1, media_type: 'movie' as const }];
-    vi.mocked(searchMedia).mockResolvedValue(searchResult as any);
+    const enrichResult = {
+      media: [{ title: 'Inception', id: 1, media_type: 'movie' as const }],
+      books: [],
+      games: [],
+    };
+    vi.mocked(searchAll).mockResolvedValue(enrichResult as any);
 
     vi.mocked(synthesizerPrompt).mockRejectedValue(new Error('Synthesizer failed'));
 
@@ -422,7 +460,12 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'search_results',
       message: expect.any(String),
-      data: { media: searchResult, books: [], games: [] },
+      data: {
+        featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
+        media: enrichResult.media,
+        books: [],
+        games: [],
+      },
     });
   });
 });

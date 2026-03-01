@@ -13,7 +13,7 @@ export const RouterSchema = z.object({
     ),
   refusalReason: z
     .string()
-    .optional()
+    .nullish()
     .describe(
       'A polite message explaining why the query is out of scope (only if intent is OUT_OF_SCOPE)'
     ),
@@ -38,8 +38,8 @@ Requested Language: {{language}}
 1. If the user asks about anything outside this domain (e.g., "Weather in London", "How to cook pasta", "Politics", "Math"), classify as OUT_OF_SCOPE. Generate a polite refusalReason. Ensure the refusalReason is translated into the Requested Language if one is provided.
 
 2. If inside the domain, classify intent as:
-   - SPECIFIC_ENTITY: If it's a direct request for a specific title (e.g., "Tell me about The Witcher 3", "Inception movie").
-   - GENERAL_DISCOVERY: If it's a general query (e.g., "Best RPGs of 2015", "Who acted in Matrix?", "Recommendations for sci-fi books").
+   - SPECIFIC_ENTITY: If it's a direct, clear request for a specific known title (e.g., "Tell me about The Witcher 3", "Inception movie", "Spider-Man: No Way Home"). The user expects information about *that specific* item.
+   - GENERAL_DISCOVERY: If it's a general query, a thematic search, asking for recommendations, or a broad franchise search without specifying an entry (e.g., "Best RPGs of 2015", "Who acted in Matrix?", "Recommendations for sci-fi books", "Spider-Man").
 
 3. Classify category as:
     - MOVIE_TV: If the user explicitly asks for a movie or TV show (e.g., "movie Inception", "show Breaking Bad").
