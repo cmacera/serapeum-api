@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { orchestratorFlow } from '@/flows/agent/orchestratorFlow.js';
+import { levenshteinSimilarity, findBestMatch } from '@/flows/agent/findBestMatch.js';
 
 // Mock the AI library
 vi.mock('@/lib/ai', () => {
@@ -306,5 +307,174 @@ describe('orchestratorFlow', () => {
     // Should fallback to empty context and continue
     expect(extractorPrompt).toHaveBeenCalled();
     expect(result).toHaveProperty('message', 'Recovered.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// levenshteinSimilarity
+// ---------------------------------------------------------------------------
+describe('levenshteinSimilarity', () => {
+  it('returns 1 for identical strings', () => {
+    expect(levenshteinSimilarity('batman', 'batman')).toBe(1);
+  });
+
+  it('returns 0 when either string is empty', () => {
+    expect(levenshteinSimilarity('', 'batman')).toBe(0);
+    expect(levenshteinSimilarity('batman', '')).toBe(0);
+  });
+
+  it('returns high similarity for a single typo', () => {
+    // "inceptoin" vs "inception" — 1 transposition
+    const sim = levenshteinSimilarity('inceptoin', 'inception');
+    expect(sim).toBeGreaterThan(0.7);
+  });
+
+  it('returns low similarity for very different strings', () => {
+    const sim = levenshteinSimilarity('batman', 'avengers');
+    expect(sim).toBeLessThan(0.4);
+  });
+
+  it('is symmetric', () => {
+    const ab = levenshteinSimilarity('inception', 'inceptoin');
+    const ba = levenshteinSimilarity('inceptoin', 'inception');
+    expect(ab).toBeCloseTo(ba);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findBestMatch — helpers
+// ---------------------------------------------------------------------------
+const media = (title: string, popularity = 0) => ({
+  id: 1,
+  title,
+  media_type: 'movie' as const,
+  popularity,
+});
+
+const game = (name: string, aggregated_rating = 0) => ({
+  id: 1,
+  name,
+  aggregated_rating,
+});
+
+const book = (title: string, averageRating = 0) => ({
+  id: 'b1',
+  title,
+  averageRating,
+});
+
+const empty = { media: [], books: [], games: [] };
+
+// ---------------------------------------------------------------------------
+// findBestMatch — exact and partial matches
+// ---------------------------------------------------------------------------
+describe('findBestMatch — exact and partial matches', () => {
+  it('returns undefined when results are empty', () => {
+    expect(findBestMatch('batman', 'ALL', empty)).toBeUndefined();
+  });
+
+  it('returns undefined when query is empty', () => {
+    const results = { media: [media('Batman')], books: [], games: [] };
+    expect(findBestMatch('', 'ALL', results)).toBeUndefined();
+  });
+
+  it('features an exact-match result', () => {
+    const results = { media: [media('batman')], books: [], games: [] };
+    const featured = findBestMatch('batman', 'ALL', results);
+    expect(featured).toBeDefined();
+    expect(featured?.type).toBe('media');
+  });
+
+  it('features a partial-match result (query is substring of title)', () => {
+    const results = { media: [media('Batman Begins')], books: [], games: [] };
+    const featured = findBestMatch('batman', 'ALL', results);
+    expect(featured).toBeDefined();
+    expect(featured?.type).toBe('media');
+  });
+
+  it('returns undefined when no result meets the minimum similarity threshold', () => {
+    const results = { media: [media('Avengers')], books: [], games: [] };
+    expect(findBestMatch('batman', 'ALL', results)).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findBestMatch — fuzzy matching
+// ---------------------------------------------------------------------------
+describe('findBestMatch — fuzzy matching', () => {
+  it('features the correct result despite a typo in the query', () => {
+    // "Inceptoin" has only 1 transposition from "Inception" — should still match
+    const results = { media: [media('Inception', 50)], books: [], games: [] };
+    const featured = findBestMatch('Inceptoin', 'ALL', results);
+    expect(featured).toBeDefined();
+    expect(featured?.type).toBe('media');
+  });
+
+  it('does not feature a result when similarity is below the threshold', () => {
+    // "batman" vs "Avengers Endgame" — very low similarity
+    const results = { media: [media('Avengers Endgame')], books: [], games: [] };
+    expect(findBestMatch('batman', 'ALL', results)).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findBestMatch — category boost
+// ---------------------------------------------------------------------------
+describe('findBestMatch — category boost', () => {
+  it('prefers media over books when category is MOVIE_TV', () => {
+    const results = { media: [media('Dune')], books: [book('Dune')], games: [] };
+    const featured = findBestMatch('Dune', 'MOVIE_TV', results);
+    expect(featured?.type).toBe('media');
+  });
+
+  it('prefers books over media when category is BOOK', () => {
+    const results = { media: [media('Dune')], books: [book('Dune')], games: [] };
+    const featured = findBestMatch('Dune', 'BOOK', results);
+    expect(featured?.type).toBe('book');
+  });
+
+  it('prefers games over media when category is GAME', () => {
+    const results = { media: [media('Halo')], books: [], games: [game('Halo')] };
+    const featured = findBestMatch('Halo', 'GAME', results);
+    expect(featured?.type).toBe('game');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findBestMatch — popularity bonus as tiebreaker
+// ---------------------------------------------------------------------------
+describe('findBestMatch — popularity bonus tiebreaker', () => {
+  it('prefers the more popular media item when text scores tie', () => {
+    // Both titles contain "batman" — same text score tier.
+    // Batman Begins (popularity 14) should win over the unknown film (popularity 0.07).
+    const results = {
+      media: [media('Batman (unknown)', 0.07), media('Batman Begins', 14)],
+      books: [],
+      games: [],
+    };
+    const featured = findBestMatch('batman', 'ALL', results);
+    expect(featured).toBeDefined();
+    expect((featured?.item as { title?: string })?.title).toBe('Batman Begins');
+  });
+
+  it('prefers the higher-rated game when text scores tie', () => {
+    const results = {
+      media: [],
+      books: [],
+      games: [game('Halo (clone)', 72), game('Halo', 95)],
+    };
+    const featured = findBestMatch('halo', 'ALL', results);
+    expect((featured?.item as { name?: string })?.name).toBe('Halo');
+  });
+
+  it('does not let popularity override a better text match', () => {
+    // "batman" is exact; "batman begins" is partial. Exact wins even with lower popularity.
+    const results = {
+      media: [media('batman begins', 1000), media('batman', 1)],
+      books: [],
+      games: [],
+    };
+    const featured = findBestMatch('batman', 'ALL', results);
+    expect((featured?.item as { title?: string })?.title).toBe('batman');
   });
 });
