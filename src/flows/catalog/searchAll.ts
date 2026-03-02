@@ -1,7 +1,10 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchMediaTool, MediaSearchResultSchema } from '../../tools/search-media-tool.js';
-import { searchBooksTool, BookSearchResultSchema } from '../../tools/search-books-tool.js';
-import { searchGamesTool, GameSearchResultSchema } from '../../tools/search-games-tool.js';
+import { searchMediaTool } from '../../tools/search-media-tool.js';
+import { searchBooksTool } from '../../tools/search-books-tool.js';
+import { searchGamesTool } from '../../tools/search-games-tool.js';
+import { MediaSearchResultSchema } from '../../schemas/media-schemas.js';
+import { BookSearchResultSchema } from '../../schemas/book-schemas.js';
+import { GameSearchResultSchema } from '../../schemas/game-schemas.js';
 
 const SearchErrorSchema = z.object({
   source: z.enum(['media', 'books', 'games']),

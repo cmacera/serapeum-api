@@ -5,6 +5,7 @@ import type {
   BookSearchResult,
   IndustryIdentifier,
 } from '../lib/google-books-types.js';
+import { BookSearchResultSchema } from '../schemas/book-schemas.js';
 
 /**
  * Helper function to extract ISBN from industry identifiers
@@ -21,29 +22,6 @@ function extractISBN(identifiers?: IndustryIdentifier[]): string | undefined {
   const isbn10 = identifiers.find((id) => id.type === 'ISBN_10');
   return isbn10?.identifier;
 }
-
-export const BookSearchResultSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  authors: z.array(z.string()).optional(),
-  publisher: z.string().optional(),
-  publishedDate: z.string().optional(),
-  description: z.string().optional(),
-  isbn: z.string().optional(),
-  pageCount: z.number().optional(),
-  categories: z.array(z.string()).optional(),
-  imageLinks: z
-    .object({
-      thumbnail: z.string().optional(),
-      smallThumbnail: z.string().optional(),
-    })
-    .optional(),
-  language: z.string().optional(),
-  previewLink: z.string().optional(),
-  averageRating: z.number().optional(),
-  printType: z.string().optional(),
-  maturityRating: z.string().optional(),
-});
 
 /**
  * Genkit Tool: Search for books using Google Books API

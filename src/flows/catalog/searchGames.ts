@@ -1,5 +1,6 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchGamesTool, GameSearchResultSchema } from '../../tools/search-games-tool.js';
+import { searchGamesTool } from '../../tools/search-games-tool.js';
+import { GameSearchResultSchema } from '../../schemas/game-schemas.js';
 
 export const SearchGamesOutputSchema = z.array(GameSearchResultSchema);
 

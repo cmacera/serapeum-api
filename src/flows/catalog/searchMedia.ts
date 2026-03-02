@@ -1,5 +1,6 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchMediaTool, MediaSearchResultSchema } from '../../tools/search-media-tool.js';
+import { searchMediaTool } from '../../tools/search-media-tool.js';
+import { MediaSearchResultSchema } from '../../schemas/media-schemas.js';
 
 export const SearchMediaOutputSchema = z.array(MediaSearchResultSchema);
 
