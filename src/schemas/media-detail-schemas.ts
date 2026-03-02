@@ -15,7 +15,7 @@ export const VideoSchema = z.object({
   id: z.string(),
   key: z.string(),
   name: z.string(),
-  site: z.string(),
+  site: z.literal('YouTube'),
   type: z.string(),
   official: z.boolean(),
   published_at: z.string(),

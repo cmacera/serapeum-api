@@ -302,6 +302,8 @@ components:
           type: string
         site:
           type: string
+          enum:
+            - YouTube
         type:
           type: string
         official:
@@ -502,6 +504,8 @@ components:
                 type: string
               site:
                 type: string
+                enum:
+                  - YouTube
               type:
                 type: string
               official:
@@ -732,6 +736,8 @@ components:
                 type: string
               site:
                 type: string
+                enum:
+                  - YouTube
               type:
                 type: string
               official:
