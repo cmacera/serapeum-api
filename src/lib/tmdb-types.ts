@@ -73,6 +73,131 @@ export interface TMDBSearchResponse {
   total_results: number;
 }
 
+// ---------------------------------------------------------------------------
+// Detail endpoint types (/3/movie/{id} and /3/tv/{id})
+// ---------------------------------------------------------------------------
+
+export interface TMDBCastMember {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+  order: number;
+}
+
+export interface TMDBVideo {
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+  official: boolean;
+  published_at: string;
+}
+
+export interface TMDBWatchProvider {
+  logo_path: string;
+  provider_id: number;
+  provider_name: string;
+  display_priority: number;
+}
+
+export interface TMDBWatchProviderRegion {
+  link: string;
+  flatrate?: TMDBWatchProvider[];
+  rent?: TMDBWatchProvider[];
+  buy?: TMDBWatchProvider[];
+}
+
+export interface TMDBCredits {
+  cast: TMDBCastMember[];
+}
+
+export interface TMDBVideos {
+  results: TMDBVideo[];
+}
+
+export interface TMDBWatchProviders {
+  results: Record<string, TMDBWatchProviderRegion>;
+}
+
+export interface TMDBSeasonSummary {
+  id: number;
+  name: string;
+  season_number: number;
+  episode_count: number;
+  air_date: string | null;
+  poster_path: string | null;
+}
+
+export interface TMDBGenre {
+  id: number;
+  name: string;
+}
+
+export interface TMDBNetwork {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country: string;
+}
+
+export interface TMDBCreator {
+  id: number;
+  name: string;
+  profile_path: string | null;
+}
+
+export interface TMDBMovieDetailResponse {
+  id: number;
+  title: string;
+  original_title: string;
+  overview: string | null;
+  tagline: string | null;
+  status: string;
+  release_date: string | null;
+  runtime: number | null;
+  budget: number;
+  revenue: number;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  original_language: string;
+  genres: TMDBGenre[];
+  credits: TMDBCredits;
+  videos: TMDBVideos;
+  'watch/providers': TMDBWatchProviders;
+}
+
+export interface TMDBTvDetailResponse {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string | null;
+  tagline: string | null;
+  status: string;
+  first_air_date: string | null;
+  last_air_date: string | null;
+  number_of_seasons: number;
+  number_of_episodes: number;
+  episode_run_time: number[];
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  original_language: string;
+  genres: TMDBGenre[];
+  networks: TMDBNetwork[];
+  created_by: TMDBCreator[];
+  seasons: TMDBSeasonSummary[];
+  credits: TMDBCredits;
+  videos: TMDBVideos;
+  'watch/providers': TMDBWatchProviders;
+}
+
 /**
  * Media search result for tool output
  * Contains fields available from TMDB /search/multi endpoint

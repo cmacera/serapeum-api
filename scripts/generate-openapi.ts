@@ -19,6 +19,15 @@ import { MediaSearchResultSchema } from '../src/schemas/media-schemas.js';
 import { BookSearchResultSchema } from '../src/schemas/book-schemas.js';
 import { GameSearchResultSchema } from '../src/schemas/game-schemas.js';
 import { SearchErrorSchema as SearchErrorSchemaBase } from '../src/schemas/search-all-schemas.js';
+import {
+  CastMemberSchema,
+  VideoSchema,
+  WatchProviderSchema,
+  WatchProviderRegionSchema,
+  SeasonSummarySchema,
+  MovieDetailSchema,
+  TvDetailSchema,
+} from '../src/schemas/media-detail-schemas.js';
 
 // Extend Zod with OpenAPI support (must be called before any .openapi() calls)
 extendZodWithOpenApi(z);
@@ -31,6 +40,14 @@ const BookSchema = BookSearchResultSchema.openapi('Book');
 const MediaSchema = MediaSearchResultSchema.openapi('Media');
 const GameSchema = GameSearchResultSchema.openapi('Game');
 const SearchErrorSchema = SearchErrorSchemaBase.openapi('SearchError');
+
+const CastMemberOpenApi = CastMemberSchema.openapi('CastMember');
+const VideoOpenApi = VideoSchema.openapi('Video');
+const WatchProviderOpenApi = WatchProviderSchema.openapi('WatchProvider');
+const WatchProviderRegionOpenApi = WatchProviderRegionSchema.openapi('WatchProviderRegion');
+const SeasonSummaryOpenApi = SeasonSummarySchema.openapi('SeasonSummary');
+const MovieDetailOpenApi = MovieDetailSchema.openapi('MovieDetail');
+const TvDetailOpenApi = TvDetailSchema.openapi('TvDetail');
 
 // SearchAllResponseSchema is intentionally kept local: it must reference the
 // annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
@@ -79,7 +96,7 @@ const OrchestratorResponseSchema = z
   .openapi('OrchestratorResponse');
 
 // ---------------------------------------------------------------------------
-// Shared input schema
+// Shared input schemas
 // ---------------------------------------------------------------------------
 
 const CatalogSearchInputSchema = z
@@ -96,6 +113,25 @@ const OrchestratorInputSchema = z.string().min(1).openapi({
   description: 'Natural language query for the AI orchestrator',
   example: 'Best sci-fi movies of 2024',
 });
+
+const MediaDetailInputSchema = z
+  .object({
+    id: z
+      .number()
+      .int()
+      .positive()
+      .openapi({ description: 'TMDB movie or TV show ID', example: 550 }),
+    language: z
+      .string()
+      .optional()
+      .openapi({ description: 'BCP-47 language tag (e.g. en, es-ES)', example: 'en' }),
+    region: z.string().optional().openapi({
+      description:
+        'ISO 3166-1 country code to filter watch providers (e.g. US, ES, MX). Defaults to US if not provided.',
+      example: 'ES',
+    }),
+  })
+  .openapi('MediaDetailInput');
 
 // ---------------------------------------------------------------------------
 // Registry
@@ -115,6 +151,20 @@ registry.register('GeneralDiscoveryResponse', GeneralDiscoveryResponseSchema);
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('OrchestratorResponse', OrchestratorResponseSchema);
 registry.register('CatalogSearchInput', CatalogSearchInputSchema);
+registry.register('CastMember', CastMemberOpenApi);
+registry.register('Video', VideoOpenApi);
+registry.register('WatchProvider', WatchProviderOpenApi);
+registry.register('WatchProviderRegion', WatchProviderRegionOpenApi);
+registry.register('SeasonSummary', SeasonSummaryOpenApi);
+registry.register('MovieDetail', MovieDetailOpenApi);
+registry.register('TvDetail', TvDetailOpenApi);
+registry.register('MediaDetailInput', MediaDetailInputSchema);
+
+registry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+});
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -126,7 +176,7 @@ registry.registerPath({
   summary: 'Search for books',
   description: 'Searches the Google Books API and returns a list of matching books.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -142,6 +192,10 @@ registry.registerPath({
       description: 'Invalid request body',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     500: {
       description: 'Internal server error',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -155,7 +209,7 @@ registry.registerPath({
   summary: 'Search for movies and TV shows',
   description: 'Searches the TMDB API and returns a list of matching movies and TV shows.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -171,6 +225,10 @@ registry.registerPath({
       description: 'Invalid request body',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     500: {
       description: 'Internal server error',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -184,7 +242,7 @@ registry.registerPath({
   summary: 'Search for video games',
   description: 'Searches the IGDB API and returns a list of matching video games.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -198,6 +256,10 @@ registry.registerPath({
     },
     400: {
       description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
@@ -214,7 +276,7 @@ registry.registerPath({
   description:
     'Searches books, movies/TV shows, and games in parallel and returns aggregated results.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -228,6 +290,10 @@ registry.registerPath({
     },
     400: {
       description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
@@ -244,7 +310,7 @@ registry.registerPath({
   description:
     'Routes a natural language query through the AI orchestrator. Returns structured catalog data, a synthesized text+data response, or a plain text reply depending on the query intent.',
   tags: ['Agent'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -260,6 +326,94 @@ registry.registerPath({
     },
     400: {
       description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/getMovieDetail',
+  summary: 'Get movie details',
+  description:
+    'Returns full details for a movie: cast, trailers, watch providers, and extended metadata.',
+  tags: ['Catalog'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: MediaDetailInputSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Full movie detail',
+      content: { 'application/json': { schema: MovieDetailOpenApi } },
+    },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    404: {
+      description: 'Movie not found in TMDB',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    429: {
+      description: 'Too many requests — TMDB rate limit exceeded',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/getTvDetail',
+  summary: 'Get TV show details',
+  description:
+    'Returns full details for a TV show: cast, trailers, seasons, watch providers, and extended metadata.',
+  tags: ['Catalog'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: MediaDetailInputSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Full TV show detail',
+      content: { 'application/json': { schema: TvDetailOpenApi } },
+    },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    404: {
+      description: 'TV show not found in TMDB',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    429: {
+      description: 'Too many requests — TMDB rate limit exceeded',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
