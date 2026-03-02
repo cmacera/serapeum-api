@@ -5,13 +5,10 @@ import { searchGamesTool } from '../../tools/search-games-tool.js';
 import { MediaSearchResultSchema } from '../../schemas/media-schemas.js';
 import { BookSearchResultSchema } from '../../schemas/book-schemas.js';
 import { GameSearchResultSchema } from '../../schemas/game-schemas.js';
-
-const SearchErrorSchema = z.object({
-  source: z.enum(['media', 'books', 'games']),
-  message: z.string(),
-});
+import { SearchErrorSchema } from '../../schemas/search-all-schemas.js';
 
 export const SearchAllOutputSchema = z.object({
+  // Populated by the orchestrator via findBestMatch — never set by this flow itself.
   featured: z
     .discriminatedUnion('type', [
       z.object({ type: z.literal('media'), item: MediaSearchResultSchema }),

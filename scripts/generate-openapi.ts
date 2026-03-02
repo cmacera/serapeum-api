@@ -18,6 +18,7 @@ import * as yaml from 'yaml';
 import { MediaSearchResultSchema } from '../src/schemas/media-schemas.js';
 import { BookSearchResultSchema } from '../src/schemas/book-schemas.js';
 import { GameSearchResultSchema } from '../src/schemas/game-schemas.js';
+import { SearchErrorSchema as SearchErrorSchemaBase } from '../src/schemas/search-all-schemas.js';
 
 // Extend Zod with OpenAPI support (must be called before any .openapi() calls)
 extendZodWithOpenApi(z);
@@ -29,15 +30,11 @@ extendZodWithOpenApi(z);
 const BookSchema = BookSearchResultSchema.openapi('Book');
 const MediaSchema = MediaSearchResultSchema.openapi('Media');
 const GameSchema = GameSearchResultSchema.openapi('Game');
+const SearchErrorSchema = SearchErrorSchemaBase.openapi('SearchError');
 
-// SearchAll (mirrors SearchAllOutputSchema in searchAll.ts)
-const SearchErrorSchema = z
-  .object({
-    source: z.enum(['media', 'books', 'games']),
-    message: z.string(),
-  })
-  .openapi('SearchError');
-
+// SearchAllResponseSchema is intentionally kept local: it must reference the
+// annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
+// emits $ref pointers rather than inlining the sub-schemas in the YAML.
 const SearchAllResponseSchema = z
   .object({
     media: z.array(MediaSchema),
