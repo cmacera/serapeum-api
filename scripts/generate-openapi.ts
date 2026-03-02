@@ -192,6 +192,10 @@ registry.registerPath({
       description: 'Invalid request body',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     500: {
       description: 'Internal server error',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -221,6 +225,10 @@ registry.registerPath({
       description: 'Invalid request body',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     500: {
       description: 'Internal server error',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -248,6 +256,10 @@ registry.registerPath({
     },
     400: {
       description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
@@ -280,6 +292,10 @@ registry.registerPath({
       description: 'Invalid request body',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     500: {
       description: 'Internal server error',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -310,6 +326,10 @@ registry.registerPath({
     },
     400: {
       description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
