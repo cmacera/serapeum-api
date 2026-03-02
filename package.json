@@ -48,7 +48,7 @@
     "@genkit-ai/core": "^1.29.0",
     "@genkit-ai/express": "^1.29.0",
     "@genkit-ai/google-genai": "^1.29.0",
-    "@tavily/core": "^0.7.1",
+    "@tavily/core": "^0.7.2",
     "axios": "^1.13.6",
     "dotenv": "^17.2.4",
     "genkit": "^1.28.0",
