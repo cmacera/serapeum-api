@@ -8,6 +8,8 @@ import { searchBooks } from './flows/catalog/searchBooks.js';
 import { searchGames } from './flows/catalog/searchGames.js';
 import { searchAll } from './flows/catalog/searchAll.js';
 import { searchWeb } from './flows/catalog/searchWeb.js';
+import { getMovieDetail } from './flows/catalog/getMovieDetail.js';
+import { getTvDetail } from './flows/catalog/getTvDetail.js';
 import { mediaAgent } from './flows/agent/mediaAgent.js';
 import { orchestratorFlow } from './flows/agent/orchestratorFlow.js';
 import './prompts/routerPrompt.js';
@@ -59,6 +61,8 @@ startFlowServer({
     withFlowOptions(searchGames, { contextProvider: jwtContextProvider }),
     withFlowOptions(searchAll, { contextProvider: jwtContextProvider }),
     withFlowOptions(searchWeb, { contextProvider: jwtContextProvider }),
+    withFlowOptions(getMovieDetail, { contextProvider: jwtContextProvider }),
+    withFlowOptions(getTvDetail, { contextProvider: jwtContextProvider }),
     withFlowOptions(mediaAgent, { contextProvider: jwtContextProvider }),
     withFlowOptions(orchestratorFlow, { contextProvider: jwtContextProvider }),
   ],

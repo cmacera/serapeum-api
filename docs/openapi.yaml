@@ -269,6 +269,562 @@ components:
           example: en
       required:
         - query
+    CastMember:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        character:
+          type: string
+        profile_path:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - name
+        - character
+    Video:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        name:
+          type: string
+        site:
+          type: string
+        type:
+          type: string
+        official:
+          type: boolean
+        published_at:
+          type: string
+      required:
+        - id
+        - key
+        - name
+        - site
+        - type
+        - official
+        - published_at
+    WatchProvider:
+      type: object
+      properties:
+        logo_path:
+          type: string
+        provider_id:
+          type: number
+        provider_name:
+          type: string
+        display_priority:
+          type: number
+      required:
+        - logo_path
+        - provider_id
+        - provider_name
+        - display_priority
+    WatchProviderRegion:
+      type: object
+      properties:
+        link:
+          type: string
+        flatrate:
+          type: array
+          items:
+            type: object
+            properties:
+              logo_path:
+                type: string
+              provider_id:
+                type: number
+              provider_name:
+                type: string
+              display_priority:
+                type: number
+            required:
+              - logo_path
+              - provider_id
+              - provider_name
+              - display_priority
+        rent:
+          type: array
+          items:
+            type: object
+            properties:
+              logo_path:
+                type: string
+              provider_id:
+                type: number
+              provider_name:
+                type: string
+              display_priority:
+                type: number
+            required:
+              - logo_path
+              - provider_id
+              - provider_name
+              - display_priority
+        buy:
+          type: array
+          items:
+            type: object
+            properties:
+              logo_path:
+                type: string
+              provider_id:
+                type: number
+              provider_name:
+                type: string
+              display_priority:
+                type: number
+            required:
+              - logo_path
+              - provider_id
+              - provider_name
+              - display_priority
+      required:
+        - link
+    SeasonSummary:
+      type: object
+      properties:
+        season_number:
+          type: number
+        name:
+          type: string
+        episode_count:
+          type: number
+        air_date:
+          type:
+            - string
+            - "null"
+        poster_path:
+          type:
+            - string
+            - "null"
+      required:
+        - season_number
+        - name
+        - episode_count
+    MovieDetail:
+      type: object
+      properties:
+        id:
+          type: number
+        media_type:
+          type: string
+          enum:
+            - movie
+        title:
+          type: string
+        original_title:
+          type: string
+        overview:
+          type:
+            - string
+            - "null"
+        tagline:
+          type:
+            - string
+            - "null"
+        release_date:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        runtime:
+          type:
+            - number
+            - "null"
+        budget:
+          type: number
+        revenue:
+          type: number
+        vote_average:
+          type: number
+        vote_count:
+          type: number
+        popularity:
+          type: number
+        poster_path:
+          type:
+            - string
+            - "null"
+        backdrop_path:
+          type:
+            - string
+            - "null"
+        genres:
+          type: array
+          items:
+            type: string
+        original_language:
+          type: string
+        cast:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              character:
+                type: string
+              profile_path:
+                type:
+                  - string
+                  - "null"
+            required:
+              - id
+              - name
+              - character
+        trailers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              key:
+                type: string
+              name:
+                type: string
+              site:
+                type: string
+              type:
+                type: string
+              official:
+                type: boolean
+              published_at:
+                type: string
+            required:
+              - id
+              - key
+              - name
+              - site
+              - type
+              - official
+              - published_at
+        watch_providers:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              link:
+                type: string
+              flatrate:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+              rent:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+              buy:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+            required:
+              - link
+      required:
+        - id
+        - media_type
+        - title
+    TvDetail:
+      type: object
+      properties:
+        id:
+          type: number
+        media_type:
+          type: string
+          enum:
+            - tv
+        name:
+          type: string
+        original_name:
+          type: string
+        overview:
+          type:
+            - string
+            - "null"
+        tagline:
+          type:
+            - string
+            - "null"
+        first_air_date:
+          type:
+            - string
+            - "null"
+        last_air_date:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        seasons_count:
+          type: number
+        episodes_count:
+          type: number
+        episode_run_time:
+          type: array
+          items:
+            type: number
+        vote_average:
+          type: number
+        vote_count:
+          type: number
+        popularity:
+          type: number
+        poster_path:
+          type:
+            - string
+            - "null"
+        backdrop_path:
+          type:
+            - string
+            - "null"
+        genres:
+          type: array
+          items:
+            type: string
+        original_language:
+          type: string
+        seasons:
+          type: array
+          items:
+            type: object
+            properties:
+              season_number:
+                type: number
+              name:
+                type: string
+              episode_count:
+                type: number
+              air_date:
+                type:
+                  - string
+                  - "null"
+              poster_path:
+                type:
+                  - string
+                  - "null"
+            required:
+              - season_number
+              - name
+              - episode_count
+        networks:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              logo_path:
+                type:
+                  - string
+                  - "null"
+              origin_country:
+                type: string
+            required:
+              - id
+              - name
+        creators:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              profile_path:
+                type:
+                  - string
+                  - "null"
+            required:
+              - id
+              - name
+        cast:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+              character:
+                type: string
+              profile_path:
+                type:
+                  - string
+                  - "null"
+            required:
+              - id
+              - name
+              - character
+        trailers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              key:
+                type: string
+              name:
+                type: string
+              site:
+                type: string
+              type:
+                type: string
+              official:
+                type: boolean
+              published_at:
+                type: string
+            required:
+              - id
+              - key
+              - name
+              - site
+              - type
+              - official
+              - published_at
+        watch_providers:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              link:
+                type: string
+              flatrate:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+              rent:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+              buy:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    logo_path:
+                      type: string
+                    provider_id:
+                      type: number
+                    provider_name:
+                      type: string
+                    display_priority:
+                      type: number
+                  required:
+                    - logo_path
+                    - provider_id
+                    - provider_name
+                    - display_priority
+            required:
+              - link
+      required:
+        - id
+        - media_type
+        - name
+    MediaDetailInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          exclusiveMinimum: 0
+          description: TMDB movie or TV show ID
+          example: 550
+        language:
+          type: string
+          description: BCP-47 language tag (e.g. en, es-ES)
+          example: en
+        region:
+          type: string
+          description: ISO 3166-1 country code to filter watch providers (e.g. US, ES,
+            MX). Defaults to US if not provided.
+          example: ES
+      required:
+        - id
   parameters: {}
 paths:
   /searchBooks:
@@ -427,6 +983,84 @@ paths:
                 $ref: "#/components/schemas/OrchestratorResponse"
         "400":
           description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /getMovieDetail:
+    post:
+      summary: Get movie details
+      description: "Returns full details for a movie: cast, trailers, watch providers,
+        and extended metadata."
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaDetailInput"
+      responses:
+        "200":
+          description: Full movie detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieDetail"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Movie not found in TMDB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /getTvDetail:
+    post:
+      summary: Get TV show details
+      description: "Returns full details for a TV show: cast, trailers, seasons, watch
+        providers, and extended metadata."
+      tags:
+        - Catalog
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaDetailInput"
+      responses:
+        "200":
+          description: Full TV show detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TvDetail"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: TV show not found in TMDB
           content:
             application/json:
               schema:
