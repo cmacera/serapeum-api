@@ -1,4 +1,5 @@
 import { ai, z } from '../lib/ai.js';
+import { GenkitError } from '@genkit-ai/core';
 import axios from 'axios';
 import type {
   TMDBMovieDetailResponse,
@@ -8,6 +9,7 @@ import type {
 import { MovieDetailSchema, TvDetailSchema } from '../schemas/media-detail-schemas.js';
 
 const TMDB_BASE = 'https://api.themoviedb.org';
+const TMDB_TIMEOUT = 5000;
 const CAST_LIMIT = 10;
 const DEFAULT_REGION = 'US';
 
@@ -16,7 +18,7 @@ function filterWatchProviders(
   region: string | undefined
 ): Record<string, TMDBWatchProviderRegion> | undefined {
   if (!results) return undefined;
-  const target = region ?? DEFAULT_REGION;
+  const target = (region ?? DEFAULT_REGION).toUpperCase();
   const entry = results[target];
   return entry !== undefined ? { [target]: entry } : {};
 }
@@ -26,18 +28,31 @@ function handleTmdbError(error: unknown): never {
     if (error.response) {
       const status = error.response.status;
       if (status === 401) {
-        throw new Error('TMDB API authentication failed. Please check your API key.');
+        throw new GenkitError({
+          status: 'UNAUTHENTICATED',
+          message: 'TMDB API authentication failed. Please check your API key.',
+        });
       } else if (status === 404) {
-        throw new Error('TMDB: resource not found.');
+        throw new GenkitError({
+          status: 'NOT_FOUND',
+          message: 'TMDB: resource not found.',
+        });
       } else if (status === 429) {
-        throw new Error('TMDB API rate limit exceeded. Please try again later.');
+        throw new GenkitError({
+          status: 'RESOURCE_EXHAUSTED',
+          message: 'TMDB API rate limit exceeded. Please try again later.',
+        });
       } else {
-        throw new Error(`TMDB API error (${status}): ${error.response.statusText}`);
+        throw new GenkitError({
+          status: 'UNAVAILABLE',
+          message: `TMDB API error (${status}): ${error.response.statusText}`,
+        });
       }
     } else if (error.request) {
-      throw new Error(
-        'Network error: Unable to reach TMDB API. Please check your internet connection.'
-      );
+      throw new GenkitError({
+        status: 'UNAVAILABLE',
+        message: 'Network error: Unable to reach TMDB API. Please check your internet connection.',
+      });
     }
   }
   throw error;
@@ -77,6 +92,7 @@ export const getMovieDetailTool = ai.defineTool(
             append_to_response: 'credits,videos,watch/providers',
           },
           headers: { Accept: 'application/json' },
+          timeout: TMDB_TIMEOUT,
         }
       );
 
@@ -149,6 +165,7 @@ export const getTvDetailTool = ai.defineTool(
           append_to_response: 'credits,videos,watch/providers',
         },
         headers: { Accept: 'application/json' },
+        timeout: TMDB_TIMEOUT,
       });
 
       const d = response.data;

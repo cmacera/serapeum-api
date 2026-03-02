@@ -68,7 +68,7 @@ export const MovieDetailSchema = z.object({
   backdrop_path: z.string().nullable().optional(),
   genres: z.array(z.string()).optional(),
   original_language: z.string().optional(),
-  cast: z.array(CastMemberSchema).optional(),
+  cast: z.array(CastMemberSchema).max(10).optional(),
   trailers: z.array(VideoSchema).optional(),
   watch_providers: WatchProvidersByRegionSchema.optional(),
 });
@@ -117,7 +117,7 @@ export const TvDetailSchema = z.object({
       })
     )
     .optional(),
-  cast: z.array(CastMemberSchema).optional(),
+  cast: z.array(CastMemberSchema).max(10).optional(),
   trailers: z.array(VideoSchema).optional(),
   watch_providers: WatchProvidersByRegionSchema.optional(),
 });

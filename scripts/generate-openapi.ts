@@ -160,6 +160,12 @@ registry.register('MovieDetail', MovieDetailOpenApi);
 registry.register('TvDetail', TvDetailOpenApi);
 registry.register('MediaDetailInput', MediaDetailInputSchema);
 
+registry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+});
+
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
@@ -170,7 +176,7 @@ registry.registerPath({
   summary: 'Search for books',
   description: 'Searches the Google Books API and returns a list of matching books.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -199,7 +205,7 @@ registry.registerPath({
   summary: 'Search for movies and TV shows',
   description: 'Searches the TMDB API and returns a list of matching movies and TV shows.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -228,7 +234,7 @@ registry.registerPath({
   summary: 'Search for video games',
   description: 'Searches the IGDB API and returns a list of matching video games.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -258,7 +264,7 @@ registry.registerPath({
   description:
     'Searches books, movies/TV shows, and games in parallel and returns aggregated results.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -288,7 +294,7 @@ registry.registerPath({
   description:
     'Routes a natural language query through the AI orchestrator. Returns structured catalog data, a synthesized text+data response, or a plain text reply depending on the query intent.',
   tags: ['Agent'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -320,7 +326,7 @@ registry.registerPath({
   description:
     'Returns full details for a movie: cast, trailers, watch providers, and extended metadata.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -332,12 +338,20 @@ registry.registerPath({
       description: 'Full movie detail',
       content: { 'application/json': { schema: MovieDetailOpenApi } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     404: {
       description: 'Movie not found in TMDB',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
-    400: {
-      description: 'Invalid request body',
+    429: {
+      description: 'Too many requests — TMDB rate limit exceeded',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {
@@ -354,7 +368,7 @@ registry.registerPath({
   description:
     'Returns full details for a TV show: cast, trailers, seasons, watch providers, and extended metadata.',
   tags: ['Catalog'],
-  security: [],
+  security: [{ bearerAuth: [] }],
   request: {
     body: {
       required: true,
@@ -366,12 +380,20 @@ registry.registerPath({
       description: 'Full TV show detail',
       content: { 'application/json': { schema: TvDetailOpenApi } },
     },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     404: {
       description: 'TV show not found in TMDB',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
-    400: {
-      description: 'Invalid request body',
+    429: {
+      description: 'Too many requests — TMDB rate limit exceeded',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     500: {

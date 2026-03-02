@@ -10,6 +10,11 @@ servers:
   - url: https://api.serapeum.app
     description: Production
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Book:
       type: object
@@ -483,6 +488,7 @@ components:
               - id
               - name
               - character
+          maxItems: 10
         trailers:
           type: array
           items:
@@ -712,6 +718,7 @@ components:
               - id
               - name
               - character
+          maxItems: 10
         trailers:
           type: array
           items:
@@ -833,7 +840,8 @@ paths:
       description: Searches the Google Books API and returns a list of matching books.
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -865,7 +873,8 @@ paths:
       description: Searches the TMDB API and returns a list of matching movies and TV shows.
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -897,7 +906,8 @@ paths:
       description: Searches the IGDB API and returns a list of matching video games.
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -930,7 +940,8 @@ paths:
         aggregated results.
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -964,7 +975,8 @@ paths:
         plain text reply depending on the query intent.
       tags:
         - Agent
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1000,7 +1012,8 @@ paths:
         and extended metadata."
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1020,8 +1033,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized — missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Movie not found in TMDB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests — TMDB rate limit exceeded
           content:
             application/json:
               schema:
@@ -1039,7 +1064,8 @@ paths:
         providers, and extended metadata."
       tags:
         - Catalog
-      security: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1059,8 +1085,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized — missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: TV show not found in TMDB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests — TMDB rate limit exceeded
           content:
             application/json:
               schema:
