@@ -51,7 +51,7 @@ export const searchAll = ai.defineFlow(
     const books = bookResult.status === 'fulfilled' ? bookResult.value : [];
     const games = gameResult.status === 'fulfilled' ? gameResult.value : [];
 
-    const errors: Array<{ source: 'media' | 'books' | 'games'; message: string }> = [];
+    const errors: Array<z.infer<typeof SearchErrorSchema>> = [];
 
     if (movieResult.status === 'rejected') {
       console.error('SearchMedia failed:', movieResult.reason);
