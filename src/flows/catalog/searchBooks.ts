@@ -1,5 +1,6 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchBooksTool, BookSearchResultSchema } from '../../tools/search-books-tool.js';
+import { searchBooksTool } from '../../tools/search-books-tool.js';
+import { BookSearchResultSchema } from '../../schemas/book-schemas.js';
 
 export const SearchBooksOutputSchema = z.array(BookSearchResultSchema);
 

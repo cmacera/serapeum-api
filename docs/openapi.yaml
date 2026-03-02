@@ -47,6 +47,12 @@ components:
           type: string
         previewLink:
           type: string
+        averageRating:
+          type: number
+        printType:
+          type: string
+        maturityRating:
+          type: string
       required:
         - id
         - title
@@ -76,6 +82,20 @@ components:
           type: number
         popularity:
           type: number
+        backdrop_path:
+          type:
+            - string
+            - "null"
+        genre_ids:
+          type: array
+          items:
+            type: number
+        genres:
+          type: array
+          items:
+            type: string
+        original_language:
+          type: string
       required:
         - id
         - media_type
@@ -114,6 +134,46 @@ components:
             type: string
         game_type:
           type: number
+        screenshots:
+          type: array
+          items:
+            type: string
+        videos:
+          type: array
+          items:
+            type: string
+        themes:
+          type: array
+          items:
+            type: string
+        game_modes:
+          type: array
+          items:
+            type: string
+        age_ratings:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: number
+              rating:
+                type: number
+            required:
+              - category
+              - rating
+        similar_games:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              name:
+                type: string
+            required:
+              - id
+              - name
       required:
         - id
         - name

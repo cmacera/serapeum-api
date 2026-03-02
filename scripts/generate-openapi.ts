@@ -3,9 +3,6 @@
  *
  * Generates docs/openapi.yaml from the Zod schemas defined in each Genkit flow.
  * Run with: npm run generate:openapi
- *
- * Schemas are defined inline here (mirroring the flow files) to avoid importing
- * the Genkit/AI initialization code which requires environment variables at load time.
  */
 
 import { writeFileSync, mkdirSync } from 'fs';
@@ -18,78 +15,26 @@ import {
 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import * as yaml from 'yaml';
+import { MediaSearchResultSchema } from '../src/schemas/media-schemas.js';
+import { BookSearchResultSchema } from '../src/schemas/book-schemas.js';
+import { GameSearchResultSchema } from '../src/schemas/game-schemas.js';
+import { SearchErrorSchema as SearchErrorSchemaBase } from '../src/schemas/search-all-schemas.js';
 
-// Extend Zod with OpenAPI support (must be called before any schema definitions)
+// Extend Zod with OpenAPI support (must be called before any .openapi() calls)
 extendZodWithOpenApi(z);
 
 // ---------------------------------------------------------------------------
-// Schemas — mirrored from flow/tool files (kept in sync manually or via tests)
+// Schemas — imported from src/schemas/ (single source of truth)
 // ---------------------------------------------------------------------------
 
-// Book (mirrors SearchBooksOutputSchema in searchBooks.ts + BookSearchResultSchema in search-books-tool.ts)
-const BookSchema = z
-  .object({
-    id: z.string(),
-    title: z.string(),
-    authors: z.array(z.string()).optional(),
-    publisher: z.string().optional(),
-    publishedDate: z.string().optional(),
-    description: z.string().optional(),
-    isbn: z.string().optional(),
-    pageCount: z.number().optional(),
-    categories: z.array(z.string()).optional(),
-    imageLinks: z
-      .object({
-        thumbnail: z.string().optional(),
-        smallThumbnail: z.string().optional(),
-      })
-      .optional(),
-    language: z.string().optional(),
-    previewLink: z.string().optional(),
-  })
-  .openapi('Book');
+const BookSchema = BookSearchResultSchema.openapi('Book');
+const MediaSchema = MediaSearchResultSchema.openapi('Media');
+const GameSchema = GameSearchResultSchema.openapi('Game');
+const SearchErrorSchema = SearchErrorSchemaBase.openapi('SearchError');
 
-// Media (mirrors SearchMediaOutputSchema in searchMedia.ts + MediaSearchResultSchema in search-media-tool.ts)
-const MediaSchema = z
-  .object({
-    id: z.number(),
-    title: z.string().optional(),
-    name: z.string().optional(),
-    media_type: z.enum(['movie', 'tv']),
-    release_date: z.string().optional(),
-    poster_path: z.string().nullable().optional(),
-    overview: z.string().optional(),
-    vote_average: z.number().optional(),
-    popularity: z.number().optional(),
-  })
-  .openapi('Media');
-
-// Game (mirrors SearchGamesOutputSchema in searchGames.ts + GameSearchResultSchema in search-games-tool.ts)
-const GameSchema = z
-  .object({
-    id: z.number(),
-    name: z.string(),
-    summary: z.string().optional(),
-    rating: z.number().optional(),
-    aggregated_rating: z.number().optional(),
-    released: z.string().optional(),
-    cover_url: z.string().optional(),
-    platforms: z.array(z.string()).optional(),
-    genres: z.array(z.string()).optional(),
-    developers: z.array(z.string()).optional(),
-    publishers: z.array(z.string()).optional(),
-    game_type: z.number().optional(),
-  })
-  .openapi('Game');
-
-// SearchAll (mirrors SearchAllOutputSchema in searchAll.ts)
-const SearchErrorSchema = z
-  .object({
-    source: z.enum(['media', 'books', 'games']),
-    message: z.string(),
-  })
-  .openapi('SearchError');
-
+// SearchAllResponseSchema is intentionally kept local: it must reference the
+// annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
+// emits $ref pointers rather than inlining the sub-schemas in the YAML.
 const SearchAllResponseSchema = z
   .object({
     media: z.array(MediaSchema),

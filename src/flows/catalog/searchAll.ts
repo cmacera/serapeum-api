@@ -1,14 +1,14 @@
 import { ai, z } from '../../lib/ai.js';
-import { searchMediaTool, MediaSearchResultSchema } from '../../tools/search-media-tool.js';
-import { searchBooksTool, BookSearchResultSchema } from '../../tools/search-books-tool.js';
-import { searchGamesTool, GameSearchResultSchema } from '../../tools/search-games-tool.js';
-
-const SearchErrorSchema = z.object({
-  source: z.enum(['media', 'books', 'games']),
-  message: z.string(),
-});
+import { searchMediaTool } from '../../tools/search-media-tool.js';
+import { searchBooksTool } from '../../tools/search-books-tool.js';
+import { searchGamesTool } from '../../tools/search-games-tool.js';
+import { MediaSearchResultSchema } from '../../schemas/media-schemas.js';
+import { BookSearchResultSchema } from '../../schemas/book-schemas.js';
+import { GameSearchResultSchema } from '../../schemas/game-schemas.js';
+import { SearchErrorSchema } from '../../schemas/search-all-schemas.js';
 
 export const SearchAllOutputSchema = z.object({
+  // Populated by the orchestrator via findBestMatch — never set by this flow itself.
   featured: z
     .discriminatedUnion('type', [
       z.object({ type: z.literal('media'), item: MediaSearchResultSchema }),
@@ -51,7 +51,7 @@ export const searchAll = ai.defineFlow(
     const books = bookResult.status === 'fulfilled' ? bookResult.value : [];
     const games = gameResult.status === 'fulfilled' ? gameResult.value : [];
 
-    const errors: Array<{ source: 'media' | 'books' | 'games'; message: string }> = [];
+    const errors: Array<z.infer<typeof SearchErrorSchema>> = [];
 
     if (movieResult.status === 'rejected') {
       console.error('SearchMedia failed:', movieResult.reason);

@@ -2,26 +2,7 @@ import { ai, z } from '../lib/ai.js';
 import axios from 'axios';
 import type { TMDBSearchResponse, MediaSearchResult } from '../lib/tmdb-types.js';
 import { TMDB_GENRE_MAP } from '../lib/tmdb-types.js';
-
-/**
- * Genkit Tool: Search for movies and TV shows using TMDB API
- * Uses the /search/multi endpoint to search both media types at once
- */
-export const MediaSearchResultSchema = z.object({
-  id: z.number(),
-  title: z.string().optional(),
-  name: z.string().optional(),
-  media_type: z.enum(['movie', 'tv']),
-  release_date: z.string().optional(),
-  poster_path: z.string().nullable().optional(),
-  overview: z.string().optional(),
-  vote_average: z.number().optional(),
-  popularity: z.number().optional(),
-  backdrop_path: z.string().nullable().optional(),
-  genre_ids: z.array(z.number()).optional(),
-  genres: z.array(z.string()).optional(),
-  original_language: z.string().optional(),
-});
+import { MediaSearchResultSchema } from '../schemas/media-schemas.js';
 
 export const searchMediaTool = ai.defineTool(
   {
