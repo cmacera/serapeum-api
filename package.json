@@ -25,6 +25,7 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "generate:openapi": "node --import tsx/esm scripts/generate-openapi.ts",
+    "sync:flutter": "npm run generate:openapi && node --import tsx/esm scripts/sync-flutter.ts",
     "prepare": "husky"
   },
   "repository": {

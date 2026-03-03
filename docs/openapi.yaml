@@ -342,57 +342,15 @@ components:
         flatrate:
           type: array
           items:
-            type: object
-            properties:
-              logo_path:
-                type: string
-              provider_id:
-                type: number
-              provider_name:
-                type: string
-              display_priority:
-                type: number
-            required:
-              - logo_path
-              - provider_id
-              - provider_name
-              - display_priority
+            $ref: "#/components/schemas/WatchProvider"
         rent:
           type: array
           items:
-            type: object
-            properties:
-              logo_path:
-                type: string
-              provider_id:
-                type: number
-              provider_name:
-                type: string
-              display_priority:
-                type: number
-            required:
-              - logo_path
-              - provider_id
-              - provider_name
-              - display_priority
+            $ref: "#/components/schemas/WatchProvider"
         buy:
           type: array
           items:
-            type: object
-            properties:
-              logo_path:
-                type: string
-              provider_id:
-                type: number
-              provider_name:
-                type: string
-              display_priority:
-                type: number
-            required:
-              - logo_path
-              - provider_id
-              - provider_name
-              - display_priority
+            $ref: "#/components/schemas/WatchProvider"
       required:
         - link
     SeasonSummary:
@@ -474,115 +432,16 @@ components:
         cast:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: number
-              name:
-                type: string
-              character:
-                type: string
-              profile_path:
-                type:
-                  - string
-                  - "null"
-            required:
-              - id
-              - name
-              - character
+            $ref: "#/components/schemas/CastMember"
           maxItems: 10
         trailers:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: string
-              key:
-                type: string
-              name:
-                type: string
-              site:
-                type: string
-                enum:
-                  - YouTube
-              type:
-                type: string
-              official:
-                type: boolean
-              published_at:
-                type: string
-            required:
-              - id
-              - key
-              - name
-              - site
-              - type
-              - official
-              - published_at
+            $ref: "#/components/schemas/Video"
         watch_providers:
           type: object
           additionalProperties:
-            type: object
-            properties:
-              link:
-                type: string
-              flatrate:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-              rent:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-              buy:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-            required:
-              - link
+            $ref: "#/components/schemas/WatchProviderRegion"
       required:
         - id
         - media_type
@@ -706,115 +565,16 @@ components:
         cast:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: number
-              name:
-                type: string
-              character:
-                type: string
-              profile_path:
-                type:
-                  - string
-                  - "null"
-            required:
-              - id
-              - name
-              - character
+            $ref: "#/components/schemas/CastMember"
           maxItems: 10
         trailers:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: string
-              key:
-                type: string
-              name:
-                type: string
-              site:
-                type: string
-                enum:
-                  - YouTube
-              type:
-                type: string
-              official:
-                type: boolean
-              published_at:
-                type: string
-            required:
-              - id
-              - key
-              - name
-              - site
-              - type
-              - official
-              - published_at
+            $ref: "#/components/schemas/Video"
         watch_providers:
           type: object
           additionalProperties:
-            type: object
-            properties:
-              link:
-                type: string
-              flatrate:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-              rent:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-              buy:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    logo_path:
-                      type: string
-                    provider_id:
-                      type: number
-                    provider_name:
-                      type: string
-                    display_priority:
-                      type: number
-                  required:
-                    - logo_path
-                    - provider_id
-                    - provider_name
-                    - display_priority
-            required:
-              - link
+            $ref: "#/components/schemas/WatchProviderRegion"
       required:
         - id
         - media_type

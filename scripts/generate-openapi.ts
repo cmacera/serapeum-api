@@ -44,10 +44,27 @@ const SearchErrorSchema = SearchErrorSchemaBase.openapi('SearchError');
 const CastMemberOpenApi = CastMemberSchema.openapi('CastMember');
 const VideoOpenApi = VideoSchema.openapi('Video');
 const WatchProviderOpenApi = WatchProviderSchema.openapi('WatchProvider');
-const WatchProviderRegionOpenApi = WatchProviderRegionSchema.openapi('WatchProviderRegion');
+// Re-define with annotated sub-schemas so zod-to-openapi emits $ref instead
+// of inlining WatchProvider's properties for each flatrate/rent/buy array.
+const WatchProviderRegionOpenApi = WatchProviderRegionSchema.extend({
+  flatrate: z.array(WatchProviderOpenApi).optional(),
+  rent: z.array(WatchProviderOpenApi).optional(),
+  buy: z.array(WatchProviderOpenApi).optional(),
+}).openapi('WatchProviderRegion');
+const WatchProvidersByRegionOpenApi = z.record(z.string(), WatchProviderRegionOpenApi);
 const SeasonSummaryOpenApi = SeasonSummarySchema.openapi('SeasonSummary');
-const MovieDetailOpenApi = MovieDetailSchema.openapi('MovieDetail');
-const TvDetailOpenApi = TvDetailSchema.openapi('TvDetail');
+// Re-define with annotated sub-schemas so cast/trailers/watch_providers emit
+// $ref to CastMember, Video, and WatchProviderRegion respectively.
+const MovieDetailOpenApi = MovieDetailSchema.extend({
+  cast: z.array(CastMemberOpenApi).max(10).optional(),
+  trailers: z.array(VideoOpenApi).optional(),
+  watch_providers: WatchProvidersByRegionOpenApi.optional(),
+}).openapi('MovieDetail');
+const TvDetailOpenApi = TvDetailSchema.extend({
+  cast: z.array(CastMemberOpenApi).max(10).optional(),
+  trailers: z.array(VideoOpenApi).optional(),
+  watch_providers: WatchProvidersByRegionOpenApi.optional(),
+}).openapi('TvDetail');
 
 // SearchAllResponseSchema is intentionally kept local: it must reference the
 // annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
