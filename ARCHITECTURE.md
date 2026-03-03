@@ -27,7 +27,7 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 **Project organization:**
 The project follows a **modular architecture**, with `index.ts` serving as the main entry point and bootstrapper.
 
-```
+```text
 packages/
 └── shared-schemas/     # @serapeum/shared-schemas — npm workspace package
     └── src/            # Zod schemas + inferred TypeScript types (canonical source of truth)
@@ -64,7 +64,7 @@ Dockerfile              # Production image definition
 
 All Zod schemas and their inferred TypeScript types live in `packages/shared-schemas/` (`@serapeum/shared-schemas`), an npm workspace package local to this repo.
 
-```
+```text
 packages/shared-schemas/src/
 ├── book-schemas.ts          # BookSearchResultSchema
 ├── game-schemas.ts          # GameSearchResultSchema

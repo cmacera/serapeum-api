@@ -73,7 +73,7 @@ The spec covers all 8 endpoints:
 
 ## 🏗️ Project Structure
 
-```
+```text
 packages/
 └── shared-schemas/     # @serapeum/shared-schemas — canonical Zod schemas + TypeScript types
 src/
