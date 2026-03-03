@@ -8,7 +8,7 @@
  *   FLUTTER_PROJECT_PATH=/path/to/serapeum-app npm run sync:flutter
  */
 
-import { copyFileSync, existsSync } from 'fs';
+import { copyFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -30,5 +30,6 @@ if (!existsSync(src)) {
   process.exit(1);
 }
 
+mkdirSync(dirname(dest), { recursive: true });
 copyFileSync(src, dest);
 console.log(`✅ OpenAPI spec synced to: ${dest}`);

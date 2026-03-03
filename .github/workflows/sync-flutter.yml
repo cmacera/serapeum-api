@@ -40,6 +40,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.FLUTTER_SYNC_TOKEN }}
         run: |
+          mkdir -p serapeum-app/docs
           cp docs/openapi.yaml serapeum-app/docs/openapi.yaml
 
           cd serapeum-app
@@ -47,8 +48,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Exit early if there are no changes
-          if git diff --exit-code docs/openapi.yaml; then
+          # Exit early if there are no changes (handles both tracked and untracked files)
+          if [ -z "$(git status --porcelain docs/openapi.yaml)" ]; then
             echo "No OpenAPI spec changes — skipping PR."
             exit 0
           fi
