@@ -24,14 +24,21 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 
 ## 2. 🗂️ Directory Structure
 
-**Project organization:**  
+**Project organization:**
 The project follows a **modular architecture**, with `index.ts` serving as the main entry point and bootstrapper.
 
-```
+```text
+packages/
+└── shared-schemas/     # @serapeum/shared-schemas — npm workspace package
+    └── src/            # Zod schemas + inferred TypeScript types (canonical source of truth)
+
 src/
 ├── flows/              # Genkit Flows (API logic)
-│   ├── catalog/        # searchMedia, searchBooks, searchGames, searchAll, searchWeb
-│   └── agent/          # mediaAgent, orchestratorFlow
+│   ├── catalog/        # searchMedia, searchBooks, searchGames, searchAll, searchWeb,
+│   │                   # getMovieDetail, getTvDetail
+│   └── agent/          # orchestratorFlow, findBestMatch
+│
+├── schemas/            # Thin re-exports from @serapeum/shared-schemas
 │
 ├── tools/              # External API wrappers (TMDB, Books, IGDB, Tavily)
 │
@@ -45,15 +52,37 @@ src/
 │
 ├── prompts/            # Dotprompt files (routerPrompt, extractorPrompt, synthesizerPrompt)
 └── index.ts            # Server entry point
-```
 
-Dockerfile  # Production image definition
+Dockerfile              # Production image definition
+```
 
 ---
 
 ## 3. 🧭 Architectural Patterns
 
-### 3.1 🧩 Standalone Server Pattern
+### 3.1 📦 Shared Schemas Package
+
+All Zod schemas and their inferred TypeScript types live in `packages/shared-schemas/` (`@serapeum/shared-schemas`), an npm workspace package local to this repo.
+
+```text
+packages/shared-schemas/src/
+├── book-schemas.ts          # BookSearchResultSchema
+├── game-schemas.ts          # GameSearchResultSchema
+├── media-schemas.ts         # MediaSearchResultSchema
+├── media-detail-schemas.ts  # MovieDetailSchema, TvDetailSchema, sub-schemas
+├── search-all-schemas.ts    # SearchErrorSchema, SearchAllOutputSchema
+├── agent-schemas.ts         # AgentResponseSchema
+└── index.ts                 # Barrel export (schemas + TypeScript types)
+```
+
+- **`src/schemas/*.ts`** are thin re-exports from this package — existing internal imports continue to work unchanged.
+- **`scripts/generate-openapi.ts`** imports directly from `@serapeum/shared-schemas` to produce `docs/openapi.yaml`.
+- The package is built automatically via the `prebuild` script before every `npm run build`.
+- A TypeScript path alias (`@serapeum/shared-schemas → packages/shared-schemas/src/index.ts`) enables type resolution without a prior build in development.
+
+---
+
+### 3.2 🧩 Standalone Server Pattern
 
 - **Entry Point:** `src/index.ts` imports all flows and calls `startFlowServer()`.
 - **Port Binding:** The server binds to `process.env.PORT` (default `3000`) to comply with PaaS requirements.
@@ -61,7 +90,7 @@ Dockerfile  # Production image definition
 
 ---
 
-### 3.2 🔐 Authentication Pattern
+### 3.3 🔐 Authentication Pattern
 
 All endpoints are protected by a **Supabase JWT contextProvider** (`src/middleware/verifyJwt.ts`).
 
@@ -82,14 +111,14 @@ Request
 
 ---
 
-### 3.3 🧠 Flow Pattern
+### 3.4 🧠 Flow Pattern
 
 - **Definition:** Logic units are declared with `ai.defineFlow`.
 - **Exposure:** All flows are auto-exposed under `POST /<flowName>` by Genkit.
 
 ---
 
-### 3.4 🗄️ Data Access
+### 3.5 🗄️ Data Access
 
 - **Storage Engine:** **Supabase** provides persistence via PostgreSQL.
 - **Connection Variables:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, injected at runtime.

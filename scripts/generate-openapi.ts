@@ -15,11 +15,11 @@ import {
 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 import * as yaml from 'yaml';
-import { MediaSearchResultSchema } from '../src/schemas/media-schemas.js';
-import { BookSearchResultSchema } from '../src/schemas/book-schemas.js';
-import { GameSearchResultSchema } from '../src/schemas/game-schemas.js';
-import { SearchErrorSchema as SearchErrorSchemaBase } from '../src/schemas/search-all-schemas.js';
 import {
+  MediaSearchResultSchema,
+  BookSearchResultSchema,
+  GameSearchResultSchema,
+  SearchErrorSchema as SearchErrorSchemaBase,
   CastMemberSchema,
   VideoSchema,
   WatchProviderSchema,
@@ -27,7 +27,7 @@ import {
   SeasonSummarySchema,
   MovieDetailSchema,
   TvDetailSchema,
-} from '../src/schemas/media-detail-schemas.js';
+} from '@serapeum/shared-schemas';
 
 // Extend Zod with OpenAPI support (must be called before any .openapi() calls)
 extendZodWithOpenApi(z);

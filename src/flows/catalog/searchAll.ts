@@ -2,25 +2,7 @@ import { ai, z } from '../../lib/ai.js';
 import { searchMediaTool } from '../../tools/search-media-tool.js';
 import { searchBooksTool } from '../../tools/search-books-tool.js';
 import { searchGamesTool } from '../../tools/search-games-tool.js';
-import { MediaSearchResultSchema } from '../../schemas/media-schemas.js';
-import { BookSearchResultSchema } from '../../schemas/book-schemas.js';
-import { GameSearchResultSchema } from '../../schemas/game-schemas.js';
-import { SearchErrorSchema } from '../../schemas/search-all-schemas.js';
-
-export const SearchAllOutputSchema = z.object({
-  // Populated by the orchestrator via findBestMatch — never set by this flow itself.
-  featured: z
-    .discriminatedUnion('type', [
-      z.object({ type: z.literal('media'), item: MediaSearchResultSchema }),
-      z.object({ type: z.literal('book'), item: BookSearchResultSchema }),
-      z.object({ type: z.literal('game'), item: GameSearchResultSchema }),
-    ])
-    .optional(),
-  media: z.array(MediaSearchResultSchema),
-  books: z.array(BookSearchResultSchema),
-  games: z.array(GameSearchResultSchema),
-  errors: z.array(SearchErrorSchema).optional(),
-});
+import { SearchAllOutputSchema, SearchErrorSchema } from '@serapeum/shared-schemas';
 
 export const searchAll = ai.defineFlow(
   {

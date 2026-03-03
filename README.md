@@ -50,9 +50,7 @@ AI orchestration service powered by Genkit - A portable, container-ready API tha
 
 ## 📄 OpenAPI Spec
 
-The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is generated from the Zod schemas defined inline in [`scripts/generate-openapi.ts`](./scripts/generate-openapi.ts), which mirror the schemas in `src/flows/*.ts`.
-
-> **Note:** When you change a flow's output schema in `src/flows/`, you must also update the corresponding mirrored schema in `scripts/generate-openapi.ts` and re-run `npm run generate:openapi`.
+The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml). It is generated from the Zod schemas in [`packages/shared-schemas/`](./packages/shared-schemas/), which are the **single source of truth** for all output types.
 
 **Regenerate after any schema change:**
 
@@ -60,7 +58,7 @@ The API contract is defined in [`docs/openapi.yaml`](./docs/openapi.yaml) and is
 npm run generate:openapi
 ```
 
-The spec covers all 6 endpoints:
+The spec covers all 8 endpoints:
 
 | Endpoint | Description |
 |---|---|
@@ -69,22 +67,25 @@ The spec covers all 6 endpoints:
 | `POST /searchGames` | Search IGDB (video games) |
 | `POST /searchWeb` | Search the web using Tavily |
 | `POST /searchAll` | Search all sources in parallel |
+| `POST /getMovieDetail` | Full movie details (cast, trailers, providers) |
+| `POST /getTvDetail` | Full TV show details (seasons, cast, providers) |
 | `POST /orchestratorFlow` | AI natural language orchestrator |
-
-> **Note:** The schemas in `scripts/generate-openapi.ts` mirror the Zod schemas in the flow files. Keep them in sync when modifying flow output schemas.
 
 ## 🏗️ Project Structure
 
-```
+```text
+packages/
+└── shared-schemas/     # @serapeum/shared-schemas — canonical Zod schemas + TypeScript types
 src/
-├── flows/          # Genkit Flows (API Logic)
-│   ├── catalog/    # searchMedia, searchBooks, searchGames, searchAll, searchWeb
-│   └── agent/      # mediaAgent, orchestratorFlow
-├── tools/          # External API integrations (TMDB, Books, IGDB, Tavily)
-├── lib/            # Shared infrastructure (ai.ts, auth.ts)
-├── middleware/     # verifyJwt.ts — Supabase JWT contextProvider
-├── prompts/        # Dotprompt files
-└── index.ts        # Server entry point
+├── flows/              # Genkit Flows (API Logic)
+│   ├── catalog/        # searchMedia, searchBooks, searchGames, searchAll, searchWeb, getMovieDetail, getTvDetail
+│   └── agent/          # orchestratorFlow, findBestMatch
+├── schemas/            # Thin re-exports from @serapeum/shared-schemas
+├── tools/              # External API integrations (TMDB, Books, IGDB, Tavily)
+├── lib/                # Shared infrastructure (ai.ts, auth.ts)
+├── middleware/         # verifyJwt.ts — Supabase JWT contextProvider
+├── prompts/            # Dotprompt files
+└── index.ts            # Server entry point
 ```
 
 ## 🔧 Tech Stack

@@ -1,7 +1,8 @@
 import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
 import { getTranslations } from '../../lib/translations.js';
-import { searchAll, SearchAllOutputSchema } from '../catalog/searchAll.js';
+import { AgentResponseSchema, SearchAllOutputSchema } from '@serapeum/shared-schemas';
+import { searchAll } from '../catalog/searchAll.js';
 import { searchMedia } from '../catalog/searchMedia.js';
 import { searchGames } from '../catalog/searchGames.js';
 import { searchBooks } from '../catalog/searchBooks.js';
@@ -10,28 +11,6 @@ import { findBestMatch } from './findBestMatch.js';
 import { routerPrompt } from '../../prompts/routerPrompt.js';
 import { extractorPrompt } from '../../prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '../../prompts/synthesizerPrompt.js';
-
-export const AgentResponseSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('refusal'),
-    message: z.string(),
-  }),
-  z.object({
-    kind: z.literal('search_results'),
-    message: z.string(),
-    data: SearchAllOutputSchema,
-  }),
-  z.object({
-    kind: z.literal('discovery'),
-    message: z.string(),
-    data: SearchAllOutputSchema,
-  }),
-  z.object({
-    kind: z.literal('error'),
-    error: z.string(),
-    details: z.string().optional(),
-  }),
-]);
 
 /**
  * Helper to execute the appropriate category search and normalize the output to SearchAllOutputSchema

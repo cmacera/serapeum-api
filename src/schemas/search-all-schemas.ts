@@ -1,6 +1,2 @@
-import { z } from 'zod';
-
-export const SearchErrorSchema = z.object({
-  source: z.enum(['media', 'books', 'games']),
-  message: z.string(),
-});
+export { SearchErrorSchema } from '@serapeum/shared-schemas';
+export type { SearchError } from '@serapeum/shared-schemas';
