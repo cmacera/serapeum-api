@@ -31,6 +31,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@serapeum/shared-schemas': path.resolve(__dirname, './packages/shared-schemas/src/index.ts'),
     },
   },
 });
