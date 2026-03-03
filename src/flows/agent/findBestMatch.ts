@@ -1,5 +1,5 @@
 import { z } from '../../lib/ai.js';
-import { SearchAllOutputSchema } from '../catalog/searchAll.js';
+import { SearchAllOutputSchema } from '@serapeum/shared-schemas';
 
 type FeaturedResult = NonNullable<z.infer<typeof SearchAllOutputSchema>['featured']>;
 type AnySearchResult =

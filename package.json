@@ -4,11 +4,15 @@
   "description": "Serapeum API - AI orchestration service powered by Genkit",
   "type": "module",
   "main": "dist/index.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "genkit:start": "genkit start -- npx tsx watch src/index.ts",
     "dev:build": "tsc --watch",
     "dev:run": "node --watch dist/index.js",
+    "prebuild": "npm run build -w packages/shared-schemas",
     "build": "tsc && cp -r src/locales dist/",
     "start": "node dist/index.js",
     "test": "vitest",
