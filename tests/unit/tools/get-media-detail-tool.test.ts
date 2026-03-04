@@ -303,7 +303,7 @@ describe('getMovieDetailTool', () => {
       expect(capturedQuery).toMatchObject({
         api_key: mockApiKey,
         language: 'es-ES',
-        append_to_response: 'credits,videos,watch/providers',
+        append_to_response: 'credits,videos,watch/providers,release_dates',
       });
     });
   });

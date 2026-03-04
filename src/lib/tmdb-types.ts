@@ -121,6 +121,30 @@ export interface TMDBWatchProviders {
   results: Record<string, TMDBWatchProviderRegion>;
 }
 
+export interface TMDBReleaseDateEntry {
+  certification: string;
+  type: number;
+  release_date: string;
+}
+
+export interface TMDBReleaseDatesResult {
+  iso_3166_1: string;
+  release_dates: TMDBReleaseDateEntry[];
+}
+
+export interface TMDBReleaseDates {
+  results: TMDBReleaseDatesResult[];
+}
+
+export interface TMDBContentRatingResult {
+  iso_3166_1: string;
+  rating: string;
+}
+
+export interface TMDBContentRatings {
+  results: TMDBContentRatingResult[];
+}
+
 export interface TMDBSeasonSummary {
   id: number;
   name: string;
@@ -169,6 +193,7 @@ export interface TMDBMovieDetailResponse {
   credits: TMDBCredits;
   videos: TMDBVideos;
   'watch/providers': TMDBWatchProviders;
+  release_dates: TMDBReleaseDates;
 }
 
 export interface TMDBTvDetailResponse {
@@ -196,6 +221,7 @@ export interface TMDBTvDetailResponse {
   credits: TMDBCredits;
   videos: TMDBVideos;
   'watch/providers': TMDBWatchProviders;
+  content_ratings: TMDBContentRatings;
 }
 
 /**

@@ -442,6 +442,11 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/WatchProviderRegion"
+        certification:
+          type:
+            - string
+            - "null"
+          description: Content certification for the request region (e.g. "PG-13", "R"). Null if unavailable.
       required:
         - id
         - media_type
@@ -575,6 +580,11 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/WatchProviderRegion"
+        certification:
+          type:
+            - string
+            - "null"
+          description: Content rating for the request region (e.g. "TV-MA", "16"). Null if unavailable.
       required:
         - id
         - media_type
