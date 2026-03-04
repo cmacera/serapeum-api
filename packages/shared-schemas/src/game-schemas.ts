@@ -17,7 +17,7 @@ export const GameSearchResultSchema = z.object({
   videos: z.array(z.string()).optional(),
   themes: z.array(z.string()).optional(),
   game_modes: z.array(z.string()).optional(),
-  age_ratings: z.array(z.object({ category: z.number(), rating: z.number() })).optional(),
+  age_ratings: z.array(z.object({ organization: z.string(), rating: z.string() })).optional(),
   similar_games: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
 });
 

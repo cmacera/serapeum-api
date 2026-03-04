@@ -53,8 +53,8 @@ export interface IGDBGame {
   }>;
   age_ratings?: Array<{
     id: number;
-    category: number; // 1=ESRB, 2=PEGI, 3=CERO, 4=USK, 5=GRAC, 6=CLASS_IND, 7=ACB
-    rating: number; // Rating enum value (board-specific)
+    organization?: { name: string };
+    rating_category?: { rating: string | number };
   }>;
   similar_games?: Array<{
     id: number;
@@ -84,8 +84,8 @@ export interface GameSearchResult {
   themes?: string[];
   game_modes?: string[];
   age_ratings?: Array<{
-    category: number; // 1=ESRB, 2=PEGI, 3=CERO, 4=USK, 5=GRAC, 6=CLASS_IND, 7=ACB
-    rating: number; // Rating enum value (board-specific)
+    organization: string;
+    rating: string;
   }>;
   similar_games?: Array<{
     id: number;
@@ -146,8 +146,11 @@ export function transformGame(game: IGDBGame): GameSearchResult {
     themes: game.themes?.map((t) => t.name),
     game_modes: game.game_modes?.map((m) => m.name),
     age_ratings: game.age_ratings
-      ?.filter((ar) => typeof ar.category === 'number' && typeof ar.rating === 'number')
-      .map((ar) => ({ category: ar.category, rating: ar.rating })),
+      ?.filter((ar) => ar.organization?.name != null && ar.rating_category?.rating != null)
+      .map((ar) => ({
+        organization: ar.organization!.name,
+        rating: String(ar.rating_category!.rating),
+      })),
     similar_games: game.similar_games?.map((sg) => ({ id: sg.id, name: sg.name })),
   };
 }
