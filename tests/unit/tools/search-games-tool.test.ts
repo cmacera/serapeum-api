@@ -50,7 +50,10 @@ describe('searchGamesTool', () => {
           videos: [{ id: 20, video_id: 'yt123' }],
           themes: [{ id: 1, name: 'Action' }],
           game_modes: [{ id: 1, name: 'Single player' }],
-          age_ratings: [{ id: 1, category: 1, rating: 6 }],
+          age_ratings: [
+            { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } },
+            { id: 2, organization: { name: 'PEGI' }, rating_category: { rating: 18 } },
+          ],
           similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
         },
       ];
@@ -77,7 +80,10 @@ describe('searchGamesTool', () => {
         videos: ['yt123'],
         themes: ['Action'],
         game_modes: ['Single player'],
-        age_ratings: [{ category: 1, rating: 6 }],
+        age_ratings: [
+          { organization: 'ESRB', rating: 'T' },
+          { organization: 'PEGI', rating: '18' },
+        ],
         similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
       });
     });
@@ -123,9 +129,10 @@ describe('searchGamesTool', () => {
           id: 3,
           name: 'Partial Ratings Game',
           age_ratings: [
-            { id: 1, category: 1, rating: 6 }, // valid
-            { id: 2, category: undefined as unknown as number, rating: 3 }, // invalid — missing category
-            { id: 3, category: 2, rating: undefined as unknown as number }, // invalid — missing rating
+            { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } }, // valid — string rating
+            { id: 2, organization: { name: 'PEGI' }, rating_category: { rating: 18 } }, // valid — numeric rating (exercises String() coercion)
+            { id: 3, organization: undefined, rating_category: { rating: '16' } }, // invalid — missing organization
+            { id: 4, organization: { name: 'USK' }, rating_category: undefined }, // invalid — missing rating_category
           ],
         },
       ];
@@ -134,7 +141,10 @@ describe('searchGamesTool', () => {
 
       const result = await searchGamesTool({ query: 'Partial Ratings', language: 'en' });
 
-      expect(result[0].age_ratings).toEqual([{ category: 1, rating: 6 }]);
+      expect(result[0].age_ratings).toEqual([
+        { organization: 'ESRB', rating: 'T' },
+        { organization: 'PEGI', rating: '18' },
+      ]);
     });
   });
 
@@ -197,7 +207,7 @@ describe('searchGamesTool', () => {
 
       const expectedQuery = `
         search "${query}";
-        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.category,age_ratings.rating,similar_games.id,similar_games.name;
+        fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
         limit 10;
             `.trim();

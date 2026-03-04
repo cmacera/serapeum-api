@@ -160,12 +160,12 @@ components:
           items:
             type: object
             properties:
-              category:
-                type: number
+              organization:
+                type: string
               rating:
-                type: number
+                type: string
             required:
-              - category
+              - organization
               - rating
         similar_games:
           type: array
