@@ -496,6 +496,14 @@ describe('getTvDetailTool', () => {
       expect(result.certification).toBe('TV-MA');
     });
 
+    it('should return certification for an explicit non-US region', async () => {
+      nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, mockTvDetail);
+
+      const result = await getTvDetailTool({ id: 1396, language: 'en', region: 'GB' });
+
+      expect(result.certification).toBe('18');
+    });
+
     it('should fall back to US certification when region has no entry', async () => {
       nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, mockTvDetail);
 
