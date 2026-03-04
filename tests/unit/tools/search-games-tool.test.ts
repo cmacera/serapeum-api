@@ -52,6 +52,7 @@ describe('searchGamesTool', () => {
           game_modes: [{ id: 1, name: 'Single player' }],
           age_ratings: [
             { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } },
+            { id: 2, organization: { name: 'PEGI' }, rating_category: { rating: 18 } },
           ],
           similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
         },
@@ -79,7 +80,10 @@ describe('searchGamesTool', () => {
         videos: ['yt123'],
         themes: ['Action'],
         game_modes: ['Single player'],
-        age_ratings: [{ organization: 'ESRB', rating: 'T' }],
+        age_ratings: [
+          { organization: 'ESRB', rating: 'T' },
+          { organization: 'PEGI', rating: '18' },
+        ],
         similar_games: [{ id: 99, name: 'Cyberpunk 2077' }],
       });
     });
@@ -125,9 +129,10 @@ describe('searchGamesTool', () => {
           id: 3,
           name: 'Partial Ratings Game',
           age_ratings: [
-            { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } }, // valid
-            { id: 2, organization: undefined, rating_category: { rating: '16' } }, // invalid — missing organization
-            { id: 3, organization: { name: 'PEGI' }, rating_category: undefined }, // invalid — missing rating_category
+            { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } }, // valid — string rating
+            { id: 2, organization: { name: 'PEGI' }, rating_category: { rating: 18 } }, // valid — numeric rating (exercises String() coercion)
+            { id: 3, organization: undefined, rating_category: { rating: '16' } }, // invalid — missing organization
+            { id: 4, organization: { name: 'USK' }, rating_category: undefined }, // invalid — missing rating_category
           ],
         },
       ];
@@ -136,7 +141,10 @@ describe('searchGamesTool', () => {
 
       const result = await searchGamesTool({ query: 'Partial Ratings', language: 'en' });
 
-      expect(result[0].age_ratings).toEqual([{ organization: 'ESRB', rating: 'T' }]);
+      expect(result[0].age_ratings).toEqual([
+        { organization: 'ESRB', rating: 'T' },
+        { organization: 'PEGI', rating: '18' },
+      ]);
     });
   });
 
