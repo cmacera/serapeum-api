@@ -29,9 +29,17 @@ jobs:
       - name: Generate OpenAPI spec
         run: npm run generate:openapi
 
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.FLUTTER_SYNC_APP_ID }}
+          private-key: ${{ secrets.FLUTTER_SYNC_APP_KEY }}
+          repositories: serapeum-app
+
       - name: Open PR in serapeum-app if spec changed
         env:
-          GH_TOKEN: ${{ secrets.FLUTTER_SYNC_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           APP_REPO="cmacera/serapeum-app"
           FILE_PATH="docs/openapi.yaml"
@@ -61,7 +69,7 @@ jobs:
             --field sha="$MAIN_SHA"
 
           # Create verified commit via GraphQL createCommitOnBranch.
-          # Commits made this way are signed by GitHub and pass "Require signed commits".
+          # GitHub App tokens create commits signed by GitHub — passes "Require signed commits".
           gh api graphql -f query='
             mutation($repo: String!, $branch: String!, $headOid: GitObjectID!, $content: Base64String!, $msg: String!) {
               createCommitOnBranch(input: {
