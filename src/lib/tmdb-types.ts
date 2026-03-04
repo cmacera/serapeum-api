@@ -193,7 +193,7 @@ export interface TMDBMovieDetailResponse {
   credits: TMDBCredits;
   videos: TMDBVideos;
   'watch/providers': TMDBWatchProviders;
-  release_dates: TMDBReleaseDates;
+  release_dates?: TMDBReleaseDates;
 }
 
 export interface TMDBTvDetailResponse {
@@ -221,7 +221,7 @@ export interface TMDBTvDetailResponse {
   credits: TMDBCredits;
   videos: TMDBVideos;
   'watch/providers': TMDBWatchProviders;
-  content_ratings: TMDBContentRatings;
+  content_ratings?: TMDBContentRatings;
 }
 
 /**
