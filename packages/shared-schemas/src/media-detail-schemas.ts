@@ -63,6 +63,7 @@ export const MovieDetailSchema = z.object({
   cast: z.array(CastMemberSchema).max(10).optional(),
   trailers: z.array(VideoSchema).optional(),
   watch_providers: WatchProvidersByRegionSchema.optional(),
+  certification: z.string().nullable().optional(),
 });
 
 export const TvDetailSchema = z.object({
@@ -108,6 +109,7 @@ export const TvDetailSchema = z.object({
   cast: z.array(CastMemberSchema).max(10).optional(),
   trailers: z.array(VideoSchema).optional(),
   watch_providers: WatchProvidersByRegionSchema.optional(),
+  certification: z.string().nullable().optional(),
 });
 
 export type CastMember = z.infer<typeof CastMemberSchema>;

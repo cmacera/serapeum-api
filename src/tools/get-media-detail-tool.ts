@@ -5,6 +5,8 @@ import type {
   TMDBMovieDetailResponse,
   TMDBTvDetailResponse,
   TMDBWatchProviderRegion,
+  TMDBReleaseDates,
+  TMDBContentRatings,
 } from '../lib/tmdb-types.js';
 import { MovieDetailSchema, TvDetailSchema } from '../schemas/media-detail-schemas.js';
 
@@ -21,6 +23,30 @@ function filterWatchProviders(
   const target = (region ?? DEFAULT_REGION).toUpperCase();
   const entry = results[target];
   return entry !== undefined ? { [target]: entry } : {};
+}
+
+function extractMovieCertification(
+  releaseDates: TMDBReleaseDates | undefined,
+  region: string | undefined
+): string | null {
+  if (!releaseDates) return null;
+  const target = (region ?? DEFAULT_REGION).toUpperCase();
+  const pick = (code: string): string | null =>
+    releaseDates.results
+      .find((r) => r.iso_3166_1 === code)
+      ?.release_dates.find((d) => d.certification)?.certification ?? null;
+  return pick(target) ?? (target !== DEFAULT_REGION ? pick(DEFAULT_REGION) : null);
+}
+
+function extractTvCertification(
+  contentRatings: TMDBContentRatings | undefined,
+  region: string | undefined
+): string | null {
+  if (!contentRatings) return null;
+  const target = (region ?? DEFAULT_REGION).toUpperCase();
+  const pick = (code: string): string | null =>
+    contentRatings.results.find((r) => r.iso_3166_1 === code)?.rating || null;
+  return pick(target) ?? (target !== DEFAULT_REGION ? pick(DEFAULT_REGION) : null);
 }
 
 function handleTmdbError(error: unknown): never {
@@ -89,7 +115,7 @@ export const getMovieDetailTool = ai.defineTool(
           params: {
             api_key: apiKey,
             language: input.language,
-            append_to_response: 'credits,videos,watch/providers',
+            append_to_response: 'credits,videos,watch/providers,release_dates',
           },
           headers: { Accept: 'application/json' },
           timeout: TMDB_TIMEOUT,
@@ -136,6 +162,7 @@ export const getMovieDetailTool = ai.defineTool(
             published_at: v.published_at,
           })),
         watch_providers: filterWatchProviders(d['watch/providers']?.results, input.region),
+        certification: extractMovieCertification(d.release_dates, input.region),
       };
     } catch (error) {
       handleTmdbError(error);
@@ -162,7 +189,7 @@ export const getTvDetailTool = ai.defineTool(
         params: {
           api_key: apiKey,
           language: input.language,
-          append_to_response: 'credits,videos,watch/providers',
+          append_to_response: 'credits,videos,watch/providers,content_ratings',
         },
         headers: { Accept: 'application/json' },
         timeout: TMDB_TIMEOUT,
@@ -227,6 +254,7 @@ export const getTvDetailTool = ai.defineTool(
             published_at: v.published_at,
           })),
         watch_providers: filterWatchProviders(d['watch/providers']?.results, input.region),
+        certification: extractTvCertification(d.content_ratings, input.region),
       };
     } catch (error) {
       handleTmdbError(error);

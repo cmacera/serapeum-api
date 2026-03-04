@@ -108,6 +108,18 @@ const mockMovieDetail: TMDBMovieDetailResponse = {
       },
     },
   },
+  release_dates: {
+    results: [
+      {
+        iso_3166_1: 'US',
+        release_dates: [{ certification: 'R', type: 3, release_date: '1999-10-15T00:00:00.000Z' }],
+      },
+      {
+        iso_3166_1: 'GB',
+        release_dates: [{ certification: '18', type: 3, release_date: '1999-11-12T00:00:00.000Z' }],
+      },
+    ],
+  },
 };
 
 const mockTvDetail: TMDBTvDetailResponse = {
@@ -182,6 +194,12 @@ const mockTvDetail: TMDBTvDetailResponse = {
         ],
       },
     },
+  },
+  content_ratings: {
+    results: [
+      { iso_3166_1: 'US', rating: 'TV-MA' },
+      { iso_3166_1: 'GB', rating: '18' },
+    ],
   },
 };
 
@@ -303,8 +321,41 @@ describe('getMovieDetailTool', () => {
       expect(capturedQuery).toMatchObject({
         api_key: mockApiKey,
         language: 'es-ES',
-        append_to_response: 'credits,videos,watch/providers',
+        append_to_response: 'credits,videos,watch/providers,release_dates',
       });
+    });
+
+    it('should return certification for the default region (US)', async () => {
+      nock(TMDB_API_URL).get('/3/movie/550').query(true).reply(200, mockMovieDetail);
+
+      const result = await getMovieDetailTool({ id: 550, language: 'en' });
+
+      expect(result.certification).toBe('R');
+    });
+
+    it('should return certification for an explicit region', async () => {
+      nock(TMDB_API_URL).get('/3/movie/550').query(true).reply(200, mockMovieDetail);
+
+      const result = await getMovieDetailTool({ id: 550, language: 'en', region: 'GB' });
+
+      expect(result.certification).toBe('18');
+    });
+
+    it('should fall back to US certification when region has no entry', async () => {
+      nock(TMDB_API_URL).get('/3/movie/550').query(true).reply(200, mockMovieDetail);
+
+      const result = await getMovieDetailTool({ id: 550, language: 'en', region: 'MX' });
+
+      expect(result.certification).toBe('R');
+    });
+
+    it('should return null certification when release_dates is absent', async () => {
+      const noReleaseDates = { ...mockMovieDetail, release_dates: undefined };
+      nock(TMDB_API_URL).get('/3/movie/550').query(true).reply(200, noReleaseDates);
+
+      const result = await getMovieDetailTool({ id: 550, language: 'en' });
+
+      expect(result.certification).toBeNull();
     });
   });
 
@@ -435,6 +486,39 @@ describe('getTvDetailTool', () => {
 
       expect(result.watch_providers).toHaveProperty('US');
       expect(result.watch_providers?.['US']?.flatrate?.[0]?.provider_name).toBe('Netflix');
+    });
+
+    it('should return certification for the default region (US)', async () => {
+      nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, mockTvDetail);
+
+      const result = await getTvDetailTool({ id: 1396, language: 'en' });
+
+      expect(result.certification).toBe('TV-MA');
+    });
+
+    it('should return certification for an explicit non-US region', async () => {
+      nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, mockTvDetail);
+
+      const result = await getTvDetailTool({ id: 1396, language: 'en', region: 'GB' });
+
+      expect(result.certification).toBe('18');
+    });
+
+    it('should fall back to US certification when region has no entry', async () => {
+      nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, mockTvDetail);
+
+      const result = await getTvDetailTool({ id: 1396, language: 'en', region: 'MX' });
+
+      expect(result.certification).toBe('TV-MA');
+    });
+
+    it('should return null certification when content_ratings is absent', async () => {
+      const noContentRatings = { ...mockTvDetail, content_ratings: undefined };
+      nock(TMDB_API_URL).get('/3/tv/1396').query(true).reply(200, noContentRatings);
+
+      const result = await getTvDetailTool({ id: 1396, language: 'en' });
+
+      expect(result.certification).toBeNull();
     });
   });
 
