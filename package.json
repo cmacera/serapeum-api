@@ -56,7 +56,7 @@
     "@tavily/core": "^0.7.2",
     "axios": "^1.13.6",
     "dotenv": "^17.2.4",
-    "genkit": "^1.28.0",
+    "genkit": "^1.29.0",
     "genkitx-ollama": "^1.29.0",
     "genkitx-openai": "^0.30.0",
     "jose": "^6.2.0",
