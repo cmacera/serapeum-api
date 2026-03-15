@@ -125,9 +125,10 @@ describe('orchestratorFlow', () => {
       message: 'Mocked synthesizer response for Inception.',
       data: {
         featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
-        media: enrichResult.media,
+        media: [],
         books: [],
         games: [],
+        errors: undefined,
       },
     });
   });
@@ -167,8 +168,9 @@ describe('orchestratorFlow', () => {
       data: {
         featured: { type: 'game', item: { name: 'Elden Ring', id: 123 } },
         media: [],
-        games: enrichResult.games,
+        games: [],
         books: [],
+        errors: undefined,
       },
     });
   });
@@ -209,7 +211,8 @@ describe('orchestratorFlow', () => {
         featured: { type: 'book', item: { title: 'Dune', id: '1' } },
         media: enrichResult.media,
         games: [],
-        books: enrichResult.books,
+        books: [],
+        errors: undefined,
       },
     });
   });
@@ -259,8 +262,9 @@ describe('orchestratorFlow', () => {
       data: {
         featured: { type: 'media', item: enrichResult.media[0] },
         games: enrichResult.games,
-        media: enrichResult.media,
+        media: [],
         books: [],
+        errors: undefined,
       },
     });
   });
@@ -462,9 +466,10 @@ describe('orchestratorFlow', () => {
       message: expect.any(String),
       data: {
         featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
-        media: enrichResult.media,
+        media: [],
         books: [],
         games: [],
+        errors: undefined,
       },
     });
   });

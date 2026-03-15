@@ -92,6 +92,15 @@ export const orchestratorFlow = ai.defineFlow(
 
         if (featuredMatch) {
           executionResult.featured = featuredMatch;
+
+          // Remove the featured item from the results arrays to avoid duplication in the UI
+          const featuredId = (featuredMatch.item as { id?: unknown }).id;
+          if (executionResult.media)
+            executionResult.media = executionResult.media.filter((item) => item.id !== featuredId);
+          if (executionResult.games)
+            executionResult.games = executionResult.games.filter((item) => item.id !== featuredId);
+          if (executionResult.books)
+            executionResult.books = executionResult.books.filter((item) => item.id !== featuredId);
         }
 
         const t = getTranslations(language);
@@ -159,7 +168,7 @@ export const orchestratorFlow = ai.defineFlow(
       let extraction;
       try {
         const extractionResult = await extractorPrompt(
-          { context: tavilyContext },
+          { query: route.extractedQuery, context: tavilyContext },
           { model: activeModel }
         );
         extraction = extractionResult.output;

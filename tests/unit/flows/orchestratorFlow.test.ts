@@ -116,6 +116,35 @@ describe('orchestratorFlow', () => {
     expect(result).toHaveProperty('data');
   });
 
+  it('should exclude the featured item from data arrays in Path A', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'SPECIFIC_ENTITY',
+        category: 'MOVIE_TV',
+        extractedQuery: 'Inception',
+      },
+    });
+
+    (searchAll as any).mockResolvedValue({
+      media: [
+        { title: 'Inception', id: 1, media_type: 'movie', popularity: 100 },
+        { title: 'Interstellar', id: 2, media_type: 'movie', popularity: 80 },
+      ],
+      books: [],
+      games: [],
+    });
+
+    (synthesizerPrompt as any).mockResolvedValue({ text: 'Inception is a classic.' });
+
+    const result = await orchestratorFlow({ query: 'Tell me about Inception', language: 'en' });
+
+    expect(result).toHaveProperty('kind', 'search_results');
+    const data = (result as any).data;
+    expect(data.featured).toBeDefined();
+    // The featured item (Inception, id=1) must not appear in data.media
+    expect(data.media.every((item: any) => item.id !== data.featured.item.id)).toBe(true);
+  });
+
   it('should propagate explicit language to calls', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {
@@ -165,7 +194,10 @@ describe('orchestratorFlow', () => {
 
     expect(routerPrompt).toHaveBeenCalled();
     expect(searchTavilyTool).toHaveBeenCalled();
-    expect(extractorPrompt).toHaveBeenCalled();
+    expect(extractorPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'best sci-fi movies', context: expect.any(String) }),
+      expect.any(Object)
+    );
     expect(searchAll).toHaveBeenCalledTimes(2); // One for each extracted title
     expect(synthesizerPrompt).toHaveBeenCalled();
     expect(result).toHaveProperty('kind', 'discovery');
