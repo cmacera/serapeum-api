@@ -43,6 +43,15 @@ async function executeCategorySearch(
   }
 }
 
+function dedupeById<T extends { id: unknown }>(items: T[]): T[] {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
@@ -92,6 +101,25 @@ export const orchestratorFlow = ai.defineFlow(
 
         if (featuredMatch) {
           executionResult.featured = featuredMatch;
+
+          // Remove the featured item from its own category array to avoid duplication in the UI.
+          // We only filter the matching category — IDs are only unique within a source (TMDB/IGDB/Books),
+          // not across sources, so filtering all arrays could incorrectly drop unrelated items.
+          const featuredId = (featuredMatch.item as { id?: unknown }).id;
+          if (featuredId !== undefined) {
+            if (featuredMatch.type === 'media' && executionResult.media)
+              executionResult.media = executionResult.media.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'game' && executionResult.games)
+              executionResult.games = executionResult.games.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'book' && executionResult.books)
+              executionResult.books = executionResult.books.filter(
+                (item) => item.id !== featuredId
+              );
+          }
         }
 
         const t = getTranslations(language);
@@ -159,7 +187,7 @@ export const orchestratorFlow = ai.defineFlow(
       let extraction;
       try {
         const extractionResult = await extractorPrompt(
-          { context: tavilyContext },
+          { query: route.extractedQuery, context: tavilyContext },
           { model: activeModel }
         );
         extraction = extractionResult.output;
@@ -221,6 +249,10 @@ export const orchestratorFlow = ai.defineFlow(
           );
         }
       }
+
+      enrichmentResults.media = dedupeById(enrichmentResults.media);
+      enrichmentResults.games = dedupeById(enrichmentResults.games);
+      enrichmentResults.books = dedupeById(enrichmentResults.books);
 
       if (enrichmentResults.errors && enrichmentResults.errors.length === 0) {
         delete enrichmentResults.errors;

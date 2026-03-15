@@ -1,4 +1,5 @@
 import { ai, z } from '../lib/ai.js';
+import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
 import type {
   GoogleBooksSearchResponse,
@@ -55,7 +56,7 @@ export const searchBooksTool = ai.defineTool(
           params: {
             q: `intitle:${input.query}`,
             key: apiKey,
-            maxResults: 10,
+            maxResults: MAX_RESULTS_PER_SOURCE,
             printType: 'books', // Exclude magazines
             orderBy: 'relevance',
             langRestrict: input.language,

@@ -1,4 +1,5 @@
 import { ai, z } from '../lib/ai.js';
+import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import { getAccessToken, clearTokenCache } from '../lib/igdb-auth.js';
 import type { IGDBGame, GameSearchResult } from '../lib/igdb-types.js';
 import { transformGame } from '../lib/igdb-types.js';
@@ -37,7 +38,7 @@ export const searchGamesTool = ai.defineTool(
         search "${sanitizedQuery}";
         fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
-        limit 10;
+        limit ${MAX_RESULTS_PER_SOURCE};
       `.trim();
 
       // Make request to IGDB API

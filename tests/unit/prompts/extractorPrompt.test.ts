@@ -50,4 +50,12 @@ describe('extractorPrompt schema validation', () => {
     const result = ExtractorSchema.safeParse(invalidData);
     expect(result.success).toBe(false);
   });
+
+  it('should parse an empty titles array (empty context case)', () => {
+    const result = ExtractorSchema.safeParse({ titles: [] });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.titles).toHaveLength(0);
+    }
+  });
 });

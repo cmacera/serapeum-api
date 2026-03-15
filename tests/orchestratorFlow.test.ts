@@ -125,7 +125,7 @@ describe('orchestratorFlow', () => {
       message: 'Mocked synthesizer response for Inception.',
       data: {
         featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
-        media: enrichResult.media,
+        media: [],
         books: [],
         games: [],
       },
@@ -167,7 +167,7 @@ describe('orchestratorFlow', () => {
       data: {
         featured: { type: 'game', item: { name: 'Elden Ring', id: 123 } },
         media: [],
-        games: enrichResult.games,
+        games: [],
         books: [],
       },
     });
@@ -209,7 +209,7 @@ describe('orchestratorFlow', () => {
         featured: { type: 'book', item: { title: 'Dune', id: '1' } },
         media: enrichResult.media,
         games: [],
-        books: enrichResult.books,
+        books: [],
       },
     });
   });
@@ -259,7 +259,7 @@ describe('orchestratorFlow', () => {
       data: {
         featured: { type: 'media', item: enrichResult.media[0] },
         games: enrichResult.games,
-        media: enrichResult.media,
+        media: [],
         books: [],
       },
     });
@@ -425,6 +425,54 @@ describe('orchestratorFlow', () => {
     });
   });
 
+  it('should deduplicate results by id in Path B (GENERAL_DISCOVERY)', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'batman',
+      },
+    } as Awaited<ReturnType<typeof routerPrompt>>);
+
+    vi.mocked(searchTavilyTool).mockResolvedValue([
+      { title: 'Batman', content: 'batman context', url: '...' },
+    ] as Awaited<ReturnType<typeof searchTavilyTool>>);
+
+    vi.mocked(extractorPrompt).mockResolvedValue({
+      output: { titles: ['Batman', 'The Batman', 'Batman Begins'] },
+    } as Awaited<ReturnType<typeof extractorPrompt>>);
+
+    const mediaA = { title: 'Batman', id: 1, media_type: 'movie' as const };
+    const mediaB = { title: 'The Batman', id: 2, media_type: 'movie' as const };
+    const mediaC = { title: 'Batman Begins', id: 3, media_type: 'movie' as const };
+    const gameA = { name: 'Batman: Arkham Knight', id: 100 };
+    const gameB = { name: 'Batman LCD', id: 101 };
+
+    vi.mocked(searchAll)
+      .mockResolvedValueOnce({ media: [mediaA, mediaB], games: [gameA, gameB], books: [] } as any)
+      .mockResolvedValueOnce({ media: [mediaB], games: [gameA], books: [] } as any) // duplicates
+      .mockResolvedValueOnce({ media: [mediaC], games: [], books: [] } as any);
+
+    vi.mocked(synthesizerPrompt).mockResolvedValue({ text: 'Batman results.' } as any);
+
+    const result = await orchestratorFlow({ query: 'batman', language: 'en' });
+
+    expect(result.kind).toBe('discovery');
+    if (result.kind === 'discovery') {
+      const mediaIds = result.data.media.map((m) => m.id);
+      const gameIds = result.data.games.map((g) => g.id);
+
+      // No duplicate ids
+      expect(new Set(mediaIds).size).toBe(mediaIds.length);
+      expect(new Set(gameIds).size).toBe(gameIds.length);
+
+      // 3 unique media items after dedup
+      expect(result.data.media).toHaveLength(3);
+      // 2 unique games after dedup
+      expect(result.data.games).toHaveLength(2);
+    }
+  });
+
   it('should return an error object when routerPrompt fails (resolves to null)', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({ output: null } as any);
 
@@ -462,7 +510,7 @@ describe('orchestratorFlow', () => {
       message: expect.any(String),
       data: {
         featured: { type: 'media', item: { title: 'Inception', id: 1, media_type: 'movie' } },
-        media: enrichResult.media,
+        media: [],
         books: [],
         games: [],
       },

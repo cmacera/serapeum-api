@@ -1,4 +1,5 @@
 import { ai, z } from '../lib/ai.js';
+import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
 import type { TMDBSearchResponse, MediaSearchResult } from '../lib/tmdb-types.js';
 import { TMDB_GENRE_MAP } from '../lib/tmdb-types.js';
@@ -58,7 +59,8 @@ export const searchMediaTool = ai.defineTool(
             ?.map((id) => TMDB_GENRE_MAP[id])
             .filter((g): g is string => Boolean(g)),
           original_language: result.original_language,
-        }));
+        }))
+        .slice(0, MAX_RESULTS_PER_SOURCE);
 
       return results;
     } catch (error) {
