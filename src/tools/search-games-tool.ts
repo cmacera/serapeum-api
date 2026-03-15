@@ -71,7 +71,9 @@ export const searchGamesTool = ai.defineTool(
       const games = (await response.json()) as IGDBGame[];
 
       // Transform raw IGDB data to clean GameSearchResult format
-      const results: GameSearchResult[] = games.map(transformGame);
+      const results: GameSearchResult[] = games
+        .map(transformGame)
+        .filter((r) => r.cover_url && r.summary);
 
       return results;
     } catch (error) {

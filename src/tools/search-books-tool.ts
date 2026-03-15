@@ -69,28 +69,30 @@ export const searchBooksTool = ai.defineTool(
 
       // Transform API response to clean format
       const results: BookSearchResult[] =
-        response.data.items?.map((item) => ({
-          id: item.id,
-          title: item.volumeInfo.title,
-          authors: item.volumeInfo.authors,
-          publisher: item.volumeInfo.publisher,
-          publishedDate: item.volumeInfo.publishedDate,
-          description: item.volumeInfo.description,
-          isbn: extractISBN(item.volumeInfo.industryIdentifiers),
-          pageCount: item.volumeInfo.pageCount,
-          categories: item.volumeInfo.categories,
-          imageLinks: item.volumeInfo.imageLinks
-            ? {
-                thumbnail: item.volumeInfo.imageLinks.thumbnail,
-                smallThumbnail: item.volumeInfo.imageLinks.smallThumbnail,
-              }
-            : undefined,
-          language: item.volumeInfo.language,
-          previewLink: item.volumeInfo.previewLink,
-          averageRating: item.volumeInfo.averageRating,
-          printType: item.volumeInfo.printType,
-          maturityRating: item.volumeInfo.maturityRating,
-        })) || [];
+        response.data.items
+          ?.map((item) => ({
+            id: item.id,
+            title: item.volumeInfo.title,
+            authors: item.volumeInfo.authors,
+            publisher: item.volumeInfo.publisher,
+            publishedDate: item.volumeInfo.publishedDate,
+            description: item.volumeInfo.description,
+            isbn: extractISBN(item.volumeInfo.industryIdentifiers),
+            pageCount: item.volumeInfo.pageCount,
+            categories: item.volumeInfo.categories,
+            imageLinks: item.volumeInfo.imageLinks
+              ? {
+                  thumbnail: item.volumeInfo.imageLinks.thumbnail,
+                  smallThumbnail: item.volumeInfo.imageLinks.smallThumbnail,
+                }
+              : undefined,
+            language: item.volumeInfo.language,
+            previewLink: item.volumeInfo.previewLink,
+            averageRating: item.volumeInfo.averageRating,
+            printType: item.volumeInfo.printType,
+            maturityRating: item.volumeInfo.maturityRating,
+          }))
+          .filter((r) => r.imageLinks?.thumbnail && r.description && r.authors?.length) || [];
 
       return results;
     } catch (error) {

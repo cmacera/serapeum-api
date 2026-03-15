@@ -93,6 +93,8 @@ describe('searchGamesTool', () => {
         {
           id: 2,
           name: 'Minimal Game',
+          summary: 'A minimal game.',
+          cover: { id: 5, image_id: 'co_minimal' },
         },
       ];
 
@@ -104,11 +106,11 @@ describe('searchGamesTool', () => {
       expect(result[0]).toEqual({
         id: 2,
         name: 'Minimal Game',
-        summary: undefined,
+        summary: 'A minimal game.',
         rating: undefined,
         aggregated_rating: undefined,
         released: undefined,
-        cover_url: undefined,
+        cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co_minimal.jpg',
         platforms: undefined,
         genres: undefined,
         developers: undefined,
@@ -123,11 +125,45 @@ describe('searchGamesTool', () => {
       });
     });
 
+    it('should filter out games missing cover or summary', async () => {
+      const mockResponse: IGDBGame[] = [
+        {
+          id: 1,
+          name: 'Complete Game',
+          summary: 'Has both cover and summary.',
+          cover: { id: 10, image_id: 'co_complete' },
+        },
+        {
+          id: 2,
+          name: 'No Cover',
+          summary: 'Has summary but no cover.',
+        },
+        {
+          id: 3,
+          name: 'No Summary',
+          cover: { id: 11, image_id: 'co_nosummary' },
+        },
+        {
+          id: 4,
+          name: 'Missing Both',
+        },
+      ];
+
+      nock(IGDB_API_URL).post('/v4/games').reply(200, mockResponse);
+
+      const result = await searchGamesTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe(1);
+    });
+
     it('should filter out age_ratings with missing category or rating', async () => {
       const mockResponse: IGDBGame[] = [
         {
           id: 3,
           name: 'Partial Ratings Game',
+          summary: 'A game with partial age ratings.',
+          cover: { id: 20, image_id: 'co_partial' },
           age_ratings: [
             { id: 1, organization: { name: 'ESRB' }, rating_category: { rating: 'T' } }, // valid — string rating
             { id: 2, organization: { name: 'PEGI' }, rating_category: { rating: 18 } }, // valid — numeric rating (exercises String() coercion)
@@ -271,12 +307,12 @@ describe('searchGamesTool', () => {
 
     it('should correctly map different game_types', async () => {
       const mockGames: IGDBGame[] = [
-        { id: 1, name: 'Main Game', game_type: 0 },
-        { id: 2, name: 'DLC', game_type: 1 },
-        { id: 3, name: 'Expansion', game_type: 2 },
-        { id: 4, name: 'Remake', game_type: 8 },
-        { id: 5, name: 'Remaster', game_type: 9 },
-        { id: 6, name: 'Expanded', game_type: 10 },
+        { id: 1, name: 'Main Game', game_type: 0, summary: 'S', cover: { id: 1, image_id: 'c1' } },
+        { id: 2, name: 'DLC', game_type: 1, summary: 'S', cover: { id: 2, image_id: 'c2' } },
+        { id: 3, name: 'Expansion', game_type: 2, summary: 'S', cover: { id: 3, image_id: 'c3' } },
+        { id: 4, name: 'Remake', game_type: 8, summary: 'S', cover: { id: 4, image_id: 'c4' } },
+        { id: 5, name: 'Remaster', game_type: 9, summary: 'S', cover: { id: 5, image_id: 'c5' } },
+        { id: 6, name: 'Expanded', game_type: 10, summary: 'S', cover: { id: 6, image_id: 'c6' } },
       ];
 
       nock(IGDB_API_URL).post('/v4/games').reply(200, mockGames);
