@@ -1,7 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 
 export const ExtractorSchema = z.object({
-  titles: z.array(z.string()).describe('List of exact titles found in the search results (max 5)'),
+  titles: z.array(z.string()).describe('List of exact titles found in the search results (max 3)'),
 });
 
 export const extractorPrompt = ai.definePrompt(
@@ -15,9 +15,10 @@ export const extractorPrompt = ai.definePrompt(
 Instruction:
 User's original search intent: {{query}}
 
-Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the intent above. Extract up to 5 titles if available.
+Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the intent above. Extract up to 3 titles if available.
 
 - Extract titles most relevant to the intent above.
+- Prefer well-known, standalone titles that directly represent the user's intent. Do NOT extract sub-story names, comic event names, or storyline titles found inside franchise articles (e.g., for intent "batman", extract "Batman" or "The Batman" — not "Batman: Zero Year", "Flashpoint", or "The Return of Bruce Wayne").
 - If context is empty or contains no identifiable titles, return {"titles": []}.
 - Do NOT include duplicate titles (case-insensitive).
 

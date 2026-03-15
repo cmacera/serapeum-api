@@ -231,6 +231,20 @@ export const orchestratorFlow = ai.defineFlow(
         }
       }
 
+      // Dedup by id, then sort each category by popularity/rating descending
+      const dedupeById = <T extends { id: unknown }>(items: T[]): T[] => {
+        const seen = new Set();
+        return items.filter((item) => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        });
+      };
+
+      enrichmentResults.media = dedupeById(enrichmentResults.media);
+      enrichmentResults.games = dedupeById(enrichmentResults.games);
+      enrichmentResults.books = dedupeById(enrichmentResults.books);
+
       if (enrichmentResults.errors && enrichmentResults.errors.length === 0) {
         delete enrichmentResults.errors;
       }

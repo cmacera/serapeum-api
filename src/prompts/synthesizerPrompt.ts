@@ -11,11 +11,7 @@ export const synthesizerPrompt = ai.definePrompt(
         language: z.string().optional().default('en'),
       }),
     },
-    // Output is just text, but definePrompt usually expects a structured output schema or just returns text if not specified?
-    // Actually, if we want just text, we can omit output schema or use z.string()?
-    // Let's look at routerPrompt: it returns an object.
-    // If output schema is omitted, it returns standard GenerateResponse.
-    // Let's omit output schema for now as we just want the text.
+    // No output schema — callers access the response via synthesis.text
   },
   `Role: Final Answer Generator.
 
