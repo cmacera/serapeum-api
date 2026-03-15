@@ -58,7 +58,8 @@ export const searchMediaTool = ai.defineTool(
             ?.map((id) => TMDB_GENRE_MAP[id])
             .filter((g): g is string => Boolean(g)),
           original_language: result.original_language,
-        }));
+        }))
+        .slice(0, 5);
 
       return results;
     } catch (error) {

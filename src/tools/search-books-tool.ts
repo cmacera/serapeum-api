@@ -55,7 +55,7 @@ export const searchBooksTool = ai.defineTool(
           params: {
             q: `intitle:${input.query}`,
             key: apiKey,
-            maxResults: 10,
+            maxResults: 5,
             printType: 'books', // Exclude magazines
             orderBy: 'relevance',
             langRestrict: input.language,

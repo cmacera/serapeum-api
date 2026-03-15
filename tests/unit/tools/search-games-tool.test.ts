@@ -209,7 +209,7 @@ describe('searchGamesTool', () => {
         search "${query}";
         fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
-        limit 10;
+        limit 5;
             `.trim();
 
       // Normalize whitespace for comparison to avoid fragility

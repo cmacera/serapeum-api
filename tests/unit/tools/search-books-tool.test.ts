@@ -59,7 +59,7 @@ describe('searchBooksTool', () => {
         .query({
           q: 'intitle:The Great Gatsby',
           key: mockApiKey,
-          maxResults: 10,
+          maxResults: 5,
           printType: 'books',
           orderBy: 'relevance',
           langRestrict: 'en',
