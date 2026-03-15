@@ -39,13 +39,17 @@ export const searchMediaTool = ai.defineTool(
         }
       );
 
-      // Filter to only include movies and TV shows with at least one vote (excludes stubs),
-      // then transform to clean format, then apply quality filters
+      // Pre-map quality gate: only movies/TV with at least one vote, a poster,
+      // a non-blank overview, and at least one non-blank title or name.
+      // Using .trim() rejects whitespace-only strings before transformation.
       const results: MediaSearchResult[] = response.data.results
         .filter(
           (result) =>
             (result.media_type === 'movie' || result.media_type === 'tv') &&
-            (result.vote_count ?? 0) > 0
+            (result.vote_count ?? 0) > 0 &&
+            Boolean(result.poster_path) &&
+            Boolean(result.overview?.trim()) &&
+            Boolean(result.title?.trim() || result.name?.trim())
         )
         .map((result) => ({
           id: result.id,
@@ -64,7 +68,6 @@ export const searchMediaTool = ai.defineTool(
             .filter((g): g is string => Boolean(g)),
           original_language: result.original_language,
         }))
-        .filter((r) => r.poster_path && r.overview && (r.title || r.name))
         .slice(0, MAX_RESULTS_PER_SOURCE);
 
       return results;

@@ -156,6 +156,7 @@ describe('searchBooksTool', () => {
             selfLink: '',
             volumeInfo: {
               title: 'No Thumbnail',
+              authors: ['Author Name'],
               description: 'Has description but no thumbnail.',
             },
           },
@@ -166,6 +167,7 @@ describe('searchBooksTool', () => {
             selfLink: '',
             volumeInfo: {
               title: 'No Description',
+              authors: ['Author Name'],
               imageLinks: { thumbnail: 'http://books.google.com/thumb.jpg', smallThumbnail: '' },
             },
           },
