@@ -93,14 +93,24 @@ export const orchestratorFlow = ai.defineFlow(
         if (featuredMatch) {
           executionResult.featured = featuredMatch;
 
-          // Remove the featured item from the results arrays to avoid duplication in the UI
+          // Remove the featured item from its own category array to avoid duplication in the UI.
+          // We only filter the matching category — IDs are only unique within a source (TMDB/IGDB/Books),
+          // not across sources, so filtering all arrays could incorrectly drop unrelated items.
           const featuredId = (featuredMatch.item as { id?: unknown }).id;
-          if (executionResult.media)
-            executionResult.media = executionResult.media.filter((item) => item.id !== featuredId);
-          if (executionResult.games)
-            executionResult.games = executionResult.games.filter((item) => item.id !== featuredId);
-          if (executionResult.books)
-            executionResult.books = executionResult.books.filter((item) => item.id !== featuredId);
+          if (featuredId !== undefined) {
+            if (featuredMatch.type === 'media' && executionResult.media)
+              executionResult.media = executionResult.media.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'game' && executionResult.games)
+              executionResult.games = executionResult.games.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'book' && executionResult.books)
+              executionResult.books = executionResult.books.filter(
+                (item) => item.id !== featuredId
+              );
+          }
         }
 
         const t = getTranslations(language);

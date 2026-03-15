@@ -1,7 +1,13 @@
 import { ai, z } from '../lib/ai.js';
 
 export const ExtractorSchema = z.object({
-  titles: z.array(z.string()).describe('List of exact titles found in the search results (max 3)'),
+  titles: z
+    .array(z.string())
+    .max(3)
+    .refine((titles) => new Set(titles.map((t) => t.toLowerCase())).size === titles.length, {
+      message: 'Titles must be unique (case-insensitive)',
+    })
+    .describe('List of exact titles found in the search results (max 3)'),
 });
 
 export const extractorPrompt = ai.definePrompt(

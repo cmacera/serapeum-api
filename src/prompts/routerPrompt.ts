@@ -38,10 +38,10 @@ Requested Language: {{language}}
 1. If the user asks about anything outside this domain (e.g., "Weather in London", "How to cook pasta", "Politics", "Math"), classify as OUT_OF_SCOPE. The refusalReason must be an original, personality-driven phrase that acknowledges what the user asked and redirects them to the supported domain (Movies, TV, Games, Books). Avoid generic phrases like "I can only help with...". Make it engaging and specific to their query. Example: if the user asks "What's the weather in Madrid?", a good refusalReason is: "Predicting weather is beyond my powers, but I can tell you the perfect rainy-day film to watch while you check the forecast!" Ensure the refusalReason is translated into the Requested Language if one is provided.
 
 2. If inside the domain, classify intent as:
-   - SPECIFIC_ENTITY: If it's a direct, clear request for one exact title that includes a subtitle, number, or unique qualifier (e.g., "Tell me about The Witcher 3: Wild Hunt", "Inception movie", "Spider-Man: No Way Home", "The Last of Us Part II"). A franchise name alone (e.g., "Spider-Man", "Harry Potter") is NOT a specific entity — it is GENERAL_DISCOVERY.
+   - SPECIFIC_ENTITY: If it's a direct, clear request for one exact, standalone title (subtitle, number, or qualifier are optional) (e.g., "Tell me about The Witcher 3: Wild Hunt", "Inception", "Spider-Man: No Way Home", "Dune", "The Last of Us Part II"). A franchise name that refers to multiple works (e.g., "Spider-Man", "Harry Potter") is NOT a specific entity — it is GENERAL_DISCOVERY.
    - GENERAL_DISCOVERY: If it's a general query, a thematic search, asking for recommendations, a franchise name, or a broad search (e.g., "Best RPGs of 2015", "Spider-Man movies", "Harry Potter books", "Recommendations for sci-fi").
 
-   Decision rule: A query is SPECIFIC_ENTITY only if it names one exact title including a subtitle, number, or unique qualifier. A franchise name alone is always GENERAL_DISCOVERY.
+   Decision rule: A query is SPECIFIC_ENTITY if it names one exact title (subtitle/number/unique qualifier optional). Franchise names that refer to multiple works are always GENERAL_DISCOVERY.
 
 3. Classify category as:
     - MOVIE_TV: If the user explicitly asks for a movie or TV show (e.g., "movie Inception", "show Breaking Bad").
