@@ -394,6 +394,7 @@ describe('getMovieDetailTool', () => {
       nock(TMDB_API_URL)
         .get('/3/movie/550')
         .query(true)
+        .times(3)
         .reply(429, { status_message: 'Rate limit exceeded', status_code: 25 });
 
       await expect(getMovieDetailTool({ id: 550, language: 'en' })).rejects.toThrow(
@@ -557,6 +558,7 @@ describe('getTvDetailTool', () => {
       nock(TMDB_API_URL)
         .get('/3/tv/1396')
         .query(true)
+        .times(3)
         .reply(429, { status_message: 'Rate limit exceeded', status_code: 25 });
 
       await expect(getTvDetailTool({ id: 1396, language: 'en' })).rejects.toThrow(
