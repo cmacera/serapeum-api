@@ -292,6 +292,7 @@ describe('searchBooksTool', () => {
       nock(GOOGLE_BOOKS_API_URL)
         .get('/books/v1/volumes')
         .query(true)
+        .times(3)
         .reply(429, {
           error: {
             code: 429,

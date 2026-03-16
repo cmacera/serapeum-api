@@ -4,6 +4,7 @@ import { getAccessToken, clearTokenCache } from '../lib/igdb-auth.js';
 import type { IGDBGame, GameSearchResult } from '../lib/igdb-types.js';
 import { transformGame } from '../lib/igdb-types.js';
 import { GameSearchResultSchema } from '../schemas/game-schemas.js';
+import { withRetry, HttpError } from '../lib/retry.js';
 
 export const searchGamesTool = ai.defineTool(
   {
@@ -41,15 +42,21 @@ export const searchGamesTool = ai.defineTool(
         limit ${MAX_RESULTS_PER_SOURCE};
       `.trim();
 
-      // Make request to IGDB API
-      const response = await fetch('https://api.igdb.com/v4/games', {
-        method: 'POST',
-        headers: {
-          'Client-ID': clientId,
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'text/plain',
-        },
-        body: apicalypseQuery,
+      // Make request to IGDB API, retrying on 429/503
+      const response = await withRetry(async () => {
+        const r = await fetch('https://api.igdb.com/v4/games', {
+          method: 'POST',
+          headers: {
+            'Client-ID': clientId,
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'text/plain',
+          },
+          body: apicalypseQuery,
+        });
+        if (r.status === 429 || r.status === 503) {
+          throw new HttpError(r.status, `IGDB HTTP ${r.status}`);
+        }
+        return r;
       });
 
       if (!response.ok) {
@@ -57,11 +64,6 @@ export const searchGamesTool = ai.defineTool(
         if (response.status === 401) {
           clearTokenCache();
           throw new Error('IGDB authentication failed. Access token may have expired.');
-        }
-
-        // Handle rate limiting (429)
-        if (response.status === 429) {
-          throw new Error('IGDB API rate limit exceeded. Please try again later.');
         }
 
         const errorText = await response.text();
@@ -79,6 +81,11 @@ export const searchGamesTool = ai.defineTool(
 
       return results;
     } catch (error) {
+      if (error instanceof HttpError) {
+        if (error.status === 429)
+          throw new Error('IGDB API rate limit exceeded. Please try again later.');
+        throw new Error(`IGDB API error: HTTP ${error.status}`);
+      }
       if (error instanceof Error) {
         throw new Error(`Failed to search games: ${error.message}`);
       }

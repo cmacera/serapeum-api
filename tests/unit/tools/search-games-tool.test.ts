@@ -202,7 +202,7 @@ describe('searchGamesTool', () => {
     });
 
     it('should handle rate limiting (429)', async () => {
-      nock(IGDB_API_URL).post('/v4/games').reply(429);
+      nock(IGDB_API_URL).post('/v4/games').times(3).reply(429);
 
       await expect(searchGamesTool({ query: 'test', language: 'en' })).rejects.toThrow(
         'IGDB API rate limit exceeded. Please try again later.'
