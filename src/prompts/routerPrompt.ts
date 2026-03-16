@@ -26,6 +26,7 @@ export const routerPrompt = ai.definePrompt(
       schema: z.object({ query: z.string(), language: z.string().optional().default('en') }),
     },
     output: { schema: RouterSchema },
+    config: { temperature: 0 },
   },
   `Role: Domain Guard & Classifier.
 

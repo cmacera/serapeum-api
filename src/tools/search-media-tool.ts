@@ -1,6 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
+import { withRetry } from '../lib/retry.js';
 import type { TMDBSearchResponse, TMDBSearchResult, MediaSearchResult } from '../lib/tmdb-types.js';
 import { TMDB_GENRE_MAP } from '../lib/tmdb-types.js';
 import { MediaSearchResultSchema } from '../schemas/media-schemas.js';
@@ -39,9 +40,8 @@ export const searchMediaTool = ai.defineTool(
     }
 
     try {
-      const response = await axios.get<TMDBSearchResponse>(
-        'https://api.themoviedb.org/3/search/multi',
-        {
+      const response = await withRetry(() =>
+        axios.get<TMDBSearchResponse>('https://api.themoviedb.org/3/search/multi', {
           params: {
             api_key: apiKey,
             query: input.query,
@@ -51,7 +51,7 @@ export const searchMediaTool = ai.defineTool(
           headers: {
             Accept: 'application/json',
           },
-        }
+        })
       );
 
       const results: MediaSearchResult[] = response.data.results

@@ -1,6 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 import { GenkitError } from '@genkit-ai/core';
 import axios from 'axios';
+import { withRetry } from '../lib/retry.js';
 import type {
   TMDBMovieDetailResponse,
   TMDBTvDetailResponse,
@@ -109,9 +110,8 @@ export const getMovieDetailTool = ai.defineTool(
     }
 
     try {
-      const response = await axios.get<TMDBMovieDetailResponse>(
-        `${TMDB_BASE}/3/movie/${input.id}`,
-        {
+      const response = await withRetry(() =>
+        axios.get<TMDBMovieDetailResponse>(`${TMDB_BASE}/3/movie/${input.id}`, {
           params: {
             api_key: apiKey,
             language: input.language,
@@ -119,7 +119,7 @@ export const getMovieDetailTool = ai.defineTool(
           },
           headers: { Accept: 'application/json' },
           timeout: TMDB_TIMEOUT,
-        }
+        })
       );
 
       const d = response.data;
@@ -185,15 +185,17 @@ export const getTvDetailTool = ai.defineTool(
     }
 
     try {
-      const response = await axios.get<TMDBTvDetailResponse>(`${TMDB_BASE}/3/tv/${input.id}`, {
-        params: {
-          api_key: apiKey,
-          language: input.language,
-          append_to_response: 'credits,videos,watch/providers,content_ratings',
-        },
-        headers: { Accept: 'application/json' },
-        timeout: TMDB_TIMEOUT,
-      });
+      const response = await withRetry(() =>
+        axios.get<TMDBTvDetailResponse>(`${TMDB_BASE}/3/tv/${input.id}`, {
+          params: {
+            api_key: apiKey,
+            language: input.language,
+            append_to_response: 'credits,videos,watch/providers,content_ratings',
+          },
+          headers: { Accept: 'application/json' },
+          timeout: TMDB_TIMEOUT,
+        })
+      );
 
       const d = response.data;
 

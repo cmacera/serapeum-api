@@ -1,6 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
+import { withRetry } from '../lib/retry.js';
 import type {
   GoogleBooksSearchResponse,
   BookSearchResult,
@@ -50,9 +51,8 @@ export const searchBooksTool = ai.defineTool(
     }
 
     try {
-      const response = await axios.get<GoogleBooksSearchResponse>(
-        'https://www.googleapis.com/books/v1/volumes',
-        {
+      const response = await withRetry(() =>
+        axios.get<GoogleBooksSearchResponse>('https://www.googleapis.com/books/v1/volumes', {
           params: {
             q: `intitle:${input.query}`,
             key: apiKey,
@@ -64,7 +64,7 @@ export const searchBooksTool = ai.defineTool(
           headers: {
             Accept: 'application/json',
           },
-        }
+        })
       );
 
       // Transform API response to clean format

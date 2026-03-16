@@ -12,6 +12,7 @@ export const synthesizerPrompt = ai.definePrompt(
       }),
     },
     // No output schema — callers access the response via synthesis.text
+    config: { temperature: 0.8 },
   },
   `Role: Final Answer Generator.
 
