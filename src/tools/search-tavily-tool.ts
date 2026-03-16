@@ -1,5 +1,6 @@
 import { ai, z } from '../lib/ai.js';
 import { tavily } from '@tavily/core';
+import { withRetry } from '../lib/retry.js';
 import type { TavilySearchResult } from '../lib/tavily-types.js';
 
 /**
@@ -45,13 +46,15 @@ export const searchTavilyTool = ai.defineTool(
 
     try {
       const tvly = tavily({ apiKey });
-      const response = await tvly.search(input.query, {
-        searchDepth: input.searchDepth,
-        maxResults: input.maxResults,
-        includeAnswer: false,
-        includeImages: false,
-        includeRawContent: false,
-      });
+      const response = await withRetry(() =>
+        tvly.search(input.query, {
+          searchDepth: input.searchDepth,
+          maxResults: input.maxResults,
+          includeAnswer: false,
+          includeImages: false,
+          includeRawContent: false,
+        })
+      );
 
       // Map results to ensure they match our schema
       const results: TavilySearchResult[] = response.results.map((result) => ({
@@ -72,6 +75,8 @@ export const searchTavilyTool = ai.defineTool(
         throw new Error('Tavily API authentication failed. Please check your API key.');
       } else if (status === 429) {
         throw new Error('Tavily API rate limit exceeded. Please try again later.');
+      } else if (status === 503) {
+        throw new Error('Tavily API service unavailable (503). Please try again later.');
       } else if (err.message?.includes('network') || err.code === 'ECONNREFUSED') {
         throw new Error(
           'Network error: Unable to reach Tavily API. Please check your internet connection.'

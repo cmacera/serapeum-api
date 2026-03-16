@@ -15,6 +15,7 @@ export const extractorPrompt = ai.definePrompt(
     name: 'extractorPrompt',
     input: { schema: z.object({ query: z.string(), context: z.string() }) },
     output: { schema: ExtractorSchema },
+    config: { temperature: 0 },
   },
   `Role: Data Extractor.
 

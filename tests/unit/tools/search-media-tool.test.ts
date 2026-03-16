@@ -415,6 +415,7 @@ describe('searchMediaTool', () => {
       nock(TMDB_API_URL)
         .get('/3/search/multi')
         .query(true)
+        .times(3)
         .reply(429, { status_message: 'Rate limit exceeded', status_code: 25 });
 
       await expect(searchMediaTool({ query: 'test', language: 'en' })).rejects.toThrow(
