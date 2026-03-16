@@ -29,8 +29,14 @@ export function isRetryable(error: unknown): boolean {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     if (status !== undefined) return status === 429 || status === 503;
-    // Network error: request was sent but no response received
-    return error.request !== undefined && error.response === undefined;
+    // Network error: request was sent but no response received.
+    // Only retry known transient codes; exclude cancellations and unknown errors.
+    return (
+      !axios.isCancel(error) &&
+      error.request !== undefined &&
+      error.response === undefined &&
+      RETRYABLE_NETWORK_CODES.has(error.code ?? '')
+    );
   }
 
   // GenkitError (used by get-media-detail-tool)

@@ -2,6 +2,8 @@ import { ai, z } from '../lib/ai.js';
 import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
 import { withRetry } from '../lib/retry.js';
+
+const GOOGLE_BOOKS_TIMEOUT = 5000;
 import type {
   GoogleBooksSearchResponse,
   BookSearchResult,
@@ -64,6 +66,7 @@ export const searchBooksTool = ai.defineTool(
           headers: {
             Accept: 'application/json',
           },
+          timeout: GOOGLE_BOOKS_TIMEOUT,
         })
       );
 

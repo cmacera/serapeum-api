@@ -75,6 +75,8 @@ export const searchTavilyTool = ai.defineTool(
         throw new Error('Tavily API authentication failed. Please check your API key.');
       } else if (status === 429) {
         throw new Error('Tavily API rate limit exceeded. Please try again later.');
+      } else if (status === 503) {
+        throw new Error('Tavily API service unavailable (503). Please try again later.');
       } else if (err.message?.includes('network') || err.code === 'ECONNREFUSED') {
         throw new Error(
           'Network error: Unable to reach Tavily API. Please check your internet connection.'

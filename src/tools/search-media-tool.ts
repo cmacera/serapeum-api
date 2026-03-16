@@ -2,6 +2,8 @@ import { ai, z } from '../lib/ai.js';
 import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
 import { withRetry } from '../lib/retry.js';
+
+const TMDB_TIMEOUT = 5000;
 import type { TMDBSearchResponse, TMDBSearchResult, MediaSearchResult } from '../lib/tmdb-types.js';
 import { TMDB_GENRE_MAP } from '../lib/tmdb-types.js';
 import { MediaSearchResultSchema } from '../schemas/media-schemas.js';
@@ -51,6 +53,7 @@ export const searchMediaTool = ai.defineTool(
           headers: {
             Accept: 'application/json',
           },
+          timeout: TMDB_TIMEOUT,
         })
       );
 
