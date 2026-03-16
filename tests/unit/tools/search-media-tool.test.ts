@@ -36,6 +36,7 @@ describe('searchMediaTool', () => {
             overview:
               'A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy.',
             vote_average: 8.4,
+            vote_count: 26000,
             popularity: 61.416,
           },
         ],
@@ -75,6 +76,7 @@ describe('searchMediaTool', () => {
             overview:
               'A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine.',
             vote_average: 8.9,
+            vote_count: 12000,
             popularity: 451.914,
           },
         ],
@@ -113,6 +115,7 @@ describe('searchMediaTool', () => {
             poster_path: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
             overview: 'A computer hacker learns about the true nature of reality.',
             vote_average: 8.2,
+            vote_count: 24000,
             popularity: 75.123,
           },
           {
@@ -123,6 +126,7 @@ describe('searchMediaTool', () => {
             poster_path: '/matrix-tv.jpg',
             overview: 'A TV show about the matrix.',
             vote_average: 7.5,
+            vote_count: 500,
             popularity: 25.456,
           },
         ],
@@ -166,6 +170,7 @@ describe('searchMediaTool', () => {
             poster_path: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
             overview: 'Movie about fight club',
             vote_average: 8.4,
+            vote_count: 26000,
             popularity: 61.416,
           },
           {
@@ -181,6 +186,7 @@ describe('searchMediaTool', () => {
             poster_path: '/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
             overview: 'TV show about chemistry',
             vote_average: 8.9,
+            vote_count: 12000,
             popularity: 451.914,
           },
         ],
@@ -200,9 +206,10 @@ describe('searchMediaTool', () => {
         media_type: 'movie' as const,
         title: `Movie ${id}`,
         release_date: '2020-01-01',
-        poster_path: null,
-        overview: '',
+        poster_path: `/poster-${id}.jpg`,
+        overview: `Overview for movie ${id}.`,
         vote_average: 7,
+        vote_count: 100,
         popularity: 10,
       });
 
@@ -218,6 +225,141 @@ describe('searchMediaTool', () => {
       const result = await searchMediaTool({ query: 'many results', language: 'en' });
 
       expect(result).toHaveLength(5);
+    });
+
+    it('should filter out results missing poster_path or overview', async () => {
+      const mockResponse: TMDBSearchResponse = {
+        page: 1,
+        total_pages: 1,
+        total_results: 4,
+        results: [
+          {
+            id: 1,
+            media_type: 'movie',
+            title: 'Complete Movie',
+            poster_path: '/poster.jpg',
+            overview: 'A complete movie.',
+            vote_average: 7.5,
+            vote_count: 1000,
+            popularity: 50,
+          },
+          {
+            id: 2,
+            media_type: 'movie',
+            title: 'No Poster',
+            overview: 'Has overview but no poster.',
+            vote_average: 6.0,
+            vote_count: 500,
+            popularity: 20,
+          },
+          {
+            id: 3,
+            media_type: 'tv',
+            name: 'No Overview',
+            poster_path: '/tv-poster.jpg',
+            vote_average: 6.5,
+            vote_count: 300,
+            popularity: 30,
+          },
+          {
+            id: 4,
+            media_type: 'movie',
+            title: 'Missing Both',
+            vote_average: 5.0,
+            vote_count: 100,
+            popularity: 10,
+          },
+        ],
+      };
+
+      nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+      const result = await searchMediaTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe(1);
+    });
+
+    it('should filter out results with zero vote_count (stubs)', async () => {
+      const mockResponse: TMDBSearchResponse = {
+        page: 1,
+        total_pages: 1,
+        total_results: 3,
+        results: [
+          {
+            id: 1,
+            media_type: 'movie',
+            title: 'Voted Movie',
+            poster_path: '/poster.jpg',
+            overview: 'A movie with votes.',
+            vote_average: 7.0,
+            vote_count: 100,
+            popularity: 50,
+          },
+          {
+            id: 2,
+            media_type: 'movie',
+            title: 'Zero Votes',
+            poster_path: '/poster2.jpg',
+            overview: 'A stub with no votes.',
+            vote_average: 0,
+            vote_count: 0,
+            popularity: 5,
+          },
+          {
+            id: 3,
+            media_type: 'tv',
+            name: 'No Vote Count',
+            poster_path: '/poster3.jpg',
+            overview: 'Missing vote_count entirely.',
+            vote_average: 0,
+            popularity: 2,
+          },
+        ],
+      };
+
+      nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+      const result = await searchMediaTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe(1);
+    });
+
+    it('should filter out results missing both title and name', async () => {
+      const mockResponse: TMDBSearchResponse = {
+        page: 1,
+        total_pages: 1,
+        total_results: 2,
+        results: [
+          {
+            id: 1,
+            media_type: 'movie',
+            title: 'Has Title',
+            poster_path: '/poster.jpg',
+            overview: 'A movie with a title.',
+            vote_average: 7.0,
+            vote_count: 100,
+            popularity: 50,
+          },
+          {
+            id: 2,
+            media_type: 'movie',
+            poster_path: '/poster2.jpg',
+            overview: 'No title at all.',
+            vote_average: 6.0,
+            vote_count: 50,
+            popularity: 20,
+          },
+        ],
+      };
+
+      nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+      const result = await searchMediaTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe(1);
     });
 
     it('should send include_adult=false and required params in the request', async () => {

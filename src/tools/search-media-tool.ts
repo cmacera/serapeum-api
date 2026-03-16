@@ -1,9 +1,24 @@
 import { ai, z } from '../lib/ai.js';
 import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
-import type { TMDBSearchResponse, MediaSearchResult } from '../lib/tmdb-types.js';
+import type { TMDBSearchResponse, TMDBSearchResult, MediaSearchResult } from '../lib/tmdb-types.js';
 import { TMDB_GENRE_MAP } from '../lib/tmdb-types.js';
 import { MediaSearchResultSchema } from '../schemas/media-schemas.js';
+
+/**
+ * Quality gate for TMDB search results: keeps only movies/TV shows that have
+ * at least one vote (excludes stubs), a poster, a non-blank overview, and a
+ * non-blank title or name.
+ */
+function isHighQualityMediaResult(result: TMDBSearchResult): boolean {
+  return (
+    (result.media_type === 'movie' || result.media_type === 'tv') &&
+    (result.vote_count ?? 0) > 0 &&
+    Boolean(result.poster_path) &&
+    Boolean(result.overview?.trim()) &&
+    Boolean(result.title?.trim() || result.name?.trim())
+  );
+}
 
 export const searchMediaTool = ai.defineTool(
   {
@@ -39,10 +54,8 @@ export const searchMediaTool = ai.defineTool(
         }
       );
 
-      // Filter to only include movies and TV shows (exclude 'person')
-      // and transform to clean format
       const results: MediaSearchResult[] = response.data.results
-        .filter((result) => result.media_type === 'movie' || result.media_type === 'tv')
+        .filter(isHighQualityMediaResult)
         .map((result) => ({
           id: result.id,
           title: result.title,

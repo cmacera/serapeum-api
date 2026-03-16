@@ -57,6 +57,7 @@ export interface TMDBSearchResult {
   overview?: string;
   popularity?: number;
   vote_average?: number;
+  vote_count?: number;
   // New enriched fields
   backdrop_path?: string | null;
   genre_ids?: number[];

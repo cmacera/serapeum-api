@@ -114,6 +114,11 @@ describe('searchBooksTool', () => {
             volumeInfo: {
               title: 'Book Without ISBN',
               authors: ['Unknown Author'],
+              description: 'A book with no ISBN but a description.',
+              imageLinks: {
+                thumbnail: 'http://books.google.com/thumbnail.jpg',
+                smallThumbnail: 'http://books.google.com/small.jpg',
+              },
             },
           },
         ],
@@ -125,6 +130,63 @@ describe('searchBooksTool', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]?.isbn).toBeUndefined();
+    });
+
+    it('should filter out books missing thumbnail or description', async () => {
+      const mockResponse: GoogleBooksSearchResponse = {
+        kind: 'books#volumes',
+        totalItems: 4,
+        items: [
+          {
+            kind: 'books#volume',
+            id: 'complete-book',
+            etag: 'etag1',
+            selfLink: '',
+            volumeInfo: {
+              title: 'Complete Book',
+              authors: ['Some Author'],
+              description: 'Has both thumbnail and description.',
+              imageLinks: { thumbnail: 'http://books.google.com/thumb.jpg', smallThumbnail: '' },
+            },
+          },
+          {
+            kind: 'books#volume',
+            id: 'no-thumbnail',
+            etag: 'etag2',
+            selfLink: '',
+            volumeInfo: {
+              title: 'No Thumbnail',
+              authors: ['Author Name'],
+              description: 'Has description but no thumbnail.',
+            },
+          },
+          {
+            kind: 'books#volume',
+            id: 'no-description',
+            etag: 'etag3',
+            selfLink: '',
+            volumeInfo: {
+              title: 'No Description',
+              authors: ['Author Name'],
+              imageLinks: { thumbnail: 'http://books.google.com/thumb.jpg', smallThumbnail: '' },
+            },
+          },
+          {
+            kind: 'books#volume',
+            id: 'missing-both',
+            etag: 'etag4',
+            selfLink: '',
+            volumeInfo: { title: 'Missing Both' },
+          },
+        ],
+      };
+
+      nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
+
+      const result = await searchBooksTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe('complete-book');
     });
 
     it('should prefer ISBN-13 over ISBN-10', async () => {
@@ -139,6 +201,12 @@ describe('searchBooksTool', () => {
             selfLink: 'https://www.googleapis.com/books/v1/volumes/test-id',
             volumeInfo: {
               title: 'Test Book',
+              authors: ['Test Author'],
+              description: 'A test book with ISBN identifiers.',
+              imageLinks: {
+                thumbnail: 'http://books.google.com/thumbnail.jpg',
+                smallThumbnail: 'http://books.google.com/small.jpg',
+              },
               industryIdentifiers: [
                 { type: 'ISBN_10', identifier: '1234567890' },
                 { type: 'ISBN_13', identifier: '9781234567890' },
@@ -153,6 +221,45 @@ describe('searchBooksTool', () => {
       const result = await searchBooksTool({ query: 'test', language: 'en' });
 
       expect(result[0]?.isbn).toBe('9781234567890');
+    });
+
+    it('should filter out books missing authors', async () => {
+      const mockResponse: GoogleBooksSearchResponse = {
+        kind: 'books#volumes',
+        totalItems: 2,
+        items: [
+          {
+            kind: 'books#volume',
+            id: 'book-with-authors',
+            etag: 'etag1',
+            selfLink: '',
+            volumeInfo: {
+              title: 'Book With Authors',
+              authors: ['Author One'],
+              description: 'Has authors, thumbnail, and description.',
+              imageLinks: { thumbnail: 'http://books.google.com/thumb.jpg', smallThumbnail: '' },
+            },
+          },
+          {
+            kind: 'books#volume',
+            id: 'book-no-authors',
+            etag: 'etag2',
+            selfLink: '',
+            volumeInfo: {
+              title: 'Authorless Book',
+              description: 'Has description and thumbnail but no authors.',
+              imageLinks: { thumbnail: 'http://books.google.com/thumb2.jpg', smallThumbnail: '' },
+            },
+          },
+        ],
+      };
+
+      nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
+
+      const result = await searchBooksTool({ query: 'test', language: 'en' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.id).toBe('book-with-authors');
     });
   });
 
