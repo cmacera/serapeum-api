@@ -1,8 +1,6 @@
 import { ai, activeModel, z } from '../lib/ai.js';
 import { extractTextOutput } from './utils.js';
 
-const EVALUATOR_MODEL: string = process.env['EVALUATOR_MODEL'] ?? activeModel;
-
 type SynthesizerInput = {
   originalQuery: string;
   webContext: string;
@@ -181,7 +179,7 @@ export const synthesizerRelevanceEvaluator = ai.defineEvaluator(
     let rawScore: number;
     try {
       const result = await ai.generate({
-        model: EVALUATOR_MODEL,
+        model: activeModel,
         prompt: `You are evaluating a media assistant response for relevance and quality.
 
 Original query: "${input.originalQuery}"
