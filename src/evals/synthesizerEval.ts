@@ -1,16 +1,5 @@
 import { ai, activeModel, z } from '../lib/ai.js';
-
-// When running from the Dev UI, Genkit wraps the prompt output in a full GenerateResponse.
-// The synthesizer has no output schema, so its output is plain text inside the wrapper.
-type GenkitResponse = { message?: { content?: Array<{ text?: string }> } };
-
-function extractTextOutput(raw: unknown): string {
-  if (raw && typeof raw === 'object' && 'message' in raw) {
-    return (raw as GenkitResponse).message?.content?.[0]?.text ?? '';
-  }
-  if (typeof raw === 'string') return raw;
-  return '';
-}
+import { extractTextOutput } from './utils.js';
 
 type SynthesizerInput = {
   originalQuery: string;
@@ -78,7 +67,10 @@ export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
     } catch {
       return {
         testCaseId: datapoint.testCaseId,
-        evaluation: { score: 1, rationale: 'Could not parse apiDetails — skipping' },
+        evaluation: {
+          score: undefined,
+          rationale: 'Could not parse apiDetails — invalid test data',
+        },
       };
     }
 

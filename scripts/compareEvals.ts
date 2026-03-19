@@ -88,8 +88,14 @@ function getModelForEval(evalFile: EvalFile): string {
 }
 
 function loadEval(filePath: string): EvalFile {
-  const raw = readFileSync(resolve(filePath), 'utf-8');
-  return JSON.parse(raw) as EvalFile;
+  try {
+    const raw = readFileSync(resolve(filePath), 'utf-8');
+    return JSON.parse(raw) as EvalFile;
+  } catch (err) {
+    throw new Error(
+      `Failed to load eval file: ${filePath} — ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 }
 
 function scoreColor(score: number): string {
@@ -210,12 +216,8 @@ function main() {
     ' '.repeat(metricWidth + 2) +
     evals
       .map((e) => {
-        const date = new Date(e.key.createdAt).toLocaleString('es-ES', {
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+        const d = new Date(e.key.createdAt);
+        const date = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         return DIM + date.padEnd(colWidth) + RESET;
       })
       .join('  ');

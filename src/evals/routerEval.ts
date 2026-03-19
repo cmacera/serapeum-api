@@ -1,20 +1,5 @@
 import { ai } from '../lib/ai.js';
-
-// When running from the Dev UI, Genkit wraps the prompt output in a full GenerateResponse.
-// This helper extracts and parses the actual structured content from that wrapper.
-type GenkitResponse = { message?: { content?: Array<{ text?: string }> } };
-
-function extractOutput<T>(raw: unknown): T | null {
-  if (raw && typeof raw === 'object' && 'message' in raw) {
-    const text = (raw as GenkitResponse).message?.content?.[0]?.text ?? '';
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return null;
-    }
-  }
-  return raw as T;
-}
+import { extractOutput } from './utils.js';
 
 type RouterOutput = {
   intent: 'SPECIFIC_ENTITY' | 'GENERAL_DISCOVERY' | 'OUT_OF_SCOPE';
@@ -60,7 +45,7 @@ export const routerClassificationEvaluator = ai.defineEvaluator(
 
     const intentOk = output.intent === reference.intent;
     const categoryOk = output.category === reference.category;
-    const score = (intentOk ? 0.5 : 0) + (categoryOk ? 0.5 : 0);
+    const score = intentOk ? (categoryOk ? 1.0 : 0.5) : 0.0;
 
     return {
       testCaseId: datapoint.testCaseId,
