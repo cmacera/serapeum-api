@@ -1,0 +1,84 @@
+[
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000001",
+    "input": {
+      "originalQuery": "Inception",
+      "webContext": "",
+      "apiDetails": "{\"featured\":{\"type\":\"media\",\"item\":{\"id\":27205,\"title\":\"Inception\",\"media_type\":\"movie\",\"overview\":\"Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets, is offered a chance to have his criminal history erased as payment for implanting an idea into a target's mind.\",\"vote_average\":8.4,\"popularity\":120.5}},\"media\":[],\"books\":[],\"games\":[]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000002",
+    "input": {
+      "originalQuery": "best RPG games",
+      "webContext": "The best RPGs of all time include The Witcher 3: Wild Hunt, Elden Ring, and Skyrim. These games offer hundreds of hours of gameplay and deep storytelling.",
+      "apiDetails": "{\"featured\":{\"type\":\"game\",\"item\":{\"id\":1942,\"name\":\"The Witcher 3: Wild Hunt\",\"summary\":\"The Witcher 3: Wild Hunt is a story-driven, open world adventure set in a visually stunning dark fantasy universe with unprecedented scale.\",\"aggregated_rating\":91.5}},\"media\":[],\"books\":[],\"games\":[{\"id\":1942,\"name\":\"The Witcher 3: Wild Hunt\"},{\"id\":119171,\"name\":\"Elden Ring\"}]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000003",
+    "input": {
+      "originalQuery": "horror movies",
+      "webContext": "",
+      "apiDetails": "{\"media\":[{\"id\":694,\"title\":\"The Shining\",\"media_type\":\"movie\",\"overview\":\"Jack Torrance takes a job as winter caretaker at the isolated Overlook Hotel.\",\"vote_average\":8.4},{\"id\":346364,\"title\":\"It\",\"media_type\":\"movie\",\"overview\":\"In the summer of 1989, a group of bullied kids band together to destroy a shape-shifting monster.\",\"vote_average\":7.3},{\"id\":419704,\"title\":\"Get Out\",\"media_type\":\"movie\",\"overview\":\"A young African-American visits his white girlfriend's parents for the weekend.\",\"vote_average\":7.7}],\"books\":[],\"games\":[]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000004",
+    "input": {
+      "originalQuery": "mejores películas de acción",
+      "webContext": "Las mejores películas de acción incluyen John Wick, Mad Max: Fury Road y Mission: Impossible.",
+      "apiDetails": "{\"featured\":{\"type\":\"media\",\"item\":{\"id\":245891,\"title\":\"John Wick\",\"media_type\":\"movie\",\"overview\":\"An ex-hitman comes out of retirement to track down the gangsters who killed his dog, a last gift from his deceased wife.\",\"vote_average\":7.4}},\"media\":[{\"id\":245891,\"title\":\"John Wick\",\"media_type\":\"movie\"}],\"books\":[],\"games\":[]}",
+      "language": "es"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000005",
+    "input": {
+      "originalQuery": "dystopian books",
+      "webContext": "1984 by George Orwell is considered the defining dystopian novel. It explores themes of totalitarianism, surveillance, and the manipulation of truth.",
+      "apiDetails": "{\"featured\":{\"type\":\"book\",\"item\":{\"id\":\"sFMFPgAACAAJ\",\"title\":\"1984\",\"authors\":[\"George Orwell\"],\"description\":\"A dystopian novel set in a totalitarian society ruled by Big Brother, where Winston Smith secretly rebels against the Party.\",\"averageRating\":4.5}},\"media\":[],\"books\":[{\"id\":\"sFMFPgAACAAJ\",\"title\":\"1984\"}],\"games\":[]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000006",
+    "input": {
+      "originalQuery": "Breaking Bad",
+      "webContext": "Breaking Bad is widely regarded as one of the best TV series ever made. Its depiction of Walter White's moral descent is considered a masterclass in character development.",
+      "apiDetails": "{\"featured\":{\"type\":\"media\",\"item\":{\"id\":1396,\"name\":\"Breaking Bad\",\"media_type\":\"tv\",\"overview\":\"A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine in order to secure his family's future.\",\"vote_average\":9.5,\"popularity\":250.3}},\"media\":[{\"id\":1396,\"name\":\"Breaking Bad\",\"media_type\":\"tv\"}],\"books\":[],\"games\":[]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000007",
+    "input": {
+      "originalQuery": "The Witcher",
+      "webContext": "The Witcher is a multi-media franchise spanning Polish novels, critically acclaimed video games, and a Netflix series starring Henry Cavill.",
+      "apiDetails": "{\"media\":[{\"id\":71912,\"name\":\"The Witcher\",\"media_type\":\"tv\",\"vote_average\":8.1}],\"books\":[{\"id\":\"tw-lastw\",\"title\":\"The Last Wish\",\"authors\":[\"Andrzej Sapkowski\"]}],\"games\":[{\"id\":1942,\"name\":\"The Witcher 3: Wild Hunt\",\"aggregated_rating\":91.5}]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000008",
+    "input": {
+      "originalQuery": "films de science-fiction",
+      "webContext": "Interstellar et Gravity sont parmi les meilleurs films de science-fiction modernes selon les critiques.",
+      "apiDetails": "{\"featured\":{\"type\":\"media\",\"item\":{\"id\":157336,\"title\":\"Interstellar\",\"media_type\":\"movie\",\"overview\":\"A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.\",\"vote_average\":8.4,\"popularity\":98.7}},\"media\":[{\"id\":157336,\"title\":\"Interstellar\",\"media_type\":\"movie\"},{\"id\":49047,\"title\":\"Gravity\",\"media_type\":\"movie\"}],\"books\":[],\"games\":[]}",
+      "language": "fr"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000009",
+    "input": {
+      "originalQuery": "Elden Ring",
+      "webContext": "",
+      "apiDetails": "{\"featured\":{\"type\":\"game\",\"item\":{\"id\":119171,\"name\":\"Elden Ring\",\"summary\":\"Elden Ring is an action RPG developed by FromSoftware in collaboration with George R.R. Martin, set in a vast open world called the Lands Between.\",\"aggregated_rating\":96.0}},\"media\":[],\"books\":[],\"games\":[{\"id\":119171,\"name\":\"Elden Ring\"}]}"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000010",
+    "input": {
+      "originalQuery": "Inception",
+      "webContext": "",
+      "apiDetails": "{\"media\":[],\"books\":[],\"games\":[],\"errors\":[{\"source\":\"media\",\"message\":\"API timeout\"}]}"
+    }
+  }
+]

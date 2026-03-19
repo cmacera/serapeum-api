@@ -40,7 +40,8 @@ coverage/
 tmp/
 temp/
 *.tmp
-.genkit/
+.genkit/*
+!.genkit/datasets/
 .npm_cache/
 .npm-cache/
 .vitest_tmp/

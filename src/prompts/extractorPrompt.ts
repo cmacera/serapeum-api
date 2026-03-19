@@ -1,4 +1,4 @@
-import { ai, z } from '../lib/ai.js';
+import { ai, activeModel, z } from '../lib/ai.js';
 
 export const ExtractorSchema = z.object({
   titles: z
@@ -14,6 +14,7 @@ export const extractorPrompt = ai.definePrompt(
   {
     name: 'extractorPrompt',
     input: { schema: z.object({ query: z.string(), context: z.string() }) },
+    model: activeModel,
     output: { schema: ExtractorSchema },
     config: { temperature: 0 },
   },

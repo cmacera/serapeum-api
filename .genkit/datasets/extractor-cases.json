@@ -1,0 +1,159 @@
+[
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000001",
+    "input": { "query": "Inception", "context": "" },
+    "reference": { "titles": [] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000002",
+    "input": {
+      "query": "The Dark Knight",
+      "context": "The Dark Knight is a 2008 superhero film directed by Christopher Nolan, starring Christian Bale as Bruce Wayne/Batman. It received widespread acclaim for its dark tone and Heath Ledger's Oscar-winning performance as the Joker. The film grossed over $1 billion worldwide and won two Academy Awards."
+    },
+    "reference": { "titles": ["The Dark Knight"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000003",
+    "input": {
+      "query": "Spider-Man movies",
+      "context": "Spider-Man: No Way Home (2021) was a massive box office hit featuring three generations of Spider-Man actors. Spider-Man: Into the Spider-Verse (2018) won the Academy Award for Best Animated Feature. The Amazing Spider-Man 2 (2014) featured Andrew Garfield in the role."
+    },
+    "reference": { "titles": ["Spider-Man: No Way Home", "Spider-Man: Into the Spider-Verse", "The Amazing Spider-Man 2"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000004",
+    "input": {
+      "query": "Batman",
+      "context": "Batman has starred in numerous films. Batman Begins (2005) and The Dark Knight (2008) are Christopher Nolan masterpieces. In the comics universe, notable storylines in Batman's ongoing series include Batman: Zero Year, Batman: Endgame, and Batman: Night of the Monster Men. Batman v Superman: Dawn of Justice (2016) was a mixed reception crossover film."
+    },
+    "reference": { "titles": ["Batman Begins", "The Dark Knight", "Batman v Superman: Dawn of Justice"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000005",
+    "input": {
+      "query": "The Witcher",
+      "context": "The Witcher franchise spans multiple media. The Witcher 3: Wild Hunt (2015) is widely considered one of the best video games ever made. The Netflix series The Witcher (2019) stars Henry Cavill. The original source material is a series of novels by Polish author Andrzej Sapkowski, beginning with the short story collection The Last Wish."
+    },
+    "reference": { "titles": ["The Witcher 3: Wild Hunt", "The Witcher", "The Last Wish"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000006",
+    "input": {
+      "query": "Nolan films",
+      "context": "Christopher Nolan's most acclaimed films include Inception (2010), The Dark Knight (2008), and Interstellar (2014). He also directed Memento (2000) and Dunkirk (2017), both of which were critically praised but less commercially dominant."
+    },
+    "reference": { "titles": ["Inception", "The Dark Knight", "Interstellar"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000007",
+    "input": {
+      "query": "Inception",
+      "context": "This article discusses the neuroscience of dreams and how the brain processes information during REM sleep. Researchers have found that dream content is heavily influenced by emotional and daily experiences."
+    },
+    "reference": { "titles": [] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000008",
+    "input": {
+      "query": "Breaking Bad universe",
+      "context": "Breaking Bad is the critically acclaimed AMC series following chemistry teacher Walter White. Its spin-off Better Call Saul explores the backstory of Saul Goodman. El Camino: A Breaking Bad Movie (2019) serves as a sequel following Jesse Pinkman's escape."
+    },
+    "reference": { "titles": ["Breaking Bad", "Better Call Saul", "El Camino: A Breaking Bad Movie"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000009",
+    "input": {
+      "query": "dystopian novels",
+      "context": "The dystopian genre is anchored by classics like 1984 by George Orwell, Brave New World by Aldous Huxley, and The Handmaid's Tale by Margaret Atwood. More recent additions include Fahrenheit 451 by Ray Bradbury and A Clockwork Orange by Anthony Burgess."
+    },
+    "reference": { "titles": ["1984", "Brave New World", "The Handmaid's Tale"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000010",
+    "input": {
+      "query": "Inception",
+      "context": "Inception (2010) is Christopher Nolan's sci-fi thriller about a thief who steals secrets from dreams. Critics frequently compared it to Eternal Sunshine of the Spotless Mind and The Matrix for its mind-bending narrative and layered storytelling."
+    },
+    "reference": { "titles": ["Inception", "Eternal Sunshine of the Spotless Mind", "The Matrix"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000011",
+    "input": {
+      "query": "Interstellar",
+      "context": "Interstellar (2014) is Nolan's space epic exploring black holes and wormholes. Interstellar won the Academy Award for Best Visual Effects. The film Interstellar is frequently cited alongside Gravity (2013) as one of the best sci-fi films of the decade."
+    },
+    "reference": { "titles": ["Interstellar", "Gravity"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000012",
+    "input": {
+      "query": "Red Dead Redemption 2",
+      "context": "Red Dead Redemption 2 (2018) by Rockstar Games is an open-world western epic praised for its storytelling, world-building, and attention to historical detail. It became one of the best-reviewed games of its generation with a 97 Metacritic score."
+    },
+    "reference": { "titles": ["Red Dead Redemption 2"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000013",
+    "input": {
+      "query": "Halo games",
+      "context": "The Halo franchise began with Halo: Combat Evolved in 2001, followed by Halo 2 (2004) and Halo 3 (2007). These three games defined console multiplayer for a generation. Halo: Reach (2010) served as a prequel to the original trilogy."
+    },
+    "reference": { "titles": ["Halo: Combat Evolved", "Halo 2", "Halo 3"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000014",
+    "input": {
+      "query": "films de science-fiction",
+      "context": "Interstellar est un film de science-fiction réalisé par Christopher Nolan en 2014. Gravity d'Alfonso Cuarón (2013) est également très apprécié par la critique. Arrival de Denis Villeneuve (2016) est considéré comme un chef-d'œuvre du genre pour sa narration non-linéaire."
+    },
+    "reference": { "titles": ["Interstellar", "Gravity", "Arrival"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000015",
+    "input": {
+      "query": "horror movies",
+      "context": "The Shining (1980) by Stanley Kubrick is a masterpiece of psychological horror. The article also mentions Citizen Kane (1941) and Casablanca (1942) as examples of classic Hollywood cinema, alongside modern horror hits It (2017) and Get Out (2017)."
+    },
+    "reference": { "titles": ["The Shining", "It", "Get Out"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000016",
+    "input": {
+      "query": "Tolkien books",
+      "context": "J.R.R. Tolkien's most celebrated works include The Lord of the Rings (1954) and The Hobbit (1937). The Silmarillion (1977) was published posthumously and provides deep mythological context. Tolkien also wrote shorter works collected in Unfinished Tales."
+    },
+    "reference": { "titles": ["The Lord of the Rings", "The Hobbit", "The Silmarillion"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000017",
+    "input": {
+      "query": "Alien franchise",
+      "context": "The Alien franchise started with Alien (1979) directed by Ridley Scott, followed by Aliens (1986) directed by James Cameron. Alien 3 (1992) was David Fincher's directorial debut. Prometheus (2012) is a prequel exploring the origins of the xenomorph species."
+    },
+    "reference": { "titles": ["Alien", "Aliens", "Alien 3"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000018",
+    "input": {
+      "query": "ジブリ映画",
+      "context": "Studio Ghibli's most beloved films include Spirited Away (千と千尋の神隠し, 2001), My Neighbor Totoro (となりのトトロ, 1988), and Princess Mononoke (もののけ姫, 1997). Howl's Moving Castle (ハウルの動く城, 2004) and Nausicaä of the Valley of the Wind (風の谷のナウシカ, 1984) are also acclaimed works."
+    },
+    "reference": { "titles": ["Spirited Away", "My Neighbor Totoro", "Princess Mononoke"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000019",
+    "input": {
+      "query": "Lord of the Rings",
+      "context": "J.R.R. Tolkien was born in 1892 in South Africa. He studied at Oxford and fought in WWI. The Lord of the Rings took over a decade to write and was published in three volumes in 1954–55. Tolkien was friends with C.S. Lewis and other members of the Inklings literary group."
+    },
+    "reference": { "titles": ["The Lord of the Rings"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000020",
+    "input": {
+      "query": "God of War games",
+      "context": "Santa Monica Studio's God of War (2018) reboot was praised as a narrative masterpiece. Its sequel God of War Ragnarök (2022) expanded the Norse mythology setting with more characters and a deeper story. The original God of War (2005) on PlayStation 2 established the franchise's brutal action gameplay."
+    },
+    "reference": { "titles": ["God of War", "God of War Ragnarök"] }
+  }
+]
