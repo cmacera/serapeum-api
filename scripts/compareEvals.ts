@@ -38,6 +38,7 @@ type EvalKey = {
   datasetId: string;
   datasetVersion: number;
   actionRef: string;
+  actionConfig?: { model?: string };
 };
 
 type EvalResult = {
@@ -77,7 +78,11 @@ function extractModelFromTrace(traceId: string): string {
 }
 
 function getModelForEval(evalFile: EvalFile): string {
-  // Try the prompt trace (first result's traceId)
+  // Prefer the model recorded directly in the eval key (Genkit ≥1.x)
+  const configured = evalFile.key.actionConfig?.model;
+  if (configured) return configured.replace('/model/', '');
+
+  // Fall back to scanning traces
   for (const result of evalFile.results) {
     if (result.traceIds?.[0]) {
       const model = extractModelFromTrace(result.traceIds[0]);

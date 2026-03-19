@@ -1,8 +1,11 @@
-import { ai } from '../lib/ai.js';
+import { ai, z } from '../lib/ai.js';
 import { extractOutput } from './utils.js';
 
-type ExtractorOutput = { titles: string[] };
-type ExtractorReference = { titles: string[] };
+const extractorOutputSchema = z.object({ titles: z.array(z.string()) });
+const extractorReferenceSchema = z.object({ titles: z.array(z.string()) });
+
+type ExtractorOutput = z.infer<typeof extractorOutputSchema>;
+type ExtractorReference = z.infer<typeof extractorReferenceSchema>;
 
 function computeF1(predicted: string[], reference: string[]): number {
   if (predicted.length === 0 && reference.length === 0) return 1;
@@ -38,15 +41,22 @@ export const extractorPrecisionEvaluator = ai.defineEvaluator(
     isBilled: false,
   },
   async (datapoint) => {
-    const output = extractOutput<ExtractorOutput>(datapoint.output);
-    const reference = datapoint.reference as ExtractorReference;
+    const rawOutput = extractOutput<unknown>(datapoint.output);
+    const outputParsed = extractorOutputSchema.safeParse(rawOutput);
+    const referenceParsed = extractorReferenceSchema.safeParse(datapoint.reference);
 
-    if (!reference || !output) {
+    if (!outputParsed.success || !referenceParsed.success) {
+      const reason = !outputParsed.success
+        ? outputParsed.error.message
+        : referenceParsed.error!.message;
       return {
         testCaseId: datapoint.testCaseId,
-        evaluation: { score: 0, rationale: 'Missing output or reference' },
+        evaluation: { score: 0, rationale: `Validation failed: ${reason}` },
       };
     }
+
+    const output: ExtractorOutput = outputParsed.data;
+    const reference: ExtractorReference = referenceParsed.data;
 
     const score = computeF1(output.titles, reference.titles);
     const predicted = output.titles.length ? output.titles.join(', ') : '(none)';

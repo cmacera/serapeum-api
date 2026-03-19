@@ -1,6 +1,8 @@
 import { ai, activeModel, z } from '../lib/ai.js';
 import { extractTextOutput } from './utils.js';
 
+const EVALUATOR_MODEL: string = process.env['EVALUATOR_MODEL'] ?? activeModel;
+
 type SynthesizerInput = {
   originalQuery: string;
   webContext: string;
@@ -105,7 +107,7 @@ export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
     if (!apiData?.featured) {
       return {
         testCaseId: datapoint.testCaseId,
-        evaluation: { score: 1, rationale: 'No featured item — metric N/A' },
+        evaluation: { score: undefined, rationale: 'No featured item — metric N/A' },
       };
     }
 
@@ -118,7 +120,7 @@ export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
     if (!featuredName) {
       return {
         testCaseId: datapoint.testCaseId,
-        evaluation: { score: 1, rationale: 'Featured item has no identifiable name' },
+        evaluation: { score: undefined, rationale: 'Featured item has no identifiable name' },
       };
     }
 
@@ -179,7 +181,7 @@ export const synthesizerRelevanceEvaluator = ai.defineEvaluator(
     let rawScore: number;
     try {
       const result = await ai.generate({
-        model: activeModel,
+        model: EVALUATOR_MODEL,
         prompt: `You are evaluating a media assistant response for relevance and quality.
 
 Original query: "${input.originalQuery}"
