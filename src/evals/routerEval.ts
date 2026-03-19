@@ -44,14 +44,18 @@ export const routerClassificationEvaluator = ai.defineEvaluator(
     }
 
     const intentOk = output.intent === reference.intent;
-    const categoryOk = output.category === reference.category;
-    const score = intentOk ? (categoryOk ? 1.0 : 0.5) : 0.0;
+    const isOutOfScope = reference.intent === 'OUT_OF_SCOPE';
+    const categoryOk = !isOutOfScope && output.category === reference.category;
+    const score = intentOk ? (isOutOfScope || categoryOk ? 1.0 : 0.5) : 0.0;
+    const categoryRationale = isOutOfScope
+      ? 'category N/A'
+      : `category: ${output.category} vs ${reference.category} (${categoryOk ? '✓' : '✗'})`;
 
     return {
       testCaseId: datapoint.testCaseId,
       evaluation: {
         score,
-        rationale: `intent: ${output.intent} vs ${reference.intent} (${intentOk ? '✓' : '✗'}) | category: ${output.category} vs ${reference.category} (${categoryOk ? '✓' : '✗'})`,
+        rationale: `intent: ${output.intent} vs ${reference.intent} (${intentOk ? '✓' : '✗'}) | ${categoryRationale}`,
       },
     };
   }

@@ -126,6 +126,7 @@ function shortId(id: string): string {
 }
 
 function findEvalsByDataset(datasetId: string): string[] {
+  if (!existsSync(EVALS_DIR)) return [];
   const files = readdirSync(EVALS_DIR)
     .filter((f) => f.endsWith('.json'))
     .map((f) => join(EVALS_DIR, f));

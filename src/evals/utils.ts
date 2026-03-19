@@ -21,13 +21,16 @@ export function extractOutput<T>(raw: unknown): T | null {
 
 /**
  * Extracts plain text output from a Genkit GenerateResponse wrapper.
- * Returns an empty string if the raw value is falsy or unrecognised.
+ * Returns null for falsy raw values or when the output cannot be recognised,
+ * so callers can distinguish a missing/failed extraction from a legitimately
+ * empty response.
  */
-export function extractTextOutput(raw: unknown): string {
-  if (!raw) return '';
+export function extractTextOutput(raw: unknown): string | null {
+  if (!raw) return null;
   if (typeof raw === 'object' && 'message' in raw) {
-    return (raw as GenkitResponse).message?.content?.[0]?.text ?? '';
+    const text = (raw as GenkitResponse).message?.content?.[0]?.text;
+    return text ?? null;
   }
   if (typeof raw === 'string') return raw;
-  return '';
+  return null;
 }

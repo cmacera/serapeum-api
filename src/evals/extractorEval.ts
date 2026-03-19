@@ -8,8 +8,8 @@ function computeF1(predicted: string[], reference: string[]): number {
   if (predicted.length === 0 && reference.length === 0) return 1;
   if (predicted.length === 0 || reference.length === 0) return 0;
 
-  const normPred = predicted.map((t) => t.toLowerCase().trim());
-  const normRef = reference.map((t) => t.toLowerCase().trim());
+  const normPred = [...new Set(predicted.map((t) => t.toLowerCase().trim()))];
+  const normRef = [...new Set(reference.map((t) => t.toLowerCase().trim()))];
 
   const truePositives = normPred.filter((t) => normRef.includes(t)).length;
   const precision = truePositives / normPred.length;

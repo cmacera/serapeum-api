@@ -30,6 +30,14 @@ export const synthesizerLengthEvaluator = ai.defineEvaluator(
   },
   async (datapoint) => {
     const output = extractTextOutput(datapoint.output);
+
+    if (output === null) {
+      return {
+        testCaseId: datapoint.testCaseId,
+        evaluation: { score: undefined, rationale: 'Could not extract text output' },
+      };
+    }
+
     const length = output.length;
     const score = length <= 350 ? 1 : 0;
 
@@ -46,8 +54,21 @@ export const synthesizerLengthEvaluator = ai.defineEvaluator(
 // --- Metric 2: Featured item mention ---
 
 /**
+ * Returns true if featuredName appears in output, using a word-boundary regex
+ * for single-token names to avoid false positives on substring matches.
+ */
+function checkMentioned(output: string, featuredName: string): boolean {
+  if (featuredName.includes(' ')) {
+    return output.toLowerCase().includes(featuredName);
+  }
+  const escaped = featuredName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`, 'i').test(output);
+}
+
+/**
  * Checks that the featured item name appears in the response when one exists.
  * Score 1 = present (or no featured), 0 = featured exists but omitted.
+ * Returns indeterminate for titles ≤ 3 characters (too ambiguous for reliable matching).
  */
 export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
   {
@@ -60,6 +81,13 @@ export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
   async (datapoint) => {
     const input = datapoint.input as SynthesizerInput;
     const output = extractTextOutput(datapoint.output);
+
+    if (output === null) {
+      return {
+        testCaseId: datapoint.testCaseId,
+        evaluation: { score: undefined, rationale: 'Could not extract text output' },
+      };
+    }
 
     let apiData: ApiDetails | null = null;
     try {
@@ -94,7 +122,17 @@ export const synthesizerFeaturedMentionEvaluator = ai.defineEvaluator(
       };
     }
 
-    const mentioned = output.toLowerCase().includes(featuredName);
+    if (featuredName.length <= 3) {
+      return {
+        testCaseId: datapoint.testCaseId,
+        evaluation: {
+          score: undefined,
+          rationale: `featured: "${featuredName}" — too short for reliable match`,
+        },
+      };
+    }
+
+    const mentioned = checkMentioned(output, featuredName);
 
     return {
       testCaseId: datapoint.testCaseId,
@@ -131,9 +169,18 @@ export const synthesizerRelevanceEvaluator = ai.defineEvaluator(
     const input = datapoint.input as SynthesizerInput;
     const output = extractTextOutput(datapoint.output);
 
-    const result = await ai.generate({
-      model: activeModel,
-      prompt: `You are evaluating a media assistant response for relevance and quality.
+    if (output === null) {
+      return {
+        testCaseId: datapoint.testCaseId,
+        evaluation: { score: undefined, rationale: 'Could not extract text output' },
+      };
+    }
+
+    let rawScore: number;
+    try {
+      const result = await ai.generate({
+        model: activeModel,
+        prompt: `You are evaluating a media assistant response for relevance and quality.
 
 Original query: "${input.originalQuery}"
 Response: "${output}"
@@ -146,11 +193,28 @@ Rate the response from 1 to 5:
 1 = Completely irrelevant or unhelpful
 
 Return only the JSON with the score.`,
-      output: { schema: relevanceScoreSchema },
-      config: { temperature: 0 },
-    });
+        output: { schema: relevanceScoreSchema },
+        config: { temperature: 0 },
+      });
 
-    const rawScore = result.output?.score ?? 3;
+      if (!result.output?.score) {
+        return {
+          testCaseId: datapoint.testCaseId,
+          evaluation: { score: undefined, rationale: 'LLM returned no valid score' },
+        };
+      }
+
+      rawScore = result.output.score;
+    } catch (err) {
+      return {
+        testCaseId: datapoint.testCaseId,
+        evaluation: {
+          score: undefined,
+          rationale: `LLM evaluation failed: ${err instanceof Error ? err.message : String(err)}`,
+        },
+      };
+    }
+
     const normalized = (rawScore - 1) / 4; // maps 1→0, 5→1
 
     return {
