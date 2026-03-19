@@ -1,0 +1,162 @@
+[
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000001",
+    "input": { "query": "Inception" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000002",
+    "input": { "query": "The Witcher 3: Wild Hunt" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000003",
+    "input": { "query": "Dune" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000004",
+    "input": { "query": "The Last of Us Part II" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000005",
+    "input": { "query": "The Dark Knight" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000006",
+    "input": { "query": "Spider-Man: No Way Home" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000007",
+    "input": { "query": "1984" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000008",
+    "input": { "query": "movie Inception" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000009",
+    "input": { "query": "show Breaking Bad" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000010",
+    "input": { "query": "film The Dark Knight" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000011",
+    "input": { "query": "game The Witcher 3" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000012",
+    "input": { "query": "Red Dead Redemption 2 game" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000013",
+    "input": { "query": "book Dune" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "BOOK" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000014",
+    "input": { "query": "novel 1984 by Orwell" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "BOOK" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000015",
+    "input": { "query": "Spider-Man" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000016",
+    "input": { "query": "Harry Potter" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000017",
+    "input": { "query": "The Witcher" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000018",
+    "input": { "query": "Batman" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000019",
+    "input": { "query": "Star Wars" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000020",
+    "input": { "query": "best sci-fi movies 2023" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000021",
+    "input": { "query": "top RPG games of all time" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000022",
+    "input": { "query": "mystery books recommendations" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "BOOK" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000023",
+    "input": { "query": "action movies like John Wick" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000024",
+    "input": { "query": "games like Dark Souls" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000025",
+    "input": { "query": "weather in Madrid" },
+    "reference": { "intent": "OUT_OF_SCOPE", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000026",
+    "input": { "query": "how to cook pasta" },
+    "reference": { "intent": "OUT_OF_SCOPE", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000027",
+    "input": { "query": "best stocks to buy" },
+    "reference": { "intent": "OUT_OF_SCOPE", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000028",
+    "input": { "query": "how to draw anime" },
+    "reference": { "intent": "OUT_OF_SCOPE", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000029",
+    "input": { "query": "mejores películas de acción", "language": "es" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000030",
+    "input": { "query": "Harry Potter livres", "language": "fr" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "BOOK" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000031",
+    "input": { "query": "Inception", "language": "es" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000032",
+    "input": { "query": "インセプション", "language": "ja" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  }
+]

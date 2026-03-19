@@ -1,4 +1,4 @@
-import { ai, z } from '../lib/ai.js';
+import { ai, activeModel, z } from '../lib/ai.js';
 
 export const RouterSchema = z.object({
   intent: z.enum(['SPECIFIC_ENTITY', 'GENERAL_DISCOVERY', 'OUT_OF_SCOPE']),
@@ -25,6 +25,7 @@ export const routerPrompt = ai.definePrompt(
     input: {
       schema: z.object({ query: z.string(), language: z.string().optional().default('en') }),
     },
+    model: activeModel,
     output: { schema: RouterSchema },
     config: { temperature: 0 },
   },

@@ -1,4 +1,4 @@
-import { ai, z } from '../lib/ai.js';
+import { ai, activeModel, z } from '../lib/ai.js';
 
 export const synthesizerPrompt = ai.definePrompt(
   {
@@ -11,6 +11,7 @@ export const synthesizerPrompt = ai.definePrompt(
         language: z.string().optional().default('en'),
       }),
     },
+    model: activeModel,
     // No output schema — callers access the response via synthesis.text
     config: { temperature: 0.8 },
   },
