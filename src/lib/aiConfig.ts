@@ -20,22 +20,32 @@ export const googlePlugin = (): GenkitPlugin | GenkitPluginV2 | null => {
 /**
  * Configure Ollama plugin.
  * Returns null if OLLAMA_SERVER_URL is missing.
+ * Fetches all available models from Ollama at startup so they are all
+ * pre-registered as Genkit actions — required for the Genkit eval UI to
+ * initialize the model config editor for any selected model.
  */
-export const ollamaPlugin = (): GenkitPlugin | null => {
+export const ollamaPlugin = async (): Promise<GenkitPlugin | null> => {
   const serverAddress = process.env['OLLAMA_SERVER_URL'];
   const modelName = process.env['OLLAMA_MODEL'];
 
   if (!serverAddress) return null;
 
-  // Cast config to any because genkitx-ollama types might be incomplete/different
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const config: any = {
-    serverAddress: serverAddress,
-  };
-
-  if (modelName) {
-    config.models = [{ name: modelName }];
+  let models: { name: string }[] = [];
+  try {
+    const res = await fetch(`${serverAddress}/api/tags`);
+    const data = (await res.json()) as { models?: Array<{ model: string }> };
+    models =
+      data.models
+        ?.filter((m) => m.model && !m.model.includes('embed'))
+        .map((m) => ({ name: m.model })) ?? [];
+  } catch {
+    // Ollama unreachable at startup — fall back to OLLAMA_MODEL only
+    if (modelName) models = [{ name: modelName }];
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config: any = { serverAddress };
+  if (models.length > 0) config.models = models;
 
   return ollama(config);
 };

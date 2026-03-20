@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "genkit:start": "genkit start -- npx tsx watch src/index.ts",
+    "genkit:start:ts": "npm run genkit:start 2>&1 | while IFS= read -r line; do printf '[%s] %s\\n' \"$(date +%H:%M:%S)\" \"$line\"; done",
     "dev:build": "tsc --watch",
     "dev:run": "node --watch dist/index.js",
     "prebuild": "npm run build -w packages/shared-schemas",
@@ -57,7 +58,7 @@
     "@tavily/core": "^0.7.2",
     "axios": "^1.13.6",
     "dotenv": "^17.2.4",
-    "genkit": "^1.29.0",
+    "genkit": "^1.30.1",
     "genkitx-ollama": "^1.30.1",
     "genkitx-openai": "^0.30.0",
     "jose": "^6.2.1",

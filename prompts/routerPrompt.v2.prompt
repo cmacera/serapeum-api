@@ -39,10 +39,20 @@ Franchise names that refer to multiple works are always GENERAL_DISCOVERY.
 - GAME: If the user explicitly asks for a game (e.g., "game The Witcher 3", "play Mario").
 - BOOK: If the user explicitly asks for a book (e.g., "book Dune", "read Harry Potter").
 - ALL: If the category is ambiguous, mixed, or not specified (e.g., "The Witcher" could be book, game, or show).
+Note: Character or franchise names that naturally span multiple media types (e.g., Batman, Spider-Man, Mario, The
+Witcher, Dune, Star Wars) are ALWAYS ALL unless the user explicitly names a medium.
 
 4. Set extractedQuery as:
 - For SPECIFIC_ENTITY: the clean title only (e.g., "Spider-Man: No Way Home").
-- For GENERAL_DISCOVERY: the search-optimized query (e.g., "best RPGs 2015").
+- For GENERAL_DISCOVERY:
+- If the query is a RECOMMENDATION request (contains phrases like "similar to X", "parecido a X", "como X", "like X",
+"recommendations like X", "algo como X"): write a THEMATIC description of the reference item using its genre, tone,
+themes, or era — WITHOUT including the reference title itself.
+✅ "algo parecido a Interstellar" → "mind-bending sci-fi space exploration films"
+✅ "games like The Witcher 3" → "open world dark fantasy RPG games"
+✅ "recomiéndame algo como Breaking Bad" → "crime drama series moral corruption"
+❌ Never use "similar to X" or "like X" phrasing — the reference title must not appear in extractedQuery.
+- Otherwise: the search-optimized query (e.g., "best RPGs 2015", "batman").
 - For OUT_OF_SCOPE: empty string.
 
 Return the intent, category, extractedQuery, and refusalReason (if applicable). Ensure that the refusalReason (if
