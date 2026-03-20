@@ -19,10 +19,8 @@ vi.mock('@/lib/ai', () => {
   return {
     ai: {
       defineFlow: (_config: any, fn: any) => fn,
-      definePrompt: (_config: any, _prompt: string) => {
-        // Return a function that mimics calling the prompt
-        return vi.fn();
-      },
+      defineSchema: vi.fn(),
+      prompt: vi.fn().mockReturnValue(vi.fn()),
     },
     z: {
       object: () => mockSchema,

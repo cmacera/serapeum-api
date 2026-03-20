@@ -19,7 +19,7 @@ vi.mock('../src/lib/ai.js', async () => {
       ...actual.ai,
       generate: vi.fn(),
       defineFlow: actual.ai.defineFlow,
-      definePrompt: vi.fn(),
+      defineSchema: vi.fn(),
       defineTool: actual.ai.defineTool,
     },
   };
