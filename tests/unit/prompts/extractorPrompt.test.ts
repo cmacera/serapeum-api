@@ -8,7 +8,7 @@ vi.mock('../../../src/lib/ai.js', async (importOriginal) => {
     ai: {
       ...actual.ai,
       defineSchema: vi.fn(),
-      prompt: vi.fn(),
+      prompt: vi.fn().mockReturnValue(vi.fn()),
     },
   };
 });
