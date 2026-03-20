@@ -13,6 +13,7 @@ export const ai = genkit({
   plugins: [googlePlugin(), ollamaPlugin(), openRouterPlugin()].filter(
     (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
   ),
+  promptDir: './prompts',
 });
 
 /**

@@ -1,4 +1,4 @@
-import { ai, activeModel, z } from '../lib/ai.js';
+import { ai, z } from '../lib/ai.js';
 
 export const ExtractorSchema = z.object({
   titles: z
@@ -10,38 +10,15 @@ export const ExtractorSchema = z.object({
     .describe('List of exact titles found in the search results (max 3)'),
 });
 
-export const extractorPrompt = ai.definePrompt(
-  {
-    name: 'extractorPrompt',
-    input: { schema: z.object({ query: z.string(), context: z.string() }) },
-    model: activeModel,
-    output: { schema: ExtractorSchema },
-    config: { temperature: 0 },
-  },
-  `Role: Data Extractor.
+const ExtractorInputSchema = z.object({
+  query: z.string(),
+  context: z.string(),
+});
 
-Instruction:
-User's original search intent: {{query}}
+// Register schemas so dotprompt can reference them by name
+ai.defineSchema('ExtractorInput', ExtractorInputSchema);
+ai.defineSchema('ExtractorOutput', ExtractorSchema);
 
-Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the intent above. Extract up to 3 titles if available.
-
-- Extract titles most relevant to the intent above.
-- Prefer well-known, standalone titles that directly represent the user's intent. Do NOT extract sub-story names, comic event names, or storyline titles found inside franchise articles (e.g., for intent "batman", extract "Batman" or "The Batman" — not "Batman: Zero Year", "Flashpoint", or "The Return of Bruce Wayne").
-- If context is empty or contains no identifiable titles, return {"titles": []}.
-- Do NOT include duplicate titles (case-insensitive).
-
-IMPORTANT: Return ONLY the JSON object following the schema. Do NOT explain the schema, do NOT include the schema definition, and do NOT wrap the data in a "properties" key unless required by the schema itself.
-
-Few-shot Examples:
-- Context: "Spider-Man: No Way Home is a 2021 American superhero film... also mentioned are Spider-Man: Into the Spider-Verse and The Amazing Spider-Man 2."
-  Output: {"titles": ["Spider-Man: No Way Home", "Spider-Man: Into the Spider-Verse", "The Amazing Spider-Man 2"]}
-
-- Context: "The Last of Us Part II is a 2020 action-adventure game... other titles include God of War and Horizon Zero Dawn."
-  Output: {"titles": ["The Last of Us Part II", "God of War", "Horizon Zero Dawn"]}
-
-- Context: ""
-  Output: {"titles": []}
-
-Context:
-{{context}}`
+export const extractorPrompt = ai.prompt<typeof ExtractorInputSchema, typeof ExtractorSchema>(
+  'extractorPrompt'
 );
