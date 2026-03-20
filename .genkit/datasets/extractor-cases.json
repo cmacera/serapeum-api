@@ -155,5 +155,21 @@
       "context": "Santa Monica Studio's God of War (2018) reboot was praised as a narrative masterpiece. Its sequel God of War Ragnarök (2022) expanded the Norse mythology setting with more characters and a deeper story. The original God of War (2005) on PlayStation 2 established the franchise's brutal action gameplay."
     },
     "reference": { "titles": ["God of War", "God of War Ragnarök"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000021",
+    "input": {
+      "query": "batman",
+      "context": "Batman is one of DC's most iconic superheroes. The Batman (2022) directed by Matt Reeves and starring Robert Pattinson received critical acclaim for its noir tone. Batman: Arkham Knight (2015) by Rocksteady Studios is widely considered the definitive Batman video game experience. Batman: The Dark Knight Returns (1986) is a landmark graphic novel by Frank Miller that redefined the character."
+    },
+    "reference": { "titles": ["The Batman", "Batman: Arkham Knight", "Batman: The Dark Knight Returns"] }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-200000000022",
+    "input": {
+      "query": "films similar to Interstellar",
+      "context": "Interstellar (2014) is Christopher Nolan's epic about space exploration, time dilation, and a father's love. Films like Interstellar include Arrival (2016) by Denis Villeneuve, which explores language and time through alien contact, and The Martian (2015) directed by Ridley Scott, featuring an astronaut stranded on Mars. Contact (1997) with Jodie Foster is another classic of the genre."
+    },
+    "reference": { "titles": ["Arrival", "The Martian", "Contact"] }
   }
 ]
