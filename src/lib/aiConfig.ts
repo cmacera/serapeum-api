@@ -33,6 +33,7 @@ export const ollamaPlugin = async (): Promise<GenkitPlugin | null> => {
   let models: { name: string }[] = [];
   try {
     const res = await fetch(`${serverAddress}/api/tags`);
+    if (!res.ok) throw new Error(`Ollama /api/tags returned ${res.status} ${res.statusText}`);
     const data = (await res.json()) as { models?: Array<{ model: string }> };
     models =
       data.models
