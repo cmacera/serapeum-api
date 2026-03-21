@@ -151,14 +151,26 @@ Every Pull Request opened by the AI agent **MUST** follow the PR workflow. Key r
 
 The CI pipeline is the final gatekeeper of Serapeum's standards.
 
+**`test` job** (runs on every push/PR):
+
 | Check | Command | Scope |
 |---|---|---|
 | `typecheck` | `tsc --noEmit` | `src/` only |
 | `lint` | `eslint src --ext .ts` | `src/` only |
 | `test:run` | `vitest run` | excludes `tests/e2e/**` |
 | `build` | `tsc && cp -r src/locales dist/` | full build |
+
+**`format` job** (separate workflow):
+
+| Check | Command | Scope |
+|---|---|---|
 | `format:check` | `prettier --check "src/**/*.ts"` | `src/` only |
-| `check-pr-title` | regex check | PR title |
+
+**`check-pr-title` workflow** (PR title only):
+
+| Check | Command | Scope |
+|---|---|---|
+| `check-pr-title` | regex `/^(\[SER-\d+\]\|SER-\d+)/` | PR title |
 
 > *CI is law enforcement; local hooks are the neighborhood watch.*
 
