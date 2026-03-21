@@ -1,12 +1,12 @@
-# 🧱 ARCHITECTURE.md  
+# 🧱 ARCHITECTURE.md
 ## **Technical Blueprint for Serapeum API**
 
 ---
 
 ## 1. 🌐 System Overview
 
-**Description:**  
-**Serapeum API** is a standalone **Node.js** service powered by **Genkit**.  
+**Description:**
+**Serapeum API** is a standalone **Node.js** service powered by **Genkit**.
 It is designed for **containerized deployment** on **Render**, **Railway**, or any **VPS environment**.
 
 **Core Tech Stack:**
@@ -15,8 +15,8 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 |------------|----------------|
 | 🧩 Runtime | Node.js 22+ (LTS) |
 | 📝 Language | TypeScript 5.x (Strict Mode) |
-| ⚙️ Framework | Genkit Core + Google AI Plugin |
-| 🛰️ Server Mode | Genkit Standalone (`startFlowServer`) or Express Adapter |
+| ⚙️ Framework | Genkit Core (Express adapter) |
+| 🛰️ Server Mode | Genkit Standalone (`startFlowServer`) |
 | 🗄️ Database | Supabase JS Client (PostgreSQL) |
 | 📦 Deployment | Docker / OCI Container |
 
@@ -24,36 +24,41 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 
 ## 2. 🗂️ Directory Structure
 
-**Project organization:**
-The project follows a **modular architecture**, with `index.ts` serving as the main entry point and bootstrapper.
-
 ```text
 packages/
-└── shared-schemas/     # @serapeum/shared-schemas — npm workspace package
-    └── src/            # Zod schemas + inferred TypeScript types (canonical source of truth)
+└── shared-schemas/      # @serapeum/shared-schemas — npm workspace package
+    └── src/             # Zod schemas + inferred TypeScript types (canonical source)
+
+prompts/                 # Dotprompt files (routerPrompt, extractorPrompt, synthesizerPrompt)
+                         # *.v2.prompt variants used for A/B eval before promotion
 
 src/
-├── flows/              # Genkit Flows (API logic)
-│   ├── catalog/        # searchMedia, searchBooks, searchGames, searchAll, searchWeb,
-│   │                   # getMovieDetail, getTvDetail
-│   └── agent/          # orchestratorFlow, findBestMatch
+├── flows/               # Genkit Flows (API logic)
+│   ├── catalog/         # searchMedia, searchBooks, searchGames, searchAll, searchWeb,
+│   │                    # getMovieDetail, getTvDetail
+│   └── agent/           # orchestratorFlow, findBestMatch
 │
-├── schemas/            # Thin re-exports from @serapeum/shared-schemas
+├── schemas/             # Thin re-exports from @serapeum/shared-schemas
 │
-├── tools/              # External API wrappers (TMDB, Books, IGDB, Tavily)
+├── tools/               # External API wrappers (TMDB, Books, IGDB, Tavily)
 │
-├── lib/                # Shared infrastructure
-│   ├── ai.ts           # Genkit instance + model configuration
-│   ├── aiConfig.ts     # Provider-specific AI setup
-│   └── auth.ts         # JWT verification (verifySupabaseJwt via jose)
+├── evals/               # Genkit eval metrics and runners
+│
+├── lib/                 # Shared infrastructure
+│   ├── ai.ts            # Genkit instance + plugin initialization
+│   ├── aiConfig.ts      # Provider-specific AI setup (Google, Ollama, Ollama Cloud, OpenRouter)
+│   └── auth.ts          # JWT verification (verifySupabaseJwt via jose)
 │
 ├── middleware/
-│   └── verifyJwt.ts    # Genkit contextProvider — validates Bearer token on every request
+│   └── verifyJwt.ts     # Genkit contextProvider — validates Bearer token on every request
 │
-├── prompts/            # Dotprompt files (routerPrompt, extractorPrompt, synthesizerPrompt)
-└── index.ts            # Server entry point
+├── locales/             # i18n JSON files
+└── index.ts             # Server entry point
 
-Dockerfile              # Production image definition
+.genkit/
+└── datasets/            # Eval datasets (JSON) + index.json metadata
+
+Dockerfile               # Production image definition
 ```
 
 ---
@@ -75,22 +80,40 @@ packages/shared-schemas/src/
 └── index.ts                 # Barrel export (schemas + TypeScript types)
 ```
 
-- **`src/schemas/*.ts`** are thin re-exports from this package — existing internal imports continue to work unchanged.
-- **`scripts/generate-openapi.ts`** imports directly from `@serapeum/shared-schemas` to produce `docs/openapi.yaml`.
+- **`src/schemas/*.ts`** are thin re-exports — never define schemas in both places.
+- **`scripts/generate-openapi.ts`** imports directly from `@serapeum/shared-schemas`.
 - The package is built automatically via the `prebuild` script before every `npm run build`.
-- A TypeScript path alias (`@serapeum/shared-schemas → packages/shared-schemas/src/index.ts`) enables type resolution without a prior build in development.
+- A TypeScript path alias (`@serapeum/shared-schemas → packages/shared-schemas/src/index.ts`) enables type resolution without a prior build.
 
 ---
 
-### 3.2 🧩 Standalone Server Pattern
+### 3.2 🤖 Multi-Provider AI
 
-- **Entry Point:** `src/index.ts` imports all flows and calls `startFlowServer()`.
+Provider selection is controlled by the `AI_PROVIDER` environment variable. All providers register their models as Genkit actions at startup so the eval UI model switcher works correctly.
+
+| Provider | `AI_PROVIDER` value | Required env vars |
+|---|---|---|
+| Google (default) | `google` | `GOOGLE_GENAI_API_KEY`, `GEMINI_MODEL` |
+| Ollama (local) | `ollama` | `OLLAMA_SERVER_URL`, `OLLAMA_MODEL` |
+| Ollama Cloud (production) | `ollama-cloud` | `OLLAMA_CLOUD_API_KEY`, `OLLAMA_CLOUD_MODEL` |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` |
+
+`src/lib/aiConfig.ts` configures each plugin. `src/lib/ai.ts` initializes the global Genkit instance and exports the `activeModel` string and `ai` instance used by all flows.
+
+Ollama (local) pre-registers all available models from `/api/tags` at startup so any model can be selected in the eval UI without restarting. Ollama Cloud uses Bearer token auth against `https://ollama.com` and does not perform model discovery at startup.
+
+---
+
+### 3.3 🧩 Standalone Server Pattern
+
+- **Entry Point:** `src/index.ts` imports all flows and starts the server.
 - **Port Binding:** The server binds to `process.env.PORT` (default `3000`) to comply with PaaS requirements.
 - **CORS Policy:** Configure `CORS_ORIGINS` to explicitly allow requests from authorized clients.
+- **Genkit DevTools UI:** Available at `http://localhost:4000` when running `npm run genkit:start`.
 
 ---
 
-### 3.3 🔐 Authentication Pattern
+### 3.4 🔐 Authentication Pattern
 
 All endpoints are protected by a **Supabase JWT contextProvider** (`src/middleware/verifyJwt.ts`).
 
@@ -106,19 +129,33 @@ Request
 ```
 
 - Tokens are **verified locally** using the `SUPABASE_JWT_SECRET` — zero Supabase network latency.
-- Each flow is registered via `withFlowOptions(flow, { contextProvider: jwtContextProvider })` in `index.ts`.
-- The verified JWT payload is available to flows via `getFlowContext()` if needed.
+- Each flow is registered with `{ contextProvider: jwtContextProvider }` in `index.ts`.
 
 ---
 
-### 3.4 🧠 Flow Pattern
+### 3.5 🧠 Agent Pipeline (`orchestratorFlow`)
 
-- **Definition:** Logic units are declared with `ai.defineFlow`.
-- **Exposure:** All flows are auto-exposed under `POST /<flowName>` by Genkit.
+```
+User query → routerPrompt → extractorPrompt → [catalog tools] → synthesizerPrompt
+```
+
+1. **Router** — classifies intent (`SPECIFIC_ENTITY` / `GENERAL_DISCOVERY` / `OUT_OF_SCOPE`) and category (`MOVIE_TV` / `GAME` / `BOOK` / `ALL`)
+2. **Extractor** — extracts title(s) from Tavily web context
+3. **Catalog tools** — TMDB / IGDB / Google Books based on category
+4. **findBestMatch** — fuzzy match + popularity tiebreaker for featured result
+5. **Synthesizer** — formats final natural language response
 
 ---
 
-### 3.5 🗄️ Data Access
+### 3.6 📝 Dotprompt Pattern
+
+- Prompt files live in `prompts/` (top-level, not `src/`).
+- YAML frontmatter: `model`, `config`, `input.schema`, `output.schema` — all with 2-space indentation.
+- Prompt variants use `*.v2.prompt` naming for A/B evaluation. Once a variant wins evals, it replaces the original.
+
+---
+
+### 3.7 🗄️ Data Access
 
 - **Storage Engine:** **Supabase** provides persistence via PostgreSQL.
 - **Connection Variables:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, injected at runtime.
@@ -127,24 +164,33 @@ Request
 
 ## 4. ⚙️ Environment & Config
 
-**Supported Infrastructure:** Render, Railway, or any VPS instance running Docker.  
+**Supported Infrastructure:** Render, Railway, or any VPS instance running Docker.
 
 **Required Environment Variables:**
 
-| Variable | Description |
-|-----------|-------------|
-| `PORT` | Server listening port (default: `3000`) |
-| `GOOGLE_GENAI_API_KEY` | API key for Gemini models |
-| `GENKIT_ENV` | Environment: `"dev"` or `"prod"` |
-| `CORS_ORIGINS` | Comma-separated allowed origins |
-| `SUPABASE_JWT_SECRET` | **Required** — shared secret for local JWT verification |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for admin DB access) |
-| `TMDB_API_KEY` | TMDB movie/TV search |
-| `GOOGLE_BOOKS_API_KEY` | Google Books search |
-| `IGDB_CLIENT_ID` | IGDB game search (client ID) |
-| `IGDB_CLIENT_SECRET` | IGDB game search (client secret) |
-| `TAVILY_API_KEY` | Tavily web search |
+| Variable | Description | Required |
+|-----------|-------------|----------|
+| `PORT` | Server listening port | No (default: 3000) |
+| `GENKIT_ENV` | Environment: `dev` or `prod` | No (default: dev) |
+| `AI_PROVIDER` | AI provider: `google`, `ollama`, `ollama-cloud`, `openrouter` | No (default: google) |
+| `GOOGLE_GENAI_API_KEY` | Google AI API key | If using Google |
+| `GEMINI_MODEL` | Gemini model ID (e.g. `gemini-2.0-flash`) | If using Google |
+| `OLLAMA_MODEL` | Ollama model name (e.g. `qwen3:14b`) | If using Ollama |
+| `OLLAMA_SERVER_URL` | Ollama server URL | If using Ollama |
+| `OLLAMA_CLOUD_API_KEY` | Ollama Cloud API key | If using Ollama Cloud |
+| `OLLAMA_CLOUD_MODEL` | Ollama Cloud model ID | If using Ollama Cloud |
+| `OPENROUTER_API_KEY` | OpenRouter API key | If using OpenRouter |
+| `OPENROUTER_MODEL` | OpenRouter model ID | If using OpenRouter |
+| `CORS_ORIGINS` | Comma-separated allowed origins | No |
+| `SUPABASE_JWT_SECRET` | Shared secret for local JWT verification | **Yes** |
+| `SUPABASE_URL` | Supabase project URL | No |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | No |
+| `TMDB_API_KEY` | TMDB movie/TV search | Yes (for searchMedia) |
+| `GOOGLE_BOOKS_API_KEY` | Google Books search | Yes (for searchBooks) |
+| `IGDB_CLIENT_ID` | IGDB game search (client ID) | Yes (for searchGames) |
+| `IGDB_CLIENT_SECRET` | IGDB game search (client secret) | Yes (for searchGames) |
+| `TAVILY_API_KEY` | Tavily web search | Yes (for orchestratorFlow) |
+| `DEBUG` | Verbose AI setup logging | No |
 
 ---
 

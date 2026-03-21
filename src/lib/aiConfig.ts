@@ -28,7 +28,7 @@ export const ollamaPlugin = async (): Promise<GenkitPlugin | null> => {
   const serverAddress = process.env['OLLAMA_SERVER_URL'];
   const modelName = process.env['OLLAMA_MODEL'];
 
-  if (!serverAddress) return null;
+  if (!serverAddress || process.env['AI_PROVIDER'] === 'ollama-cloud') return null;
 
   let models: { name: string }[] = [];
   try {
@@ -47,6 +47,27 @@ export const ollamaPlugin = async (): Promise<GenkitPlugin | null> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: any = { serverAddress };
   if (models.length > 0) config.models = models;
+
+  return ollama(config);
+};
+
+/**
+ * Configure Ollama Cloud plugin for production deployments.
+ * Uses https://ollama.com/api with Bearer token auth.
+ * Returns null if OLLAMA_CLOUD_API_KEY is missing.
+ */
+export const ollamaCloudPlugin = (): GenkitPlugin | null => {
+  const apiKey = process.env['OLLAMA_CLOUD_API_KEY'];
+  const modelName = process.env['OLLAMA_CLOUD_MODEL'];
+
+  if (!apiKey) return null;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config: any = {
+    serverAddress: 'https://ollama.com',
+    requestHeaders: { Authorization: `Bearer ${apiKey}` },
+  };
+  if (modelName) config.models = [{ name: modelName }];
 
   return ollama(config);
 };
