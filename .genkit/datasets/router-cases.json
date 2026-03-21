@@ -158,5 +158,20 @@
     "testCaseId": "00000000-0000-4000-8000-100000000032",
     "input": { "query": "インセプション", "language": "ja" },
     "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000033",
+    "input": { "query": "algo parecido a Interstellar", "language": "es" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000034",
+    "input": { "query": "something like Harry Potter" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000035",
+    "input": { "query": "recomiéndame algo como Breaking Bad", "language": "es" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
   }
 ]

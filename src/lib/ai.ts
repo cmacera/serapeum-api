@@ -8,11 +8,15 @@ const provider = process.env['AI_PROVIDER'];
 /**
  * Global Genkit instance configuration.
  * Registers all available plugins (if configured in env).
+ * ollamaPlugin is async — it fetches all available models from Ollama at
+ * startup so every model is pre-registered and selectable in the eval UI.
  */
+const plugins = (await Promise.all([googlePlugin(), ollamaPlugin(), openRouterPlugin()])).filter(
+  (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
+);
+
 export const ai = genkit({
-  plugins: [googlePlugin(), ollamaPlugin(), openRouterPlugin()].filter(
-    (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
-  ),
+  plugins,
   promptDir: './prompts',
 });
 

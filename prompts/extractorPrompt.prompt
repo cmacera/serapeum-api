@@ -1,4 +1,5 @@
 ---
+model: ollama/qwen3:14b
 config:
   temperature: 0
 input:
@@ -11,24 +12,46 @@ Role: Data Extractor.
 Instruction:
 User's original search intent: {{query}}
 
-Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows) mentioned that are most relevant to the intent above. Extract up to 3 titles if available.
+Read the provided web search context below. Extract the names of the main media works (Movies, Games, Books, TV Shows)
+mentioned that are most relevant to the intent above. Extract up to 3 titles if available.
 
 - Extract titles most relevant to the intent above.
-- Prefer well-known, standalone titles that directly represent the user's intent. Do NOT extract sub-story names, comic event names, or storyline titles found inside franchise articles (e.g., for intent "batman", extract "Batman" or "The Batman" — not "Batman: Zero Year", "Flashpoint", or "The Return of Bruce Wayne").
+- Prefer well-known, standalone titles that directly represent the user's intent. Do NOT extract sub-story names, comic
+event names, or storyline titles found inside franchise articles (e.g., for intent "batman", extract "Batman" or "The
+Batman" — not "Batman: Zero Year", "Flashpoint", or "The Return of Bruce Wayne").
+- When the query involves a franchise or character that spans multiple media types (games, films, books), actively look
+for titles across ALL media types in the context. Do not bias toward one type.
+- If the query is a recommendation request (contains "similar to", "parecido a", "like", "como"), do NOT extract the
+reference item even if it appears prominently in the context. Only extract the recommended alternatives.
 - If context is empty or contains no identifiable titles, return {"titles": []}.
 - Do NOT include duplicate titles (case-insensitive).
 
-IMPORTANT: Return ONLY the JSON object following the schema. Do NOT explain the schema, do NOT include the schema definition, and do NOT wrap the data in a "properties" key unless required by the schema itself.
+IMPORTANT: Return ONLY the JSON object following the schema. Do NOT explain the schema, do NOT include the schema
+definition, and do NOT wrap the data in a "properties" key unless required by the schema itself.
 
 Few-shot Examples:
-- Context: "Spider-Man: No Way Home is a 2021 American superhero film... also mentioned are Spider-Man: Into the Spider-Verse and The Amazing Spider-Man 2."
-  Output: {"titles": ["Spider-Man: No Way Home", "Spider-Man: Into the Spider-Verse", "The Amazing Spider-Man 2"]}
+- Context: "Spider-Man: No Way Home is a 2021 American superhero film... also mentioned are Spider-Man: Into the
+Spider-Verse and The Amazing Spider-Man 2."
+Output: {"titles": ["Spider-Man: No Way Home", "Spider-Man: Into the Spider-Verse", "The Amazing Spider-Man 2"]}
 
-- Context: "The Last of Us Part II is a 2020 action-adventure game... other titles include God of War and Horizon Zero Dawn."
-  Output: {"titles": ["The Last of Us Part II", "God of War", "Horizon Zero Dawn"]}
+- Context: "The Last of Us Part II is a 2020 action-adventure game... other titles include God of War and Horizon Zero
+Dawn."
+Output: {"titles": ["The Last of Us Part II", "God of War", "Horizon Zero Dawn"]}
+
+- Context: "Batman is a DC Comics superhero. The Batman (2022) starring Robert Pattinson is the latest film adaptation.
+Batman: Arkham Knight is the critically acclaimed 2015 video game developed by Rocksteady. Batman: The Dark Knight
+Returns is a seminal 1986 graphic novel by Frank Miller."
+Intent: batman
+Output: {"titles": ["The Batman", "Batman: Arkham Knight", "Batman: The Dark Knight Returns"]}
+
+- Context: "Interstellar is a 2014 Christopher Nolan film about space exploration and relativity. Films like
+Interstellar include Arrival (2016) by Denis Villeneuve, The Martian (2015) directed by Ridley Scott, and Contact
+(1997)."
+Intent: films similar to Interstellar
+Output: {"titles": ["Arrival", "The Martian", "Contact"]}
 
 - Context: ""
-  Output: {"titles": []}
+Output: {"titles": []}
 
 Context:
 {{context}}
