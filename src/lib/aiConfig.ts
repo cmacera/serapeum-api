@@ -60,7 +60,7 @@ export const ollamaCloudPlugin = (): GenkitPlugin | null => {
   const apiKey = process.env['OLLAMA_CLOUD_API_KEY'];
   const modelName = process.env['OLLAMA_CLOUD_MODEL'];
 
-  if (!apiKey) return null;
+  if (!apiKey || process.env['AI_PROVIDER'] !== 'ollama-cloud') return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config: any = {

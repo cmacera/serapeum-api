@@ -26,7 +26,7 @@ npm run build              # tsc + copy locales → dist/
 
 ## Directory structure
 
-```
+```text
 src/
   flows/
     agent/          # orchestratorFlow.ts, findBestMatch.ts
@@ -54,7 +54,7 @@ tests/
 
 ### Agent pipeline (`orchestratorFlow`)
 
-```
+```text
 User query → routerPrompt → extractorPrompt → [catalog tools] → synthesizerPrompt
 ```
 

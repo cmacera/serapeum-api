@@ -1,5 +1,5 @@
 # ⚙️ AGENTS.md
-### **Operational Manifest for Serapeum API**
+## **Operational Manifest for Serapeum API**
 
 ---
 

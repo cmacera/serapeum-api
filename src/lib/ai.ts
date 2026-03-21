@@ -34,6 +34,9 @@ export const activeModel: string = ((): string => {
       }
       return `ollama/${modelName('OLLAMA_MODEL')}`;
     case 'ollama-cloud':
+      if (!modelName('OLLAMA_CLOUD_API_KEY')) {
+        throw new Error('OLLAMA_CLOUD_API_KEY environment variable is missing for Ollama Cloud');
+      }
       if (!modelName('OLLAMA_CLOUD_MODEL')) {
         throw new Error('OLLAMA_CLOUD_MODEL environment variable is missing for Ollama Cloud');
       }
