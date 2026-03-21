@@ -1,7 +1,7 @@
 import { genkit } from 'genkit';
 import type { GenkitPlugin, GenkitPluginV2 } from 'genkit/plugin';
 import { z } from '@genkit-ai/core';
-import { googlePlugin, ollamaPlugin, openRouterPlugin } from './aiConfig.js';
+import { googlePlugin, ollamaPlugin, ollamaCloudPlugin, openRouterPlugin } from './aiConfig.js';
 
 const provider = process.env['AI_PROVIDER'];
 
@@ -11,9 +11,9 @@ const provider = process.env['AI_PROVIDER'];
  * ollamaPlugin is async — it fetches all available models from Ollama at
  * startup so every model is pre-registered and selectable in the eval UI.
  */
-const plugins = (await Promise.all([googlePlugin(), ollamaPlugin(), openRouterPlugin()])).filter(
-  (p): p is GenkitPlugin | GenkitPluginV2 => p !== null
-);
+const plugins = (
+  await Promise.all([googlePlugin(), ollamaPlugin(), ollamaCloudPlugin(), openRouterPlugin()])
+).filter((p): p is GenkitPlugin | GenkitPluginV2 => p !== null);
 
 export const ai = genkit({
   plugins,
@@ -33,6 +33,14 @@ export const activeModel: string = ((): string => {
         throw new Error('OLLAMA_MODEL environment variable is missing for Ollama');
       }
       return `ollama/${modelName('OLLAMA_MODEL')}`;
+    case 'ollama-cloud':
+      if (!modelName('OLLAMA_CLOUD_API_KEY')) {
+        throw new Error('OLLAMA_CLOUD_API_KEY environment variable is missing for Ollama Cloud');
+      }
+      if (!modelName('OLLAMA_CLOUD_MODEL')) {
+        throw new Error('OLLAMA_CLOUD_MODEL environment variable is missing for Ollama Cloud');
+      }
+      return `ollama/${modelName('OLLAMA_CLOUD_MODEL')}`;
     case 'openrouter':
       if (!modelName('OPENROUTER_MODEL')) {
         throw new Error('OPENROUTER_MODEL environment variable is missing');
