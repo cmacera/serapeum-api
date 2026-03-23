@@ -54,6 +54,37 @@ function dedupeById<T extends { id: unknown }>(items: T[]): T[] {
   });
 }
 
+/**
+ * Runs a catalog search, picks the best match as featured, and removes it from its source array.
+ * Shared by Path A (SPECIFIC_ENTITY) and Path D (FACTUAL_QUERY).
+ */
+async function executeSearchWithFeatured(
+  extractedQuery: string,
+  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+  language: string
+) {
+  const executionResult = await executeCategorySearch('ALL', { query: extractedQuery, language });
+  const featuredMatch = findBestMatch(extractedQuery, category, executionResult);
+
+  if (featuredMatch) {
+    executionResult.featured = featuredMatch;
+
+    // Remove the featured item from its own category array to avoid duplication in the UI.
+    // IDs are only unique within a source, so we only filter the matching type.
+    const featuredId = (featuredMatch.item as { id?: unknown }).id;
+    if (featuredId !== undefined) {
+      if (featuredMatch.type === 'media' && executionResult.media)
+        executionResult.media = executionResult.media.filter((item) => item.id !== featuredId);
+      else if (featuredMatch.type === 'game' && executionResult.games)
+        executionResult.games = executionResult.games.filter((item) => item.id !== featuredId);
+      else if (featuredMatch.type === 'book' && executionResult.books)
+        executionResult.books = executionResult.books.filter((item) => item.id !== featuredId);
+    }
+  }
+
+  return { executionResult, featuredMatch };
+}
+
 // Flow
 export const orchestratorFlow = ai.defineFlow(
   {
@@ -92,45 +123,20 @@ export const orchestratorFlow = ai.defineFlow(
 
     // Path A: Specific Entity
     if (route.intent === 'SPECIFIC_ENTITY') {
-      const input = { query: route.extractedQuery, language };
-
       try {
-        // We run an 'ALL' search to enrich results with other categories
-        const executionResult = await executeCategorySearch('ALL', input);
-
-        // Find the best match to feature
-        const featuredMatch = findBestMatch(route.extractedQuery, route.category, executionResult);
-
-        if (featuredMatch) {
-          executionResult.featured = featuredMatch;
-
-          // Remove the featured item from its own category array to avoid duplication in the UI.
-          // We only filter the matching category — IDs are only unique within a source (TMDB/IGDB/Books),
-          // not across sources, so filtering all arrays could incorrectly drop unrelated items.
-          const featuredId = (featuredMatch.item as { id?: unknown }).id;
-          if (featuredId !== undefined) {
-            if (featuredMatch.type === 'media' && executionResult.media)
-              executionResult.media = executionResult.media.filter(
-                (item) => item.id !== featuredId
-              );
-            else if (featuredMatch.type === 'game' && executionResult.games)
-              executionResult.games = executionResult.games.filter(
-                (item) => item.id !== featuredId
-              );
-            else if (featuredMatch.type === 'book' && executionResult.books)
-              executionResult.books = executionResult.books.filter(
-                (item) => item.id !== featuredId
-              );
-          }
-        }
+        const { executionResult } = await executeSearchWithFeatured(
+          route.extractedQuery,
+          route.category,
+          language
+        );
 
         const t = getTranslations(language);
         let generatedText = t['specific_fallback'];
         try {
           const synthesis = await synthesizerPrompt(
             {
-              originalQuery: input.query,
-              webContext: '', // Empty context since it's a specific entity
+              originalQuery: route.extractedQuery,
+              webContext: '',
               apiDetails: JSON.stringify(executionResult),
               language,
             },
@@ -141,7 +147,7 @@ export const orchestratorFlow = ai.defineFlow(
           }
         } catch (error) {
           console.error(
-            `[orchestratorFlow] Synthesizer failed for specific entity "${input.query}":`,
+            `[orchestratorFlow] Synthesizer failed for specific entity "${route.extractedQuery}":`,
             inspect(error, { depth: null, colors: true })
           );
         }
@@ -153,7 +159,7 @@ export const orchestratorFlow = ai.defineFlow(
         };
       } catch (error) {
         console.error(
-          `[orchestratorFlow] Specific Entity Search failed for query "${input.query}":`,
+          `[orchestratorFlow] Specific Entity Search failed for query "${route.extractedQuery}":`,
           inspect(error, { depth: null, colors: true })
         );
         const t = getTranslations(language);
@@ -167,42 +173,24 @@ export const orchestratorFlow = ai.defineFlow(
 
     // Path D: Factual Query — same as Path A but fetches detail data for precise factual answers
     if (route.intent === 'FACTUAL_QUERY') {
-      const input = { query: route.extractedQuery, language };
-
       try {
-        const executionResult = await executeCategorySearch('ALL', input);
-        const featuredMatch = findBestMatch(route.extractedQuery, route.category, executionResult);
-
-        if (featuredMatch) {
-          executionResult.featured = featuredMatch;
-
-          const featuredId = (featuredMatch.item as { id?: unknown }).id;
-          if (featuredId !== undefined) {
-            if (featuredMatch.type === 'media' && executionResult.media)
-              executionResult.media = executionResult.media.filter(
-                (item) => item.id !== featuredId
-              );
-            else if (featuredMatch.type === 'game' && executionResult.games)
-              executionResult.games = executionResult.games.filter(
-                (item) => item.id !== featuredId
-              );
-            else if (featuredMatch.type === 'book' && executionResult.books)
-              executionResult.books = executionResult.books.filter(
-                (item) => item.id !== featuredId
-              );
-          }
-        }
+        const { executionResult, featuredMatch } = await executeSearchWithFeatured(
+          route.extractedQuery,
+          route.category,
+          language
+        );
 
         // Fetch detailed data for media (movies/TV) — provides seasons, revenue, budget, etc.
         // Games and books already include enough factual data in the search result.
+        // Guard on media_type explicitly to avoid calling detail endpoints for 'person' results.
         let detail: unknown = null;
         if (featuredMatch?.type === 'media') {
-          const mediaItem = featuredMatch.item as { id: number; media_type: 'movie' | 'tv' };
+          const item = featuredMatch.item as { id?: unknown; media_type?: unknown };
           try {
-            if (mediaItem.media_type === 'movie') {
-              detail = await getMovieDetail({ id: mediaItem.id, language, region: 'US' });
-            } else if (mediaItem.media_type === 'tv') {
-              detail = await getTvDetail({ id: mediaItem.id, language, region: 'US' });
+            if (typeof item.id === 'number' && item.media_type === 'movie') {
+              detail = await getMovieDetail({ id: item.id, language, region: 'US' });
+            } else if (typeof item.id === 'number' && item.media_type === 'tv') {
+              detail = await getTvDetail({ id: item.id, language, region: 'US' });
             }
           } catch (err) {
             console.warn(

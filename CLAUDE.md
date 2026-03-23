@@ -58,7 +58,7 @@ tests/
 User query → routerPrompt → extractorPrompt → [catalog tools] → synthesizerPrompt
 ```
 
-1. **Router** — classifies intent (`SPECIFIC_ENTITY` / `GENERAL_DISCOVERY` / `OUT_OF_SCOPE`) and category (`MOVIE_TV` / `GAME` / `BOOK` / `ALL`)
+1. **Router** — classifies intent (`SPECIFIC_ENTITY` / `GENERAL_DISCOVERY` / `OUT_OF_SCOPE` / `FACTUAL_QUERY`) and category (`MOVIE_TV` / `GAME` / `BOOK` / `ALL`)
 2. **Extractor** — extracts title(s) from Tavily web context
 3. **Catalog tools** — TMDB / IGDB / Google Books based on category
 4. **findBestMatch** — fuzzy match + popularity tiebreaker for featured result
@@ -137,4 +137,48 @@ Both tsconfig and vitest resolve these aliases.
 
 Datasets live in `.genkit/datasets/`. Add cases via the Genkit UI (localhost:4000) or by editing JSON directly. `index.json` tracks metadata.
 
-Quick smoke test: `router-smoke` dataset (2 cases) for fast model-switching validation.
+Datasets:
+- `router-cases` — 49 cases covering all 4 intents and multilingual inputs. Use with `npm run eval:compare -- --dataset router-cases --actions routerPrompt`.
+- `extractor-cases` — 22 cases. Use with `npm run eval:compare -- --dataset extractor-cases --actions extractorPrompt`.
+- `synthesizer-cases` — 13 cases (factual queries, franchise questions, multilingual). Evaluate via Genkit UI (no CLI scorer — free-form text).
+
+---
+
+## Linear + GitHub workflow
+
+**Linear team:** Serapeum · **Project:** Serapeum API · **Identifier prefix:** `SER`
+
+### Starting a new feature
+
+1. Create a ticket in Linear (MCP or UI): assign to self, set state to `In Progress` when starting, project = Serapeum API.
+2. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the SER-XX prefix).
+3. Implement, commit with conventional commits (no `[SER-XX]` prefix — commitlint rejects it).
+4. Create the PR: title **must** start with `[SER-XX]` (required by `check-pr-title` CI check). Body should include `Closes SER-XX`.
+5. Move ticket to `In Review` when the PR is open.
+
+### PR title format (enforced by CI)
+
+```
+[SER-XX] type(scope): description
+```
+
+### Available Linear states
+
+| State | Type | Use when |
+|---|---|---|
+| Backlog | backlog | Not yet started |
+| Todo | unstarted | Ready to pick up |
+| In Progress | started | Actively working |
+| In Review | started | PR open, awaiting review |
+| Done | completed | PR merged |
+| Canceled / Duplicate | canceled | — |
+
+### Closing a feature
+
+After merging:
+```bash
+# From main repo root (not inside a worktree)
+git checkout main && git pull
+git worktree remove .claude/worktrees/<branch>   # if a worktree was used
+git branch -D <branch>
+```
