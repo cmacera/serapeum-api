@@ -62,7 +62,10 @@ async function executeSearchWithFeatured(
   extractedQuery: string,
   category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
   language: string
-) {
+): Promise<{
+  executionResult: z.infer<typeof SearchAllOutputSchema>;
+  featuredMatch: ReturnType<typeof findBestMatch>;
+}> {
   const executionResult = await executeCategorySearch('ALL', { query: extractedQuery, language });
   const featuredMatch = findBestMatch(extractedQuery, category, executionResult);
 

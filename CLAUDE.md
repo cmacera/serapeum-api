@@ -158,7 +158,7 @@ Datasets:
 
 ### PR title format (enforced by CI)
 
-```
+```text
 [SER-XX] type(scope): description
 ```
 
