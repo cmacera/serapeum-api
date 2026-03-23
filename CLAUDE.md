@@ -109,7 +109,6 @@ All checks run against `src/` only. Must pass before merge:
 - Format: `type(scope): description` (conventional commits)
 - **No** `[SER-XX]` prefix in local commits — commitlint rejects it
 - The `[SER-XX]` prefix appears only in the squash merge commit title (PR title)
-- **No** `Co-Authored-By` trailers
 
 ---
 

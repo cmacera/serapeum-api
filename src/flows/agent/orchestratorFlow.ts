@@ -6,6 +6,8 @@ import { searchAll } from '../catalog/searchAll.js';
 import { searchMedia } from '../catalog/searchMedia.js';
 import { searchGames } from '../catalog/searchGames.js';
 import { searchBooks } from '../catalog/searchBooks.js';
+import { getMovieDetail } from '../catalog/getMovieDetail.js';
+import { getTvDetail } from '../catalog/getTvDetail.js';
 import { searchTavilyTool } from '../../tools/search-tavily-tool.js';
 import { findBestMatch } from './findBestMatch.js';
 import { routerPrompt } from '../../prompts/routerPrompt.js';
@@ -152,6 +154,94 @@ export const orchestratorFlow = ai.defineFlow(
       } catch (error) {
         console.error(
           `[orchestratorFlow] Specific Entity Search failed for query "${input.query}":`,
+          inspect(error, { depth: null, colors: true })
+        );
+        const t = getTranslations(language);
+        return {
+          kind: 'error' as const,
+          error: t['specific_error'],
+          details: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+
+    // Path D: Factual Query — same as Path A but fetches detail data for precise factual answers
+    if (route.intent === 'FACTUAL_QUERY') {
+      const input = { query: route.extractedQuery, language };
+
+      try {
+        const executionResult = await executeCategorySearch('ALL', input);
+        const featuredMatch = findBestMatch(route.extractedQuery, route.category, executionResult);
+
+        if (featuredMatch) {
+          executionResult.featured = featuredMatch;
+
+          const featuredId = (featuredMatch.item as { id?: unknown }).id;
+          if (featuredId !== undefined) {
+            if (featuredMatch.type === 'media' && executionResult.media)
+              executionResult.media = executionResult.media.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'game' && executionResult.games)
+              executionResult.games = executionResult.games.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'book' && executionResult.books)
+              executionResult.books = executionResult.books.filter(
+                (item) => item.id !== featuredId
+              );
+          }
+        }
+
+        // Fetch detailed data for media (movies/TV) — provides seasons, revenue, budget, etc.
+        // Games and books already include enough factual data in the search result.
+        let detail: unknown = null;
+        if (featuredMatch?.type === 'media') {
+          const mediaItem = featuredMatch.item as { id: number; media_type: 'movie' | 'tv' };
+          try {
+            if (mediaItem.media_type === 'movie') {
+              detail = await getMovieDetail({ id: mediaItem.id, language, region: 'US' });
+            } else if (mediaItem.media_type === 'tv') {
+              detail = await getTvDetail({ id: mediaItem.id, language, region: 'US' });
+            }
+          } catch (err) {
+            console.warn(
+              '[orchestratorFlow] Detail fetch failed for factual query, continuing without it:',
+              err
+            );
+          }
+        }
+
+        const t = getTranslations(language);
+        let generatedText = t['specific_fallback'];
+        try {
+          const synthesis = await synthesizerPrompt(
+            {
+              originalQuery: query, // original question (not just the clean title)
+              webContext: '',
+              apiDetails: JSON.stringify({ ...executionResult, _queryType: 'factual', detail }),
+              language,
+            },
+            { model: activeModel }
+          );
+          if (synthesis.text && synthesis.text.trim()) {
+            generatedText = synthesis.text;
+          }
+        } catch (error) {
+          console.error(
+            `[orchestratorFlow] Synthesizer failed for factual query "${query}":`,
+            inspect(error, { depth: null, colors: true })
+          );
+        }
+
+        return {
+          kind: 'search_results' as const,
+          message: generatedText,
+          data: executionResult,
+        };
+      } catch (error) {
+        console.error(
+          `[orchestratorFlow] Factual Query path failed for "${route.extractedQuery}":`,
           inspect(error, { depth: null, colors: true })
         );
         const t = getTranslations(language);

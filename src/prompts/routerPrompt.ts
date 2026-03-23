@@ -1,7 +1,7 @@
 import { ai, z } from '../lib/ai.js';
 
 export const RouterSchema = z.object({
-  intent: z.enum(['SPECIFIC_ENTITY', 'GENERAL_DISCOVERY', 'OUT_OF_SCOPE']),
+  intent: z.enum(['SPECIFIC_ENTITY', 'GENERAL_DISCOVERY', 'OUT_OF_SCOPE', 'FACTUAL_QUERY']),
   category: z
     .enum(['MOVIE_TV', 'GAME', 'BOOK', 'ALL'])
     .describe('The specific media category if the user explicitly mentions it, otherwise ALL')

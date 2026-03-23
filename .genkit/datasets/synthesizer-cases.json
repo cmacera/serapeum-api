@@ -80,5 +80,32 @@
       "webContext": "",
       "apiDetails": "{\"media\":[],\"books\":[],\"games\":[],\"errors\":[{\"source\":\"media\",\"message\":\"API timeout\"}]}"
     }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000011",
+    "input": {
+      "originalQuery": "¿cuántas temporadas tiene Breaking Bad?",
+      "webContext": "",
+      "apiDetails": "{\"_queryType\":\"factual\",\"featured\":{\"type\":\"media\",\"item\":{\"id\":1396,\"name\":\"Breaking Bad\",\"media_type\":\"tv\",\"vote_average\":9.5,\"popularity\":250.0}},\"media\":[],\"books\":[],\"games\":[],\"detail\":{\"id\":1396,\"name\":\"Breaking Bad\",\"media_type\":\"tv\",\"seasons_count\":5,\"episodes_count\":62,\"status\":\"Ended\",\"first_air_date\":\"2008-01-20\",\"last_air_date\":\"2013-09-29\",\"overview\":\"Walter White, a chemistry teacher diagnosed with inoperable lung cancer, turns to manufacturing and selling methamphetamine.\",\"vote_average\":9.5,\"cast\":[]}}",
+      "language": "es"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000012",
+    "input": {
+      "originalQuery": "how much did Parasite gross?",
+      "webContext": "",
+      "apiDetails": "{\"_queryType\":\"factual\",\"featured\":{\"type\":\"media\",\"item\":{\"id\":496243,\"title\":\"Parasite\",\"media_type\":\"movie\",\"vote_average\":8.5,\"popularity\":26.5}},\"media\":[],\"books\":[],\"games\":[],\"detail\":{\"id\":496243,\"title\":\"Parasite\",\"media_type\":\"movie\",\"revenue\":258710000,\"budget\":11400000,\"runtime\":132,\"status\":\"Released\",\"vote_average\":8.5,\"tagline\":\"Act like you own the place.\",\"cast\":[]}}",
+      "language": "en"
+    }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-300000000013",
+    "input": {
+      "originalQuery": "¿cuántos juegos tiene la saga The Last of Us?",
+      "webContext": "The Last of Us is a video game franchise developed by Naughty Dog. The series includes The Last of Us (2013), The Last of Us Part II (2020), and The Last of Us Part II Remastered (2024).",
+      "apiDetails": "{\"media\":[],\"books\":[],\"games\":[{\"id\":1009,\"name\":\"The Last of Us\",\"released\":\"2013-06-14\",\"platforms\":[\"PlayStation 3\",\"PlayStation 4\"]},{\"id\":103298,\"name\":\"The Last of Us Part II\",\"released\":\"2020-06-19\",\"platforms\":[\"PlayStation 4\",\"PlayStation 5\"]},{\"id\":302628,\"name\":\"The Last of Us Part II Remastered\",\"released\":\"2024-01-19\",\"platforms\":[\"PlayStation 5\"]}]}",
+      "language": "es"
+    }
   }
 ]

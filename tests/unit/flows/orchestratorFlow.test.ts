@@ -58,6 +58,12 @@ vi.mock('@/flows/catalog/searchBooks', () => ({
   searchBooks: vi.fn().mockResolvedValue([]),
   SearchBooksOutputSchema: {},
 }));
+vi.mock('@/flows/catalog/getMovieDetail', () => ({
+  getMovieDetail: vi.fn().mockResolvedValue({}),
+}));
+vi.mock('@/flows/catalog/getTvDetail', () => ({
+  getTvDetail: vi.fn().mockResolvedValue({}),
+}));
 
 // Mock tools
 vi.mock('@/tools/search-tavily-tool', () => ({
