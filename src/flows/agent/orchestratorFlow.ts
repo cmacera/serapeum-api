@@ -55,19 +55,23 @@ function dedupeById<T extends { id: unknown }>(items: T[]): T[] {
 }
 
 /**
- * Runs a catalog search, picks the best match as featured, and removes it from its source array.
+ * Runs a catalog search across ALL categories, picks the best match as featured,
+ * and removes it from its source array.
  * Shared by Path A (SPECIFIC_ENTITY) and Path D (FACTUAL_QUERY).
+ *
+ * @param preferredCategory - Used only to boost the matching category in findBestMatch;
+ *   the underlying search always queries ALL categories.
  */
 async function executeSearchWithFeatured(
   extractedQuery: string,
-  category: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+  preferredCategory: 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
   language: string
 ): Promise<{
   executionResult: z.infer<typeof SearchAllOutputSchema>;
   featuredMatch: ReturnType<typeof findBestMatch>;
 }> {
   const executionResult = await executeCategorySearch('ALL', { query: extractedQuery, language });
-  const featuredMatch = findBestMatch(extractedQuery, category, executionResult);
+  const featuredMatch = findBestMatch(extractedQuery, preferredCategory, executionResult);
 
   if (featuredMatch) {
     executionResult.featured = featuredMatch;
@@ -186,14 +190,24 @@ export const orchestratorFlow = ai.defineFlow(
         // Fetch detailed data for media (movies/TV) — provides seasons, revenue, budget, etc.
         // Games and books already include enough factual data in the search result.
         // Guard on media_type explicitly to avoid calling detail endpoints for 'person' results.
+        const languageToRegion: Record<string, string> = {
+          en: 'US',
+          es: 'ES',
+          fr: 'FR',
+          de: 'DE',
+          zh: 'CN',
+          ja: 'JP',
+        };
+        const region = languageToRegion[language] ?? 'US';
+
         let detail: unknown = null;
         if (featuredMatch?.type === 'media') {
           const item = featuredMatch.item as { id?: unknown; media_type?: unknown };
           try {
             if (typeof item.id === 'number' && item.media_type === 'movie') {
-              detail = await getMovieDetail({ id: item.id, language, region: 'US' });
+              detail = await getMovieDetail({ id: item.id, language, region });
             } else if (typeof item.id === 'number' && item.media_type === 'tv') {
-              detail = await getTvDetail({ id: item.id, language, region: 'US' });
+              detail = await getTvDetail({ id: item.id, language, region });
             }
           } catch (err) {
             console.warn(
