@@ -108,6 +108,6 @@ jobs:
           PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
           gh api "repos/$APP_REPO/issues/$PR_NUMBER/comments" \
             --method POST \
-            --field body="@coderabbitai ignore"
+            --raw-field body="@coderabbitai ignore"
 
           echo "PR created: $PR_URL"
