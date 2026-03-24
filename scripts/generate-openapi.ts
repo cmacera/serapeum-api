@@ -69,8 +69,17 @@ const TvDetailOpenApi = TvDetailSchema.extend({
 // SearchAllResponseSchema is intentionally kept local: it must reference the
 // annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
 // emits $ref pointers rather than inlining the sub-schemas in the YAML.
+const FeaturedItemSchema = z
+  .discriminatedUnion('type', [
+    z.object({ type: z.literal('media'), item: MediaSchema }),
+    z.object({ type: z.literal('book'), item: BookSchema }),
+    z.object({ type: z.literal('game'), item: GameSchema }),
+  ])
+  .openapi('FeaturedItem');
+
 const SearchAllResponseSchema = z
   .object({
+    featured: FeaturedItemSchema.optional(),
     media: z.array(MediaSchema),
     books: z.array(BookSchema),
     games: z.array(GameSchema),
@@ -199,6 +208,7 @@ registry.register('Book', BookSchema);
 registry.register('Media', MediaSchema);
 registry.register('Game', GameSchema);
 registry.register('SearchError', SearchErrorSchema);
+registry.register('FeaturedItem', FeaturedItemSchema);
 registry.register('SearchAllResponse', SearchAllResponseSchema);
 registry.register('BooksResponse', BooksResponseSchema);
 registry.register('MediaResponse', MediaResponseSchema);

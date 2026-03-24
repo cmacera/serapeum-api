@@ -196,9 +196,46 @@ components:
       required:
         - source
         - message
+    FeaturedItem:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - media
+            item:
+              $ref: "#/components/schemas/Media"
+          required:
+            - type
+            - item
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - book
+            item:
+              $ref: "#/components/schemas/Book"
+          required:
+            - type
+            - item
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - game
+            item:
+              $ref: "#/components/schemas/Game"
+          required:
+            - type
+            - item
     SearchAllResponse:
       type: object
       properties:
+        featured:
+          $ref: "#/components/schemas/FeaturedItem"
         media:
           type: array
           items:
