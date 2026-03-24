@@ -15,6 +15,13 @@ vi.mock('@opentelemetry/api', () => ({
   trace: { getActiveSpan: () => undefined },
 }));
 
+// Prevent real Supabase calls — cache is transparent in these tests
+vi.mock('../src/lib/queryCache.js', () => ({
+  generateCacheKey: () => 'deadbeefcafe0000',
+  getCachedResponse: vi.fn().mockResolvedValue(null),
+  cacheAsync: vi.fn().mockImplementation((_key: unknown, response: unknown) => response),
+}));
+
 // Mock dependencies
 vi.mock('../src/lib/ai.js', async () => {
   const actual = await vi.importActual<typeof import('../src/lib/ai.js')>('../src/lib/ai.js');

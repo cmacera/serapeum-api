@@ -4,6 +4,7 @@ import { trace } from '@opentelemetry/api';
 import { getContext } from '@genkit-ai/core';
 import { getTranslations } from '../../lib/translations.js';
 import { AgentResponseSchema, SearchAllOutputSchema } from '@serapeum/shared-schemas';
+import { generateCacheKey, getCachedResponse, cacheAsync } from '../../lib/queryCache.js';
 import { searchAll } from '../catalog/searchAll.js';
 import { searchMedia } from '../catalog/searchMedia.js';
 import { searchGames } from '../catalog/searchGames.js';
@@ -108,6 +109,11 @@ export const orchestratorFlow = ai.defineFlow(
     const query = inputParam.query;
     const language = inputParam.language;
 
+    // Cache lookup — short-circuits the full pipeline on a hit
+    const cacheKey = generateCacheKey(query, language);
+    const cached = await getCachedResponse(cacheKey);
+    if (cached) return cached;
+
     // Attach userId from JWT as standard OTEL attribute — Langfuse maps 'user.id' to its User field
     // Capture traceId for feedback attribution (undefined when OTEL not active)
     let traceId: string | undefined;
@@ -139,11 +145,11 @@ export const orchestratorFlow = ai.defineFlow(
     // Path C: Guardrail
     if (route.intent === 'OUT_OF_SCOPE') {
       const t = getTranslations(language);
-      return {
+      return cacheAsync(cacheKey, {
         kind: 'refusal' as const,
         message: route.refusalReason || t['generic_refusal'],
         traceId,
-      };
+      });
     }
 
     // Path A: Specific Entity
@@ -177,12 +183,12 @@ export const orchestratorFlow = ai.defineFlow(
           );
         }
 
-        return {
+        return cacheAsync(cacheKey, {
           kind: 'search_results' as const,
           message: generatedText,
           data: executionResult,
           traceId,
-        };
+        });
       } catch (error) {
         console.error(
           `[orchestratorFlow] Specific Entity Search failed for query "${route.extractedQuery}":`,
@@ -259,12 +265,12 @@ export const orchestratorFlow = ai.defineFlow(
           );
         }
 
-        return {
+        return cacheAsync(cacheKey, {
           kind: 'search_results' as const,
           message: generatedText,
           data: executionResult,
           traceId,
-        };
+        });
       } catch (error) {
         console.error(
           `[orchestratorFlow] Factual Query path failed for "${route.extractedQuery}":`,
@@ -405,12 +411,12 @@ export const orchestratorFlow = ai.defineFlow(
           }
         }
 
-        return {
+        return cacheAsync(cacheKey, {
           kind: 'discovery' as const,
           message: finalMessage,
           data: enrichmentResults,
           traceId,
-        };
+        });
       } catch (error) {
         console.error(
           `[orchestratorFlow] Synthesizer failed for query "${query}":`,
@@ -418,20 +424,20 @@ export const orchestratorFlow = ai.defineFlow(
         );
         // Fallback: return data with a generic message
         const t = getTranslations(language);
-        return {
+        return cacheAsync(cacheKey, {
           kind: 'discovery' as const,
           message: t['synthesis_failure'],
           data: enrichmentResults,
           traceId,
-        };
+        });
       }
     }
 
     const t = getTranslations(language);
-    return {
+    return cacheAsync(cacheKey, {
       kind: 'refusal' as const,
       message: t['unrecognized_intent'],
       traceId,
-    };
+    });
   }
 );

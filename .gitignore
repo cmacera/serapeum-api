@@ -45,3 +45,4 @@ temp/
 .npm_cache/
 .npm-cache/
 .vitest_tmp/
+supabase/.temp/
