@@ -704,6 +704,30 @@ components:
           example: ES
       required:
         - id
+    FeedbackInput:
+      type: object
+      properties:
+        traceId:
+          type: string
+          minLength: 1
+          description: Trace ID from an orchestratorFlow response
+          example: abc123ef
+        score:
+          anyOf:
+            - type: number
+              enum:
+                - 0
+            - type: number
+              enum:
+                - 1
+          description: 1 = positive (👍), 0 = negative (👎)
+          example: 1
+        comment:
+          type: string
+          description: Optional free-text comment from user
+      required:
+        - traceId
+        - score
   parameters: {}
 paths:
   /searchBooks:
@@ -1007,6 +1031,54 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /feedback:
+    post:
+      summary: Submit feedback for a query response
+      description: Records a thumbs-up or thumbs-down score for an orchestratorFlow
+        response. The score is forwarded to Langfuse linked to the given
+        traceId.
+      tags:
+        - Feedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackInput"
+      responses:
+        "200":
+          description: Feedback recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized — missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error (e.g. Langfuse API failure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Feedback storage not configured
           content:
             application/json:
               schema:

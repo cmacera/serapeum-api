@@ -492,6 +492,59 @@ registry.registerPath({
   },
 });
 
+const FeedbackInputSchema = z
+  .object({
+    traceId: z
+      .string()
+      .min(1)
+      .openapi({ description: 'Trace ID from an orchestratorFlow response', example: 'abc123ef' }),
+    score: z
+      .union([z.literal(0), z.literal(1)])
+      .openapi({ description: '1 = positive (👍), 0 = negative (👎)', example: 1 }),
+    comment: z.string().optional().openapi({ description: 'Optional free-text comment from user' }),
+  })
+  .openapi('FeedbackInput');
+
+registry.register('FeedbackInput', FeedbackInputSchema);
+
+registry.registerPath({
+  method: 'post',
+  path: '/feedback',
+  summary: 'Submit feedback for a query response',
+  description:
+    'Records a thumbs-up or thumbs-down score for an orchestratorFlow response. The score is forwarded to Langfuse linked to the given traceId.',
+  tags: ['Feedback'],
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      required: true,
+      content: { 'application/json': { schema: FeedbackInputSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Feedback recorded successfully',
+      content: { 'application/json': { schema: z.object({}) } },
+    },
+    400: {
+      description: 'Invalid request body',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized — missing or invalid bearer token',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error (e.g. Langfuse API failure)',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    503: {
+      description: 'Feedback storage not configured',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Generate and write the spec
 // ---------------------------------------------------------------------------
