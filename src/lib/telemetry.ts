@@ -7,37 +7,41 @@ let processor: BatchSpanProcessor | null = null;
 
 /**
  * Initializes Langfuse telemetry via OpenTelemetry if env vars are present.
- * Idempotent and race-safe — concurrent calls share the same promise.
+ * Race-safe — concurrent calls share the same promise.
+ * Only memoizes when credentials are available — retries if keys were absent.
  * Fails open — errors here must never break the server startup.
  */
 export function initLangfuseTelemetry(): Promise<void> {
   if (initPromise) return initPromise;
 
+  const publicKey = process.env['LANGFUSE_PUBLIC_KEY'];
+  const secretKey = process.env['LANGFUSE_SECRET_KEY'];
+
+  // Do not memoize when credentials are absent — allow retry once keys are set.
+  if (!publicKey || !secretKey) return Promise.resolve();
+
+  const host = process.env['LANGFUSE_HOST'] ?? 'https://cloud.langfuse.com';
+  const credentials = Buffer.from(`${publicKey}:${secretKey}`).toString('base64');
+
   initPromise = (async () => {
-    const publicKey = process.env['LANGFUSE_PUBLIC_KEY'];
-    const secretKey = process.env['LANGFUSE_SECRET_KEY'];
-
-    if (!publicKey || !secretKey) return;
-
-    const host = process.env['LANGFUSE_HOST'] ?? 'https://cloud.langfuse.com';
-    const credentials = Buffer.from(`${publicKey}:${secretKey}`).toString('base64');
+    const localProcessor = new BatchSpanProcessor(
+      new OTLPTraceExporter({
+        url: `${host}/api/public/otel/v1/traces`,
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      })
+    );
 
     try {
-      processor = new BatchSpanProcessor(
-        new OTLPTraceExporter({
-          url: `${host}/api/public/otel/v1/traces`,
-          headers: {
-            Authorization: `Basic ${credentials}`,
-          },
-        })
-      );
-
-      await enableTelemetry({ spanProcessors: [processor] });
+      await enableTelemetry({ spanProcessors: [localProcessor] });
+      processor = localProcessor; // publish only after successful init
 
       if (process.env['DEBUG']) {
         console.log(`[Telemetry] Langfuse tracing enabled → ${host}`);
       }
     } catch (err) {
+      await localProcessor.shutdown(); // clean up before resetting
       initPromise = null; // allow retry on failure
       console.warn(
         '[Telemetry] Failed to initialize Langfuse telemetry:',
