@@ -10,6 +10,11 @@ import { routerPrompt } from '../src/prompts/routerPrompt.js';
 import { extractorPrompt } from '../src/prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '../src/prompts/synthesizerPrompt.js';
 
+// Prevent OTEL from injecting a real traceId in tests
+vi.mock('@opentelemetry/api', () => ({
+  trace: { getActiveSpan: () => undefined },
+}));
+
 // Mock dependencies
 vi.mock('../src/lib/ai.js', async () => {
   const actual = await vi.importActual<typeof import('../src/lib/ai.js')>('../src/lib/ai.js');

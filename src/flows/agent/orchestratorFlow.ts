@@ -109,9 +109,13 @@ export const orchestratorFlow = ai.defineFlow(
     const language = inputParam.language;
 
     // Attach userId from JWT as standard OTEL attribute — Langfuse maps 'user.id' to its User field
+    // Capture traceId for feedback attribution (undefined when OTEL not active)
+    let traceId: string | undefined;
     try {
+      const span = trace.getActiveSpan();
       const userId = getContext()?.['sub'];
-      if (userId) trace.getActiveSpan()?.setAttribute('user.id', String(userId));
+      if (userId) span?.setAttribute('user.id', String(userId));
+      traceId = span?.spanContext().traceId;
     } catch (err) {
       if (!(err instanceof Error && err.message.includes('Async context is not initialized'))) {
         console.warn('[orchestratorFlow] Failed to set user.id span attribute:', err);
@@ -128,6 +132,7 @@ export const orchestratorFlow = ai.defineFlow(
         kind: 'error' as const,
         error: 'Router failure',
         details: t['router_failure'],
+        traceId,
       };
     }
 
@@ -137,6 +142,7 @@ export const orchestratorFlow = ai.defineFlow(
       return {
         kind: 'refusal' as const,
         message: route.refusalReason || t['generic_refusal'],
+        traceId,
       };
     }
 
@@ -175,6 +181,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'search_results' as const,
           message: generatedText,
           data: executionResult,
+          traceId,
         };
       } catch (error) {
         console.error(
@@ -186,6 +193,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'error' as const,
           error: t['specific_error'],
           details: error instanceof Error ? error.message : String(error),
+          traceId,
         };
       }
     }
@@ -255,6 +263,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'search_results' as const,
           message: generatedText,
           data: executionResult,
+          traceId,
         };
       } catch (error) {
         console.error(
@@ -266,6 +275,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'error' as const,
           error: t['specific_error'],
           details: error instanceof Error ? error.message : String(error),
+          traceId,
         };
       }
     }
@@ -308,6 +318,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'error' as const,
           error: t['failedProcessSearchResults'],
           details: error instanceof Error ? error.message : String(error),
+          traceId,
         };
       }
 
@@ -318,6 +329,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'error' as const,
           error: t['failedExtractSearchResults'],
           details: 'Title extraction returned null.',
+          traceId,
         };
       }
 
@@ -397,6 +409,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'discovery' as const,
           message: finalMessage,
           data: enrichmentResults,
+          traceId,
         };
       } catch (error) {
         console.error(
@@ -409,6 +422,7 @@ export const orchestratorFlow = ai.defineFlow(
           kind: 'discovery' as const,
           message: t['synthesis_failure'],
           data: enrichmentResults,
+          traceId,
         };
       }
     }
@@ -417,6 +431,7 @@ export const orchestratorFlow = ai.defineFlow(
     return {
       kind: 'refusal' as const,
       message: t['unrecognized_intent'],
+      traceId,
     };
   }
 );
