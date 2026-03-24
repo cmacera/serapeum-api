@@ -173,5 +173,75 @@
     "testCaseId": "00000000-0000-4000-8000-100000000035",
     "input": { "query": "recomiéndame algo como Breaking Bad", "language": "es" },
     "reference": { "intent": "GENERAL_DISCOVERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000036",
+    "input": { "query": "how many seasons does Breaking Bad have?" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000037",
+    "input": { "query": "how much did Parasite gross?" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000038",
+    "input": { "query": "what's the runtime of Interstellar?" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000039",
+    "input": { "query": "who directed Oppenheimer?" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "ALL" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000040",
+    "input": { "query": "how many episodes does Chernobyl have?" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000041",
+    "input": { "query": "¿cuántas temporadas tiene Breaking Bad?", "language": "es" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000042",
+    "input": { "query": "¿cuánto facturó la película Parásitos?", "language": "es" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000043",
+    "input": { "query": "¿cuánto recaudó en cine la película Parásitos?", "language": "es" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000044",
+    "input": { "query": "¿cuántos episodios tiene la serie Chernobyl?", "language": "es" },
+    "reference": { "intent": "FACTUAL_QUERY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000045",
+    "input": { "query": "cuántos juegos tiene la saga The Last of Us", "language": "es" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000046",
+    "input": { "query": "how many Harry Potter books are there?" },
+    "reference": { "intent": "GENERAL_DISCOVERY", "category": "BOOK" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000047",
+    "input": { "query": "la película Inception", "language": "es" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "MOVIE_TV" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000048",
+    "input": { "query": "el juego The Last of Us Part II", "language": "es" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "GAME" }
+  },
+  {
+    "testCaseId": "00000000-0000-4000-8000-100000000049",
+    "input": { "query": "Breaking Bad" },
+    "reference": { "intent": "SPECIFIC_ENTITY", "category": "ALL" }
   }
 ]
