@@ -24,16 +24,17 @@ export function initLangfuseTelemetry(): Promise<void> {
   const credentials = Buffer.from(`${publicKey}:${secretKey}`).toString('base64');
 
   initPromise = (async () => {
-    const localProcessor = new BatchSpanProcessor(
-      new OTLPTraceExporter({
-        url: `${host}/api/public/otel/v1/traces`,
-        headers: {
-          Authorization: `Basic ${credentials}`,
-        },
-      })
-    );
-
+    let localProcessor: BatchSpanProcessor | null = null;
     try {
+      localProcessor = new BatchSpanProcessor(
+        new OTLPTraceExporter({
+          url: `${host}/api/public/otel/v1/traces`,
+          headers: {
+            Authorization: `Basic ${credentials}`,
+          },
+        })
+      );
+
       await enableTelemetry({ spanProcessors: [localProcessor] });
       processor = localProcessor; // publish only after successful init
 
@@ -41,12 +42,19 @@ export function initLangfuseTelemetry(): Promise<void> {
         console.log(`[Telemetry] Langfuse tracing enabled → ${host}`);
       }
     } catch (err) {
-      await localProcessor.shutdown(); // clean up before resetting
-      initPromise = null; // allow retry on failure
+      if (localProcessor) {
+        try {
+          await localProcessor.shutdown();
+        } catch {
+          // ignore shutdown errors during cleanup
+        }
+      }
       console.warn(
         '[Telemetry] Failed to initialize Langfuse telemetry:',
         err instanceof Error ? err.message : 'Unknown error'
       );
+    } finally {
+      if (!processor) initPromise = null; // allow retry only if init did not succeed
     }
   })();
 
@@ -59,8 +67,12 @@ export function initLangfuseTelemetry(): Promise<void> {
  * Exposed for explicit teardown in tests or custom shutdown sequences.
  */
 export async function shutdownTelemetry(): Promise<void> {
-  if (processor) {
-    await processor.shutdown();
+  const current = processor;
+  if (!current) return;
+
+  try {
+    await current.shutdown();
+  } finally {
     processor = null;
     initPromise = null;
   }
