@@ -11,6 +11,7 @@ import { searchWeb } from './flows/catalog/searchWeb.js';
 import { getMovieDetail } from './flows/catalog/getMovieDetail.js';
 import { getTvDetail } from './flows/catalog/getTvDetail.js';
 import { orchestratorFlow } from './flows/agent/orchestratorFlow.js';
+import { feedbackFlow } from './flows/feedback/feedbackFlow.js';
 import './prompts/index.js';
 import './evals/index.js';
 
@@ -62,6 +63,7 @@ startFlowServer({
     withFlowOptions(getMovieDetail, { contextProvider: jwtContextProvider }),
     withFlowOptions(getTvDetail, { contextProvider: jwtContextProvider }),
     withFlowOptions(orchestratorFlow, { contextProvider: jwtContextProvider }),
+    withFlowOptions(feedbackFlow, { contextProvider: jwtContextProvider }),
   ],
   port: PORT,
   cors: {
