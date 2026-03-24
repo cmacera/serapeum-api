@@ -69,8 +69,17 @@ const TvDetailOpenApi = TvDetailSchema.extend({
 // SearchAllResponseSchema is intentionally kept local: it must reference the
 // annotated schemas above (MediaSchema, BookSchema, etc.) so the generator
 // emits $ref pointers rather than inlining the sub-schemas in the YAML.
+const FeaturedItemSchema = z
+  .discriminatedUnion('type', [
+    z.object({ type: z.literal('media'), item: MediaSchema }),
+    z.object({ type: z.literal('book'), item: BookSchema }),
+    z.object({ type: z.literal('game'), item: GameSchema }),
+  ])
+  .openapi('FeaturedItem');
+
 const SearchAllResponseSchema = z
   .object({
+    featured: FeaturedItemSchema.optional(),
     media: z.array(MediaSchema),
     books: z.array(BookSchema),
     games: z.array(GameSchema),
@@ -86,13 +95,6 @@ const BooksResponseSchema = z.array(BookSchema).openapi('BooksResponse');
 const MediaResponseSchema = z.array(MediaSchema).openapi('MediaResponse');
 const GamesResponseSchema = z.array(GameSchema).openapi('GamesResponse');
 
-const GeneralDiscoveryResponseSchema = z
-  .object({
-    text: z.string().openapi({ description: 'AI-generated summary text' }),
-    data: SearchAllResponseSchema,
-  })
-  .openapi('GeneralDiscoveryResponse');
-
 const ErrorResponseSchema = z
   .object({
     error: z.string(),
@@ -100,15 +102,61 @@ const ErrorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
-// Orchestrator response: union of all possible outputs
+// Orchestrator response: discriminated union matching AgentResponseSchema.
+// Rebuilt locally so SearchAllResponseSchema uses $ref pointers.
+const AgentRefusalSchema = z
+  .object({
+    kind: z.literal('refusal'),
+    message: z.string(),
+    traceId: z
+      .string()
+      .optional()
+      .openapi({ description: 'Langfuse trace ID for feedback attribution' }),
+  })
+  .openapi('AgentRefusal');
+
+const AgentSearchResultsSchema = z
+  .object({
+    kind: z.literal('search_results'),
+    message: z.string(),
+    data: SearchAllResponseSchema,
+    traceId: z
+      .string()
+      .optional()
+      .openapi({ description: 'Langfuse trace ID for feedback attribution' }),
+  })
+  .openapi('AgentSearchResults');
+
+const AgentDiscoverySchema = z
+  .object({
+    kind: z.literal('discovery'),
+    message: z.string(),
+    data: SearchAllResponseSchema,
+    traceId: z
+      .string()
+      .optional()
+      .openapi({ description: 'Langfuse trace ID for feedback attribution' }),
+  })
+  .openapi('AgentDiscovery');
+
+const AgentErrorSchema = z
+  .object({
+    kind: z.literal('error'),
+    error: z.string(),
+    details: z.string().optional(),
+    traceId: z
+      .string()
+      .optional()
+      .openapi({ description: 'Langfuse trace ID for feedback attribution' }),
+  })
+  .openapi('AgentError');
+
 const OrchestratorResponseSchema = z
-  .union([
-    z.string().openapi({ description: 'Plain text response (out-of-scope or fallback)' }),
-    GeneralDiscoveryResponseSchema,
-    BooksResponseSchema,
-    MediaResponseSchema,
-    GamesResponseSchema,
-    ErrorResponseSchema,
+  .discriminatedUnion('kind', [
+    AgentRefusalSchema,
+    AgentSearchResultsSchema,
+    AgentDiscoverySchema,
+    AgentErrorSchema,
   ])
   .openapi('OrchestratorResponse');
 
@@ -160,12 +208,16 @@ registry.register('Book', BookSchema);
 registry.register('Media', MediaSchema);
 registry.register('Game', GameSchema);
 registry.register('SearchError', SearchErrorSchema);
+registry.register('FeaturedItem', FeaturedItemSchema);
 registry.register('SearchAllResponse', SearchAllResponseSchema);
 registry.register('BooksResponse', BooksResponseSchema);
 registry.register('MediaResponse', MediaResponseSchema);
 registry.register('GamesResponse', GamesResponseSchema);
-registry.register('GeneralDiscoveryResponse', GeneralDiscoveryResponseSchema);
 registry.register('ErrorResponse', ErrorResponseSchema);
+registry.register('AgentRefusal', AgentRefusalSchema);
+registry.register('AgentSearchResults', AgentSearchResultsSchema);
+registry.register('AgentDiscovery', AgentDiscoverySchema);
+registry.register('AgentError', AgentErrorSchema);
 registry.register('OrchestratorResponse', OrchestratorResponseSchema);
 registry.register('CatalogSearchInput', CatalogSearchInputSchema);
 registry.register('CastMember', CastMemberOpenApi);

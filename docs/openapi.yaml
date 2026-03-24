@@ -196,9 +196,46 @@ components:
       required:
         - source
         - message
+    FeaturedItem:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - media
+            item:
+              $ref: "#/components/schemas/Media"
+          required:
+            - type
+            - item
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - book
+            item:
+              $ref: "#/components/schemas/Book"
+          required:
+            - type
+            - item
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - game
+            item:
+              $ref: "#/components/schemas/Game"
+          required:
+            - type
+            - item
     SearchAllResponse:
       type: object
       properties:
+        featured:
+          $ref: "#/components/schemas/FeaturedItem"
         media:
           type: array
           items:
@@ -231,17 +268,6 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Game"
-    GeneralDiscoveryResponse:
-      type: object
-      properties:
-        text:
-          type: string
-          description: AI-generated summary text
-        data:
-          $ref: "#/components/schemas/SearchAllResponse"
-      required:
-        - text
-        - data
     ErrorResponse:
       type: object
       properties:
@@ -251,15 +277,87 @@ components:
           type: string
       required:
         - error
+    AgentRefusal:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - refusal
+        message:
+          type: string
+        traceId:
+          type: string
+          description: Langfuse trace ID for feedback attribution
+      required:
+        - kind
+        - message
+    AgentSearchResults:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - search_results
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SearchAllResponse"
+        traceId:
+          type: string
+          description: Langfuse trace ID for feedback attribution
+      required:
+        - kind
+        - message
+        - data
+    AgentDiscovery:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - discovery
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SearchAllResponse"
+        traceId:
+          type: string
+          description: Langfuse trace ID for feedback attribution
+      required:
+        - kind
+        - message
+        - data
+    AgentError:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - error
+        error:
+          type: string
+        details:
+          type: string
+        traceId:
+          type: string
+          description: Langfuse trace ID for feedback attribution
+      required:
+        - kind
+        - error
     OrchestratorResponse:
-      anyOf:
-        - type: string
-          description: Plain text response (out-of-scope or fallback)
-        - $ref: "#/components/schemas/GeneralDiscoveryResponse"
-        - $ref: "#/components/schemas/BooksResponse"
-        - $ref: "#/components/schemas/MediaResponse"
-        - $ref: "#/components/schemas/GamesResponse"
-        - $ref: "#/components/schemas/ErrorResponse"
+      oneOf:
+        - $ref: "#/components/schemas/AgentRefusal"
+        - $ref: "#/components/schemas/AgentSearchResults"
+        - $ref: "#/components/schemas/AgentDiscovery"
+        - $ref: "#/components/schemas/AgentError"
+      discriminator:
+        propertyName: kind
+        mapping:
+          refusal: "#/components/schemas/AgentRefusal"
+          search_results: "#/components/schemas/AgentSearchResults"
+          discovery: "#/components/schemas/AgentDiscovery"
+          error: "#/components/schemas/AgentError"
     CatalogSearchInput:
       type: object
       properties:
@@ -446,7 +544,6 @@ components:
           type:
             - string
             - "null"
-          description: Content certification for the request region (e.g. "PG-13", "R"). Null if unavailable.
       required:
         - id
         - media_type
@@ -584,7 +681,6 @@ components:
           type:
             - string
             - "null"
-          description: Content rating for the request region (e.g. "TV-MA", "16"). Null if unavailable.
       required:
         - id
         - media_type
