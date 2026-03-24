@@ -534,6 +534,10 @@ registry.registerPath({
       description: 'Unauthorized — missing or invalid bearer token',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    500: {
+      description: 'Internal server error (e.g. Langfuse API failure)',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     503: {
       description: 'Feedback storage not configured',
       content: { 'application/json': { schema: ErrorResponseSchema } },
