@@ -58,6 +58,12 @@ vi.mock('@/flows/catalog/searchBooks', () => ({
   searchBooks: vi.fn().mockResolvedValue([]),
   SearchBooksOutputSchema: {},
 }));
+vi.mock('@/flows/catalog/getMovieDetail', () => ({
+  getMovieDetail: vi.fn().mockResolvedValue({}),
+}));
+vi.mock('@/flows/catalog/getTvDetail', () => ({
+  getTvDetail: vi.fn().mockResolvedValue({}),
+}));
 
 // Mock tools
 vi.mock('@/tools/search-tavily-tool', () => ({
@@ -81,6 +87,9 @@ import { extractorPrompt } from '@/prompts/extractorPrompt.js';
 import { synthesizerPrompt } from '@/prompts/synthesizerPrompt.js';
 import { searchAll } from '@/flows/catalog/searchAll.js';
 import { searchTavilyTool } from '@/tools/search-tavily-tool.js';
+import { getMovieDetail } from '@/flows/catalog/getMovieDetail.js';
+import { getTvDetail } from '@/flows/catalog/getTvDetail.js';
+
 describe('orchestratorFlow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -141,6 +150,45 @@ describe('orchestratorFlow', () => {
     expect(data.featured).toBeDefined();
     // The featured item (Inception, id=1) must not appear in data.media
     expect(data.media.every((item: any) => item.id !== data.featured.item.id)).toBe(true);
+  });
+
+  it('should route to Path D (Factual Query), fetch TV detail, and pass _queryType to synthesizer', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'FACTUAL_QUERY',
+        category: 'MOVIE_TV',
+        extractedQuery: 'Breaking Bad',
+      },
+    });
+
+    (searchAll as any).mockResolvedValue({
+      media: [{ id: 1396, name: 'Breaking Bad', media_type: 'tv', popularity: 250 }],
+      books: [],
+      games: [],
+    });
+
+    (getTvDetail as any).mockResolvedValue({ seasons_count: 5, episodes_count: 62 });
+
+    (synthesizerPrompt as any).mockResolvedValue({
+      text: 'Breaking Bad has 5 seasons and 62 episodes.',
+    });
+
+    const result = await orchestratorFlow({
+      query: '¿cuántas temporadas tiene Breaking Bad?',
+      language: 'es',
+    });
+
+    expect(getTvDetail).toHaveBeenCalledWith(expect.objectContaining({ id: 1396, language: 'es' }));
+    expect(getMovieDetail).not.toHaveBeenCalled();
+    expect(synthesizerPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalQuery: '¿cuántas temporadas tiene Breaking Bad?',
+        apiDetails: expect.stringContaining('"_queryType":"factual"'),
+      }),
+      expect.any(Object)
+    );
+    expect(result).toHaveProperty('kind', 'search_results');
+    expect(result).toHaveProperty('message', 'Breaking Bad has 5 seasons and 62 episodes.');
   });
 
   it('should propagate explicit language to calls', async () => {

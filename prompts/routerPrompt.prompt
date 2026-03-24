@@ -24,27 +24,44 @@ film to watch while you check the forecast!" Ensure the refusalReason is transla
 is provided.
 
 2. If inside the domain, classify intent as:
+- FACTUAL_QUERY: If the query asks a specific factual question about ONE exact, standalone title (e.g., "how many
+seasons does Breaking Bad have?", "how much did Parasite gross?", "what's the runtime of Interstellar?", "who directed
+The Last of Us?", "how many episodes does Chernobyl have?", "what was the budget of Avatar?").
+Rule: Must be ONE specific title + ONE factual question. A franchise or saga question ("how many games does The Last of
+Us saga have?", "how many Harry Potter books are there?") is NOT FACTUAL_QUERY — classify it as GENERAL_DISCOVERY. If
+there is no question (just a title with no interrogative), classify as SPECIFIC_ENTITY instead.
+extractedQuery: the clean title only, same format as SPECIFIC_ENTITY (e.g., "Breaking Bad", "Parasite").
 - SPECIFIC_ENTITY: If it's a direct, clear request for one exact, standalone title (subtitle, number, or qualifier are
 optional) (e.g., "Tell me about The Witcher 3: Wild Hunt", "Inception", "Spider-Man: No Way Home", "Dune", "The Last of
 Us Part II"). A franchise name that refers to multiple works (e.g., "Spider-Man", "Harry Potter") is NOT a specific
 entity — it is GENERAL_DISCOVERY.
-- GENERAL_DISCOVERY: If it's a general query, a thematic search, asking for recommendations, a franchise name, or a
-broad search (e.g., "Best RPGs of 2015", "Spider-Man movies", "Harry Potter books", "Recommendations for sci-fi").
+- GENERAL_DISCOVERY: If it's a general query, a thematic search, asking for recommendations, a franchise name, a saga
+question, or a broad search (e.g., "Best RPGs of 2015", "Spider-Man movies", "Harry Potter books", "how many games does
+The Last of Us saga have?", "Recommendations for sci-fi").
 
-Decision rule: A query is SPECIFIC_ENTITY if it names one exact title (subtitle/number/unique qualifier optional).
-Franchise names that refer to multiple works are always GENERAL_DISCOVERY.
+Decision rule: A query is FACTUAL_QUERY if it asks a factual question (who/what/how many/how much/when) about ONE
+specific title. A query is SPECIFIC_ENTITY if it names one exact title with no question. Franchise/saga questions are
+always GENERAL_DISCOVERY.
 
 3. Classify category as:
 - ALL: The default. Use ALL whenever no explicit medium keyword appears in the query.
   Rule: Do NOT infer category from the title itself — "Inception" with no medium keyword is ALL, not MOVIE_TV.
-- MOVIE_TV: ONLY when the query contains an explicit medium keyword (movie/film/show/series).
-- GAME: ONLY when the query contains an explicit medium keyword (game/play).
-- BOOK: ONLY when the query contains an explicit medium keyword (book/novel/read).
+- MOVIE_TV: ONLY when the query contains an explicit medium keyword in any language.
+  English: movie, film, show, series, cinema | Spanish: película, pelicula, cine, filme, serie, episodio, temporada
+  French: film, série, cinéma | German: Film, Serie | Portuguese: filme, série
+- GAME: ONLY when the query contains an explicit medium keyword in any language.
+  English: game, play, gaming | Spanish: juego, videojuego, jugar
+- BOOK: ONLY when the query contains an explicit medium keyword in any language.
+  English: book, novel, read | Spanish: libro, novela, leer | French: livre, roman
 Note: Titles or franchise names that span multiple media (e.g., Batman, Spider-Man, Mario, The Witcher, Star Wars)
 are ALWAYS ALL.
 
 4. Set extractedQuery as:
-- For SPECIFIC_ENTITY: the clean title only (e.g., "Spider-Man: No Way Home").
+- For SPECIFIC_ENTITY and FACTUAL_QUERY: the clean title only (e.g., "Spider-Man: No Way Home").
+  CRITICAL: Preserve the title exactly as the user wrote it — do NOT translate to another language.
+  ✅ User writes "Parásitos" → extractedQuery: "Parásitos"
+  ✅ User writes "Le Fabuleux Destin d'Amélie Poulain" → extractedQuery: "Le Fabuleux Destin d'Amélie Poulain"
+  ❌ Never: user writes "Parásitos" → extractedQuery: "Parasite" (no translation to English)
 - For GENERAL_DISCOVERY:
 - If the query is a RECOMMENDATION request (contains phrases like "similar to X", "parecido a X", "como X", "like X",
 "recommendations like X", "algo como X"): write a THEMATIC description of the reference item using its genre, tone,

@@ -1,7 +1,7 @@
 {
     "router-cases": {
         "datasetId": "router-cases",
-        "size": 35,
+        "size": 49,
         "schema": {
             "inputSchema": {
                 "type": "object",
@@ -27,7 +27,8 @@
                         "enum": [
                             "SPECIFIC_ENTITY",
                             "GENERAL_DISCOVERY",
-                            "OUT_OF_SCOPE"
+                            "OUT_OF_SCOPE",
+                            "FACTUAL_QUERY"
                         ]
                     },
                     "category": {
@@ -53,45 +54,7 @@
         "datasetType": "EXECUTABLE_PROMPT",
         "metricRefs": [],
         "createTime": "Thu Mar 19 2026 10:00:00 GMT+0100 (Central European Standard Time)",
-        "updateTime": "Thu Mar 19 2026 10:00:00 GMT+0100 (Central European Standard Time)"
-    },
-    "router-smoke": {
-        "datasetId": "router-smoke",
-        "size": 2,
-        "schema": {
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "query": { "type": "string" },
-                    "language": { "type": "string" }
-                },
-                "required": ["query"],
-                "additionalProperties": true,
-                "$schema": "http://json-schema.org/draft-07/schema#"
-            },
-            "referenceSchema": {
-                "type": "object",
-                "properties": {
-                    "intent": {
-                        "type": "string",
-                        "enum": ["SPECIFIC_ENTITY", "GENERAL_DISCOVERY", "OUT_OF_SCOPE"]
-                    },
-                    "category": {
-                        "type": "string",
-                        "enum": ["MOVIE_TV", "GAME", "BOOK", "ALL"]
-                    }
-                },
-                "required": ["intent", "category"],
-                "additionalProperties": false,
-                "$schema": "http://json-schema.org/draft-07/schema#"
-            }
-        },
-        "targetAction": "/executable-prompt/routerPrompt",
-        "version": 3,
-        "datasetType": "EXECUTABLE_PROMPT",
-        "metricRefs": [],
-        "createTime": "Thu Mar 20 2026 10:00:00 GMT+0100 (Central European Standard Time)",
-        "updateTime": "Thu Mar 20 2026 10:00:00 GMT+0100 (Central European Standard Time)"
+        "updateTime": "Thu Mar 21 2026 10:00:00 GMT+0100 (Central European Standard Time)"
     },
     "extractor-cases": {
         "datasetId": "extractor-cases",
@@ -140,7 +103,7 @@
     },
     "synthesizer-cases": {
         "datasetId": "synthesizer-cases",
-        "size": 10,
+        "size": 13,
         "schema": {
             "inputSchema": {
                 "type": "object",
