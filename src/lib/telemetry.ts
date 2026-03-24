@@ -23,8 +23,8 @@ export function initLangfuseTelemetry(): Promise<void> {
   const host = process.env['LANGFUSE_HOST'] ?? 'https://cloud.langfuse.com';
   const credentials = Buffer.from(`${publicKey}:${secretKey}`).toString('base64');
 
-  initPromise = (async () => {
-    let localProcessor: BatchSpanProcessor | null = null;
+  initPromise = (async (): Promise<void> => {
+    let localProcessor: BatchSpanProcessor | undefined;
     try {
       localProcessor = new BatchSpanProcessor(
         new OTLPTraceExporter({
@@ -49,12 +49,11 @@ export function initLangfuseTelemetry(): Promise<void> {
           // ignore shutdown errors during cleanup
         }
       }
+      initPromise = null; // allow retry on failure
       console.warn(
         '[Telemetry] Failed to initialize Langfuse telemetry:',
         err instanceof Error ? err.message : 'Unknown error'
       );
-    } finally {
-      if (!processor) initPromise = null; // allow retry only if init did not succeed
     }
   })();
 
@@ -72,6 +71,11 @@ export async function shutdownTelemetry(): Promise<void> {
 
   try {
     await current.shutdown();
+  } catch (err) {
+    console.warn(
+      '[Telemetry] Error during telemetry shutdown:',
+      err instanceof Error ? err.message : 'Unknown error'
+    );
   } finally {
     processor = null;
     initPromise = null;
