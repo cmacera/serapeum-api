@@ -2,6 +2,7 @@ import { genkit } from 'genkit';
 import type { GenkitPlugin, GenkitPluginV2 } from 'genkit/plugin';
 import { z } from '@genkit-ai/core';
 import { googlePlugin, ollamaPlugin, ollamaCloudPlugin, openRouterPlugin } from './aiConfig.js';
+import { initLangfuseTelemetry } from './telemetry.js';
 
 const provider = process.env['AI_PROVIDER'];
 
@@ -19,6 +20,8 @@ export const ai = genkit({
   plugins,
   promptDir: './prompts',
 });
+
+await initLangfuseTelemetry();
 
 /**
  * Active model configuration.

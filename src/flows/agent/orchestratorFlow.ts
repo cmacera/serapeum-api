@@ -1,5 +1,7 @@
 import { inspect } from 'util';
 import { ai, z, activeModel } from '../../lib/ai.js';
+import { trace } from '@opentelemetry/api';
+import { getContext } from '@genkit-ai/core';
 import { getTranslations } from '../../lib/translations.js';
 import { AgentResponseSchema, SearchAllOutputSchema } from '@serapeum/shared-schemas';
 import { searchAll } from '../catalog/searchAll.js';
@@ -105,6 +107,14 @@ export const orchestratorFlow = ai.defineFlow(
   async (inputParam) => {
     const query = inputParam.query;
     const language = inputParam.language;
+
+    // Attach userId from JWT as standard OTEL attribute — Langfuse maps 'user.id' to its User field
+    try {
+      const userId = getContext()?.['sub'];
+      if (userId) trace.getActiveSpan()?.setAttribute('user.id', String(userId));
+    } catch {
+      // No async context in test environments — safe to ignore
+    }
 
     // 1. Router
     const { output: route } = await routerPrompt({ query, language }, { model: activeModel });

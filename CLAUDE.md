@@ -148,13 +148,19 @@ Datasets:
 
 **Linear team:** Serapeum · **Project:** Serapeum API · **Identifier prefix:** `SER`
 
+### Ticket state automation
+
+- **Move to `In Progress` automatically** when starting work on a ticket — no need to ask.
+- All other state transitions (`In Review`, `Done`, `Canceled`, etc.) require an explicit request.
+
 ### Starting a new feature
 
-1. Create a ticket in Linear (MCP or UI): assign to self, set state to `In Progress` when starting, project = Serapeum API.
-2. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the SER-XX prefix).
-3. Implement, commit with conventional commits (no `[SER-XX]` prefix — commitlint rejects it).
-4. Create the PR: title **must** start with `[SER-XX]` (required by `check-pr-title` CI check). Body should include `Closes SER-XX`.
-5. Move ticket to `In Review` when the PR is open.
+1. Create a ticket in Linear (MCP or UI): assign to self, project = Serapeum API.
+2. **Move ticket to `In Progress`** (automatic — no need to ask).
+3. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the SER-XX prefix).
+4. Implement, commit with conventional commits (no `[SER-XX]` prefix — commitlint rejects it).
+5. Create the PR: title **must** start with `[SER-XX]` (required by `check-pr-title` CI check). Body should include `Closes SER-XX`.
+6. Move ticket to `In Review` when the PR is open (explicit request required).
 
 ### PR title format (enforced by CI)
 
