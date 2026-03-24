@@ -20,7 +20,7 @@ export function initLangfuseTelemetry(): Promise<void> {
   // Do not memoize when credentials are absent — allow retry once keys are set.
   if (!publicKey || !secretKey) return Promise.resolve();
 
-  const host = process.env['LANGFUSE_HOST'] ?? 'https://cloud.langfuse.com';
+  const host = (process.env['LANGFUSE_HOST'] ?? 'https://cloud.langfuse.com').replace(/\/$/, '');
   const credentials = Buffer.from(`${publicKey}:${secretKey}`).toString('base64');
 
   initPromise = (async (): Promise<void> => {
