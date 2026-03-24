@@ -112,8 +112,10 @@ export const orchestratorFlow = ai.defineFlow(
     try {
       const userId = getContext()?.['sub'];
       if (userId) trace.getActiveSpan()?.setAttribute('user.id', String(userId));
-    } catch {
-      // No async context in test environments — safe to ignore
+    } catch (err) {
+      if (!(err instanceof Error && err.message.includes('Async context is not initialized'))) {
+        console.warn('[orchestratorFlow] Failed to set user.id span attribute:', err);
+      }
     }
 
     // 1. Router

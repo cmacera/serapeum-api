@@ -159,13 +159,15 @@ Datasets:
 2. **Move ticket to `In Progress`** (automatic — no need to ask).
 3. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the SER-XX prefix).
 4. Implement, commit with conventional commits (no `[SER-XX]` prefix — commitlint rejects it).
-5. Create the PR: title **must** start with `[SER-XX]` (required by `check-pr-title` CI check). Body should include `Closes SER-XX`.
+5. Create the PR: title must start with `[SER-XX]` or `SER-XX` — both accepted by `check-pr-title` CI check. Body should include `Closes SER-XX`.
 6. Move ticket to `In Review` when the PR is open (explicit request required).
 
 ### PR title format (enforced by CI)
 
+Both formats accepted:
 ```text
 [SER-XX] type(scope): description
+SER-XX type(scope): description
 ```
 
 ### Available Linear states
