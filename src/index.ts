@@ -1,19 +1,6 @@
 import 'dotenv/config';
 
-import { startFlowServer, withFlowOptions } from '@genkit-ai/express';
-import { jwtContextProvider } from './middleware/verifyJwt.js';
-
-import { searchMedia } from './flows/catalog/searchMedia.js';
-import { searchBooks } from './flows/catalog/searchBooks.js';
-import { searchGames } from './flows/catalog/searchGames.js';
-import { searchAll } from './flows/catalog/searchAll.js';
-import { searchWeb } from './flows/catalog/searchWeb.js';
-import { getMovieDetail } from './flows/catalog/getMovieDetail.js';
-import { getTvDetail } from './flows/catalog/getTvDetail.js';
-import { orchestratorFlow } from './flows/agent/orchestratorFlow.js';
-import { feedbackFlow } from './flows/feedback/feedbackFlow.js';
-import './prompts/index.js';
-import './evals/index.js';
+import { createApp } from './app.js';
 
 const parsePort = (value: string | undefined, fallback: number): number => {
   const parsed = parseInt(value || '', 10);
@@ -25,8 +12,6 @@ const parsePort = (value: string | undefined, fallback: number): number => {
   }
   return parsed;
 };
-
-const PORT = parsePort(process.env['PORT'], 3000);
 
 const getCorsOrigins = (): string[] | string => {
   const allowedOrigins = process.env['CORS_ORIGINS'];
@@ -42,31 +27,16 @@ const getCorsOrigins = (): string[] | string => {
     return '*';
   }
 
-  // Support comma-separated list of origins
   const origins = allowedOrigins.split(',').map((o) => o.trim());
   return origins.length === 1 ? origins[0] || '*' : origins;
 };
 
+const PORT = parsePort(process.env['PORT'], 3000);
 const corsOrigins = getCorsOrigins();
 
 console.log('🚀 Starting Serapeum API (Genkit Powered)...');
 
-// Start the Genkit Flows Server
-// All flows are protected with Supabase JWT validation via jwtContextProvider.
-startFlowServer({
-  flows: [
-    withFlowOptions(searchMedia, { contextProvider: jwtContextProvider }),
-    withFlowOptions(searchBooks, { contextProvider: jwtContextProvider }),
-    withFlowOptions(searchGames, { contextProvider: jwtContextProvider }),
-    withFlowOptions(searchAll, { contextProvider: jwtContextProvider }),
-    withFlowOptions(searchWeb, { contextProvider: jwtContextProvider }),
-    withFlowOptions(getMovieDetail, { contextProvider: jwtContextProvider }),
-    withFlowOptions(getTvDetail, { contextProvider: jwtContextProvider }),
-    withFlowOptions(orchestratorFlow, { contextProvider: jwtContextProvider }),
-    withFlowOptions(feedbackFlow, { contextProvider: jwtContextProvider }),
-  ],
-  port: PORT,
-  cors: {
-    origin: corsOrigins,
-  },
+const app = createApp(corsOrigins);
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });

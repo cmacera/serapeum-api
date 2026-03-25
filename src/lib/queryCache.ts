@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { waitUntil } from '@vercel/functions';
 import type { AgentResponse } from '@serapeum/shared-schemas';
 
 /**
@@ -52,7 +53,7 @@ export async function getCachedResponse(key: string): Promise<AgentResponse | nu
  * immediately without paying the latency cost of the Supabase round-trip.
  */
 export function cacheAsync(key: string, response: AgentResponse): AgentResponse {
-  if (response.kind !== 'error') void setCachedResponse(key, response);
+  if (response.kind !== 'error') waitUntil(setCachedResponse(key, response));
   return response;
 }
 
