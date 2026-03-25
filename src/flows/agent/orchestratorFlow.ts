@@ -383,6 +383,33 @@ export const orchestratorFlow = ai.defineFlow(
         delete enrichmentResults.errors;
       }
 
+      // Select featured item using the primary extracted title (first = most relevant)
+      if (extraction.titles.length > 0) {
+        const featuredMatch = findBestMatch(
+          extraction.titles[0]!,
+          route.category,
+          enrichmentResults
+        );
+        if (featuredMatch) {
+          enrichmentResults.featured = featuredMatch;
+          const featuredId = (featuredMatch.item as { id?: unknown }).id;
+          if (featuredId !== undefined) {
+            if (featuredMatch.type === 'media' && enrichmentResults.media)
+              enrichmentResults.media = enrichmentResults.media.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'game' && enrichmentResults.games)
+              enrichmentResults.games = enrichmentResults.games.filter(
+                (item) => item.id !== featuredId
+              );
+            else if (featuredMatch.type === 'book' && enrichmentResults.books)
+              enrichmentResults.books = enrichmentResults.books.filter(
+                (item) => item.id !== featuredId
+              );
+          }
+        }
+      }
+
       // 4. Synthesize Answer
       try {
         const synthesis = await synthesizerPrompt(
