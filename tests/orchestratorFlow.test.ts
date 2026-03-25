@@ -357,7 +357,12 @@ describe('orchestratorFlow', () => {
     expect(result).toEqual({
       kind: 'discovery',
       message: 'Here are the best sci-fi movies: Dune Part 2...',
-      data: enrichmentData,
+      data: {
+        featured: { type: 'media', item: enrichmentData.media[0] },
+        media: [],
+        games: [],
+        books: [],
+      },
     });
   });
 
@@ -392,7 +397,8 @@ describe('orchestratorFlow', () => {
       kind: 'discovery',
       message: 'Smile 2 is a scary movie.',
       data: {
-        media: mediaResult,
+        featured: { type: 'media', item: mediaResult[0] },
+        media: [],
         books: [],
         games: [],
       },
@@ -430,9 +436,10 @@ describe('orchestratorFlow', () => {
       kind: 'discovery',
       message: 'BG3 is great.',
       data: {
+        featured: { type: 'game', item: gameResult[0] },
         media: [],
         books: [],
-        games: gameResult,
+        games: [],
       },
     });
   });
@@ -478,8 +485,10 @@ describe('orchestratorFlow', () => {
       expect(new Set(mediaIds).size).toBe(mediaIds.length);
       expect(new Set(gameIds).size).toBe(gameIds.length);
 
-      // 3 unique media items after dedup
-      expect(result.data.media).toHaveLength(3);
+      // 'Batman' (id:1) is promoted to featured — 2 unique media items remain
+      expect(result.data.featured).toBeDefined();
+      expect((result.data.featured?.item as any).title).toBe('Batman');
+      expect(result.data.media).toHaveLength(2);
       // 2 unique games after dedup
       expect(result.data.games).toHaveLength(2);
     }

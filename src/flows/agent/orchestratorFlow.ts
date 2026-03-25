@@ -58,6 +58,25 @@ function dedupeById<T extends { id: unknown }>(items: T[]): T[] {
 }
 
 /**
+ * Removes the featured item from its source array in the results object.
+ * IDs are only unique within a source, so only the matching type is filtered.
+ */
+function removeFeaturedFromResults(
+  results: z.infer<typeof SearchAllOutputSchema>,
+  featuredMatch: ReturnType<typeof findBestMatch>
+): void {
+  if (!featuredMatch) return;
+  const featuredId = (featuredMatch.item as { id?: unknown }).id;
+  if (featuredId === undefined) return;
+  if (featuredMatch.type === 'media' && results.media)
+    results.media = results.media.filter((item) => item.id !== featuredId);
+  else if (featuredMatch.type === 'game' && results.games)
+    results.games = results.games.filter((item) => item.id !== featuredId);
+  else if (featuredMatch.type === 'book' && results.books)
+    results.books = results.books.filter((item) => item.id !== featuredId);
+}
+
+/**
  * Runs a catalog search across ALL categories, picks the best match as featured,
  * and removes it from its source array.
  * Shared by Path A (SPECIFIC_ENTITY) and Path D (FACTUAL_QUERY).
@@ -78,18 +97,7 @@ async function executeSearchWithFeatured(
 
   if (featuredMatch) {
     executionResult.featured = featuredMatch;
-
-    // Remove the featured item from its own category array to avoid duplication in the UI.
-    // IDs are only unique within a source, so we only filter the matching type.
-    const featuredId = (featuredMatch.item as { id?: unknown }).id;
-    if (featuredId !== undefined) {
-      if (featuredMatch.type === 'media' && executionResult.media)
-        executionResult.media = executionResult.media.filter((item) => item.id !== featuredId);
-      else if (featuredMatch.type === 'game' && executionResult.games)
-        executionResult.games = executionResult.games.filter((item) => item.id !== featuredId);
-      else if (featuredMatch.type === 'book' && executionResult.books)
-        executionResult.books = executionResult.books.filter((item) => item.id !== featuredId);
-    }
+    removeFeaturedFromResults(executionResult, featuredMatch);
   }
 
   return { executionResult, featuredMatch };
@@ -381,6 +389,19 @@ export const orchestratorFlow = ai.defineFlow(
 
       if (enrichmentResults.errors && enrichmentResults.errors.length === 0) {
         delete enrichmentResults.errors;
+      }
+
+      // Select featured item using the primary extracted title (first = most relevant)
+      if (extraction.titles.length > 0) {
+        const featuredMatch = findBestMatch(
+          extraction.titles[0]!,
+          route.category as 'MOVIE_TV' | 'GAME' | 'BOOK' | 'ALL',
+          enrichmentResults
+        );
+        if (featuredMatch) {
+          enrichmentResults.featured = featuredMatch;
+          removeFeaturedFromResults(enrichmentResults, featuredMatch);
+        }
       }
 
       // 4. Synthesize Answer

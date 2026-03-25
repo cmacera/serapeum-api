@@ -364,6 +364,93 @@ describe('orchestratorFlow', () => {
   });
 
   // Test for Error Handling in Path B (Tavily)
+  it('should set featured from the first extracted title in Path B (recommendation)', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'mind-bending sci-fi space exploration films',
+      },
+    });
+
+    (searchTavilyTool as any).mockResolvedValue([
+      {
+        content: 'Sunshine (2007) is similar to Interstellar. Contact (1997) is also recommended.',
+      },
+    ]);
+
+    (extractorPrompt as any).mockResolvedValue({
+      output: { titles: ['Sunshine', 'Contact'] },
+    });
+
+    (searchAll as any)
+      .mockResolvedValueOnce({
+        media: [{ title: 'Sunshine', id: 1272, media_type: 'movie' as const, popularity: 5.2 }],
+        books: [],
+        games: [],
+      })
+      .mockResolvedValueOnce({
+        media: [{ title: 'Contact', id: 686, media_type: 'movie' as const, popularity: 3.1 }],
+        books: [],
+        games: [],
+      });
+
+    (synthesizerPrompt as any).mockResolvedValue({
+      text: 'Sunshine (2007) es una gran alternativa a Interstellar.',
+    });
+
+    const result = await orchestratorFlow({
+      query: 'dime una película parecida a interstellar',
+      language: 'es',
+    });
+
+    expect(result).toHaveProperty('kind', 'discovery');
+    const data = (result as any).data;
+
+    // featured is set to Sunshine (first extracted title)
+    expect(data.featured).toBeDefined();
+    expect(data.featured.type).toBe('media');
+    expect((data.featured.item as any).title).toBe('Sunshine');
+
+    // Sunshine must NOT appear in data.media (removed to avoid duplication)
+    expect(data.media.every((item: any) => item.id !== 1272)).toBe(true);
+
+    // Contact should still be in data.media
+    expect(data.media.some((item: any) => item.title === 'Contact')).toBe(true);
+  });
+
+  it('should not set featured in Path B when the first extracted title has no strong match', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'best animated films',
+      },
+    });
+
+    (searchTavilyTool as any).mockResolvedValue([{ content: 'Some context.' }]);
+
+    (extractorPrompt as any).mockResolvedValue({
+      output: { titles: ['Spirited Away'] },
+    });
+
+    // Enrichment returns a result that does NOT match the extracted title
+    (searchAll as any).mockResolvedValue({
+      media: [{ title: 'Howls Moving Castle', id: 999, media_type: 'movie' as const }],
+      books: [],
+      games: [],
+    });
+
+    (synthesizerPrompt as any).mockResolvedValue({ text: 'Great animated films.' });
+
+    const result = await orchestratorFlow({ query: 'best animated films', language: 'en' });
+
+    expect(result).toHaveProperty('kind', 'discovery');
+    const data = (result as any).data;
+    // findBestMatch score too low — no featured
+    expect(data.featured).toBeUndefined();
+  });
+
   it('should handle errors in Path B (Tavily search failure)', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {
