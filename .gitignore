@@ -46,3 +46,4 @@ temp/
 .npm-cache/
 .vitest_tmp/
 supabase/.temp/
+.vercel
