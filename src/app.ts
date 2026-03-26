@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import bodyParser from 'body-parser';
 import { expressHandler } from '@genkit-ai/express';
 
 import { jwtContextProvider } from './middleware/verifyJwt.js';
@@ -18,7 +17,7 @@ import './evals/index.js';
 
 export function createApp(corsOrigins: string[] | string): express.Express {
   const app = express();
-  app.use(bodyParser.json());
+  app.use(express.json());
   app.use(cors({ origin: corsOrigins }));
 
   app.get('/health', (_req, res) => {

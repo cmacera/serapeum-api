@@ -104,7 +104,8 @@ src/
 ├── lib/                 # Shared infrastructure (ai.ts, aiConfig.ts, auth.ts)
 ├── middleware/           # verifyJwt.ts — Supabase JWT contextProvider
 ├── locales/             # i18n JSON files
-└── index.ts             # Server entry point
+├── app.ts               # Express app factory (createApp) — shared by local dev and Vercel
+└── index.ts             # Local dev entry point (calls createApp + app.listen)
 
 .genkit/
 └── datasets/            # Eval datasets (JSON) — managed via Genkit UI or directly

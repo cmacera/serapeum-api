@@ -2,8 +2,8 @@
   "regions": ["fra1"],
   "functions": {
     "api/index.ts": {
-      "maxDuration": 300
+      "maxDuration": 300,
+      "includeFiles": ["prompts/**", "src/locales/**"]
     }
-  },
-  "includeFiles": ["prompts/**", "src/locales/**"]
+  }
 }

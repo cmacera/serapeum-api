@@ -51,7 +51,7 @@ Each request activates the most relevant **Agent Persona** based on context.
 
 **Behavioral Constraints:**
 - 🧾 **Thinking unit:** The *Flow*.
-- 🔁 **Runtime:** Ensure all flows are registered in `src/index.ts`.
+- 🔁 **Runtime:** Ensure all flows are registered in `src/app.ts` (shared factory used by both local dev and Vercel entry points).
 - 🤖 **Multi-provider:** Prompts run on Google AI, Ollama, Ollama Cloud, or OpenRouter — set via `AI_PROVIDER` env var.
 - 🧨 **Stability:** Implement explicit error handling for all HTTP responses (always check `res.ok` before `res.json()`).
 - 📁 **Prompt variants:** Use `*.v2.prompt` naming for iterative improvements before promoting to default. Never edit the original while running A/B evals.
@@ -76,7 +76,7 @@ Each request activates the most relevant **Agent Persona** based on context.
 **Work Cycle:**
 
 1. **Plan:** Define **Input / Output Zod schemas** in `packages/shared-schemas/`.
-2. **Implement:** Create flow in `src/flows/`, register in `src/index.ts`.
+2. **Implement:** Create flow in `src/flows/`, register in `src/app.ts`.
 3. **Verify:**
    - Run `npm run genkit:start` → opens **Genkit Developer UI** at `http://localhost:4000`.
    - Run `npm run typecheck` and `npm run test:run` before committing.
