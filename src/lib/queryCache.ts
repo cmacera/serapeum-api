@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { waitUntil } from '@vercel/functions';
 import type { AgentResponse } from '@serapeum/shared-schemas';
 
 /**
@@ -50,9 +51,13 @@ export async function getCachedResponse(key: string): Promise<AgentResponse | nu
  *
  * The underlying write is intentionally not awaited: callers get their response
  * immediately without paying the latency cost of the Supabase round-trip.
+ *
+ * Note: `waitUntil` extends the function lifetime on Vercel so the cache write
+ * completes after the response is sent. Outside Vercel it is a no-op and the
+ * promise runs (but is not awaited by the runtime).
  */
 export function cacheAsync(key: string, response: AgentResponse): AgentResponse {
-  if (response.kind !== 'error') void setCachedResponse(key, response);
+  if (response.kind !== 'error') waitUntil(setCachedResponse(key, response));
   return response;
 }
 

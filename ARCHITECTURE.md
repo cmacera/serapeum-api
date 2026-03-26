@@ -16,7 +16,7 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 | 🧩 Runtime | Node.js 22+ (LTS) |
 | 📝 Language | TypeScript 5.x (Strict Mode) |
 | ⚙️ Framework | Genkit Core (Express adapter) |
-| 🛰️ Server Mode | Genkit Standalone (`startFlowServer`) |
+| 🛰️ Server Mode | Express app factory (`createApp`) — local dev via `src/index.ts`, Vercel via `api/index.ts` |
 | 🗄️ Database | Supabase JS Client (PostgreSQL) |
 | 📦 Deployment | Docker / OCI Container |
 
@@ -106,7 +106,7 @@ Ollama (local) pre-registers all available models from `/api/tags` at startup so
 
 ### 3.3 🧩 Standalone Server Pattern
 
-- **Entry Point:** `src/index.ts` imports all flows and starts the server.
+- **Entry Point:** `src/app.ts` registers all flows and exports the Express app factory (`createApp`). `src/index.ts` calls it and starts the server for local dev; `api/index.ts` exports the app for Vercel.
 - **Port Binding:** The server binds to `process.env.PORT` (default `3000`) to comply with PaaS requirements.
 - **CORS Policy:** Configure `CORS_ORIGINS` to explicitly allow requests from authorized clients.
 - **Genkit DevTools UI:** Available at `http://localhost:4000` when running `npm run genkit:start`.
@@ -129,7 +129,7 @@ Request
 ```
 
 - Tokens are **verified locally** using the `SUPABASE_JWT_SECRET` — zero Supabase network latency.
-- Each flow is registered with `{ contextProvider: jwtContextProvider }` in `index.ts`.
+- Each flow is registered with `{ contextProvider: jwtContextProvider }` in `src/app.ts`.
 
 ---
 
