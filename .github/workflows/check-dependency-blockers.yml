@@ -33,7 +33,7 @@ jobs:
 
       - name: Open issue if zod v4 is unblocked
         if: ${{ steps.check.outputs.zod_major >= 4 }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { data: issues } = await github.rest.issues.listForRepo({
@@ -65,7 +65,7 @@ jobs:
 
       - name: Open issue if opentelemetry is unblocked
         if: ${{ steps.check.outputs.otel_minor >= 200 }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { data: issues } = await github.rest.issues.listForRepo({
