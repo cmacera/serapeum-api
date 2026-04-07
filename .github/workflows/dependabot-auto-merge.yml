@@ -22,10 +22,10 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Auto-approve and merge
-        # Only auto-merge patch updates of devDependencies
+        # Auto-merge minor and patch updates (prod and dev), skip major bumps
         if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' &&
-          steps.metadata.outputs.dependency-type == 'direct:development'
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: |
           gh pr review --approve "$PR_URL"
           gh pr merge --auto --squash "$PR_URL"
