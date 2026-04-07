@@ -57,7 +57,7 @@
     "@genkit-ai/express": "^1.31.0",
     "@genkit-ai/google-genai": "^1.31.0",
     "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.52.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
     "@opentelemetry/sdk-trace-node": "^1.25.1",
     "@tavily/core": "^0.7.2",
     "@vercel/functions": "^3.4.3",
