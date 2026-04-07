@@ -9,6 +9,15 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    ignore:
+      # Blocked by genkit pinning zod@^3.x — tracked in check-dependency-blockers.yml
+      - dependency-name: "zod"
+        versions: ["4.x", ">=4"]
+      - dependency-name: "@asteasolutions/zod-to-openapi"
+        versions: ["8.x", ">=8"]
+      # Blocked by genkit pinning @opentelemetry/sdk-node@^0.52 (sdk-trace-base@1.25)
+      - dependency-name: "@opentelemetry/exporter-trace-otlp-http"
+        versions: [">=0.53"]
     reviewers:
       - "cmacera"
     labels:
