@@ -24,9 +24,9 @@ jobs:
           echo "genkit_otel=$GENKIT_OTEL"
 
           # Extract major version number from semver range (e.g. "^4.0.0" → 4)
-          ZOD_MAJOR=$(echo "$GENKIT_ZOD" | grep -oP '^\D*\K\d+')
+          ZOD_MAJOR=$(echo "$GENKIT_ZOD" | sed 's/[^0-9]*//' | cut -d'.' -f1)
           # Extract minor version of sdk-node (e.g. "^0.200.0" → 200)
-          OTEL_MINOR=$(echo "$GENKIT_OTEL" | grep -oP '^\D*\d+\.\K\d+')
+          OTEL_MINOR=$(echo "$GENKIT_OTEL" | sed 's/[^0-9]*//' | cut -d'.' -f2)
 
           echo "zod_major=$ZOD_MAJOR" >> "$GITHUB_OUTPUT"
           echo "otel_minor=$OTEL_MINOR" >> "$GITHUB_OUTPUT"
