@@ -100,15 +100,15 @@ All checks run against `src/` only. Must pass before merge:
 | `test:run` | `vitest run` (excludes e2e) |
 | `build` | `tsc && cp -r src/locales dist/` |
 | `format:check` | `prettier --check "src/**/*.ts"` |
-| `check-pr-title` | PR title must start with `[SER-XX]` or `SER-XX` |
+| `check-pr-title` | PR title must start with `[DEV-XX]` or `DEV-XX` |
 
 ---
 
 ## Commit conventions
 
 - Format: `type(scope): description` (conventional commits)
-- **No** `[SER-XX]` prefix in local commits — commitlint rejects it
-- The `[SER-XX]` prefix appears only in the squash merge commit title (PR title)
+- **No** `[DEV-XX]` prefix in local commits — commitlint rejects it
+- The `[DEV-XX]` prefix appears only in the squash merge commit title (PR title)
 
 ---
 
@@ -146,7 +146,7 @@ Datasets:
 
 ## Linear + GitHub workflow
 
-**Linear team:** Serapeum · **Project:** Serapeum API · **Identifier prefix:** `SER`
+**Linear team:** DEVELOPMENT · **Project:** Serapeum API · **Identifier prefix:** `DEV`
 
 ### Ticket state automation
 
@@ -157,17 +157,17 @@ Datasets:
 
 1. Create a ticket in Linear (MCP or UI): assign to self, project = Serapeum API.
 2. **Move ticket to `In Progress`** (automatic — no need to ask).
-3. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the SER-XX prefix).
-4. Implement, commit with conventional commits (no `[SER-XX]` prefix — commitlint rejects it).
-5. Create the PR: title must start with `[SER-XX]` or `SER-XX` — both accepted by `check-pr-title` CI check. Body should include `Closes SER-XX`.
+3. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the DEV-XX prefix).
+4. Implement, commit with conventional commits (no `[DEV-XX]` prefix — commitlint rejects it).
+5. Create the PR: title must start with `[DEV-XX]` or `DEV-XX` — both accepted by `check-pr-title` CI check. Body should include `Closes DEV-XX`.
 6. Move ticket to `In Review` when the PR is open (explicit request required).
 
 ### PR title format (enforced by CI)
 
 Both formats accepted:
 ```text
-[SER-XX] type(scope): description
-SER-XX type(scope): description
+[DEV-XX] type(scope): description
+DEV-XX type(scope): description
 ```
 
 ### Available Linear states
