@@ -88,7 +88,7 @@ jobs:
                 `\`@genkit-ai/core\` now depends on \`@opentelemetry/sdk-node: ${steps.check.outputs.genkit_otel}\`.`,
                 '',
                 '### Action required',
-                '1. Remove the `@opentelemetry/exporter-trace-otlp-http` ignore rule from `.github/dependabot.yml`',
-                '2. Reopen Dependabot PR #86 or let Dependabot recreate it',
+                '1. Remove the `@opentelemetry/exporter-trace-otlp-http` and `@opentelemetry/sdk-trace-node` ignore rules from `.github/dependabot.yml`',
+                '2. Reopen Dependabot PRs #86 and #91 or let Dependabot recreate them',
               ].join('\n'),
             });
