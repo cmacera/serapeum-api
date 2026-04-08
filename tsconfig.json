@@ -39,13 +39,12 @@
         // Completeness
         "skipLibCheck": true,
         "resolveJsonModule": true,
-        "baseUrl": ".",
         "paths": {
             "@/*": [
-                "src/*"
+                "./src/*"
             ],
             "@serapeum/shared-schemas": [
-                "packages/shared-schemas/src/index.ts"
+                "./packages/shared-schemas/src/index.ts"
             ]
         }
     },

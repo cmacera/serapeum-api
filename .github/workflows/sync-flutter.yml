@@ -44,8 +44,8 @@ jobs:
           APP_REPO="cmacera/serapeum-app"
           FILE_PATH="docs/openapi.yaml"
 
-          # Extract ticket ref from the triggering commit (e.g. "SER-76")
-          TICKET=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?<=\[)(SER-\d+)(?=\])' | head -1 || true)
+          # Extract ticket ref from the triggering commit (e.g. "DEV-76")
+          TICKET=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?:\[)?(DEV-\d+)(?:\])?' | grep -oP 'DEV-\d+' | head -1 || true)
 
           # Fetch current file content from app repo
           CURRENT_CONTENT=$(gh api "repos/$APP_REPO/contents/$FILE_PATH" --jq '.content // ""' 2>/dev/null | tr -d '\n' || echo "")
