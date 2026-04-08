@@ -18,6 +18,8 @@ updates:
       # Blocked by genkit pinning @opentelemetry/sdk-node@^0.52 (sdk-trace-base@1.25)
       - dependency-name: "@opentelemetry/exporter-trace-otlp-http"
         versions: [">=0.53"]
+      - dependency-name: "@opentelemetry/sdk-trace-node"
+        versions: [">=2"]
     reviewers:
       - "cmacera"
     labels:
