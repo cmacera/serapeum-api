@@ -19,6 +19,9 @@ import {
   MediaSearchResultSchema,
   BookSearchResultSchema,
   GameSearchResultSchema,
+  PaginatedMediaResultSchema,
+  PaginatedBookResultSchema,
+  PaginatedGameResultSchema,
   SearchErrorSchema as SearchErrorSchemaBase,
   CastMemberSchema,
   VideoSchema,
@@ -91,9 +94,17 @@ const SearchAllResponseSchema = z
 // Composite / response schemas
 // ---------------------------------------------------------------------------
 
-const BooksResponseSchema = z.array(BookSchema).openapi('BooksResponse');
-const MediaResponseSchema = z.array(MediaSchema).openapi('MediaResponse');
-const GamesResponseSchema = z.array(GameSchema).openapi('GamesResponse');
+const PaginatedBooksResponseSchema = PaginatedBookResultSchema.extend({
+  results: z.array(BookSchema),
+}).openapi('PaginatedBooksResponse');
+
+const PaginatedMediaResponseSchema = PaginatedMediaResultSchema.extend({
+  results: z.array(MediaSchema),
+}).openapi('PaginatedMediaResponse');
+
+const PaginatedGamesResponseSchema = PaginatedGameResultSchema.extend({
+  results: z.array(GameSchema),
+}).openapi('PaginatedGamesResponse');
 
 const ErrorResponseSchema = z
   .object({
@@ -171,6 +182,12 @@ const CatalogSearchInputSchema = z
       .string()
       .optional()
       .openapi({ description: 'BCP-47 language tag (e.g. en, es-ES)', example: 'en' }),
+    page: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .openapi({ description: 'Page number for pagination (default: 1)', example: 1 }),
   })
   .openapi('CatalogSearchInput');
 
@@ -210,9 +227,9 @@ registry.register('Game', GameSchema);
 registry.register('SearchError', SearchErrorSchema);
 registry.register('FeaturedItem', FeaturedItemSchema);
 registry.register('SearchAllResponse', SearchAllResponseSchema);
-registry.register('BooksResponse', BooksResponseSchema);
-registry.register('MediaResponse', MediaResponseSchema);
-registry.register('GamesResponse', GamesResponseSchema);
+registry.register('PaginatedBooksResponse', PaginatedBooksResponseSchema);
+registry.register('PaginatedMediaResponse', PaginatedMediaResponseSchema);
+registry.register('PaginatedGamesResponse', PaginatedGamesResponseSchema);
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('AgentRefusal', AgentRefusalSchema);
 registry.register('AgentSearchResults', AgentSearchResultsSchema);
@@ -254,8 +271,8 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'List of matching books',
-      content: { 'application/json': { schema: BooksResponseSchema } },
+      description: 'Paginated list of matching books',
+      content: { 'application/json': { schema: PaginatedBooksResponseSchema } },
     },
     400: {
       description: 'Invalid request body',
@@ -287,8 +304,8 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'List of matching movies and TV shows',
-      content: { 'application/json': { schema: MediaResponseSchema } },
+      description: 'Paginated list of matching movies and TV shows',
+      content: { 'application/json': { schema: PaginatedMediaResponseSchema } },
     },
     400: {
       description: 'Invalid request body',
@@ -320,8 +337,8 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'List of matching video games',
-      content: { 'application/json': { schema: GamesResponseSchema } },
+      description: 'Paginated list of matching video games',
+      content: { 'application/json': { schema: PaginatedGamesResponseSchema } },
     },
     400: {
       description: 'Invalid request body',

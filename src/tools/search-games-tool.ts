@@ -28,15 +28,19 @@ export async function fetchGameResults(input: {
   try {
     const accessToken = await getAccessToken();
 
-    // Sanitize query to prevent Apicalypse injection
-    const sanitizedQuery = input.query.replace(/"/g, '\\"');
+    // Sanitize query to prevent Apicalypse injection.
+    // Order: escape backslashes first so later replacements don't double-escape.
+    const sanitizedQuery = input.query
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/[\r\n]/g, ' ');
     const offset = (input.page - 1) * CATALOG_PAGE_SIZE;
 
     const apicalypseQuery = `
       search "${sanitizedQuery}";
       fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
       where game_type = (0, 1, 2, 8, 9, 10);
-      limit ${CATALOG_PAGE_SIZE};
+      limit ${CATALOG_PAGE_SIZE + 1};
       offset ${offset};
     `.trim();
 
@@ -66,13 +70,13 @@ export async function fetchGameResults(input: {
       throw new Error(`IGDB API request failed: ${response.status} ${errorText}`);
     }
 
+    // Fetch CATALOG_PAGE_SIZE + 1 sentinel rows so hasMore can be determined
+    // without a separate count query. Trim to page size before transforming.
     const rawGames = (await response.json()) as IGDBGame[];
+    const hasMore = rawGames.length > CATALOG_PAGE_SIZE;
+    const pagedGames = rawGames.slice(0, CATALOG_PAGE_SIZE);
 
-    // Capture raw count BEFORE quality filtering so hasMore is accurate even
-    // when the filter removes items on a non-final page
-    const hasMore = rawGames.length === CATALOG_PAGE_SIZE;
-
-    const results: GameSearchResult[] = rawGames
+    const results: GameSearchResult[] = pagedGames
       .map(transformGame)
       .filter((r): r is GameSearchResult & { cover_url: string; summary: string } =>
         Boolean(r.cover_url && r.summary)
@@ -83,9 +87,11 @@ export async function fetchGameResults(input: {
     if (error instanceof HttpError) {
       if (error.status === 429)
         throw new Error('IGDB API rate limit exceeded. Please try again later.');
-      throw new Error(`IGDB API error: HTTP ${error.status}`);
+      throw error;
     }
     if (error instanceof Error) {
+      // Re-throw already-classified provider errors unchanged
+      if (error.message.startsWith('IGDB')) throw error;
       throw new Error(`Failed to search games: ${error.message}`);
     }
     throw new Error('Failed to search games with unknown error');

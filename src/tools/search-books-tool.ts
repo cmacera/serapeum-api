@@ -81,7 +81,7 @@ export async function fetchBookResults(input: {
           startIndex,
           printType: 'books', // Exclude magazines
           orderBy: 'relevance',
-          langRestrict: input.language ?? 'en',
+          langRestrict: (input.language ?? 'en').split('-')[0]?.toLowerCase() ?? 'en',
         },
         headers: {
           Accept: 'application/json',

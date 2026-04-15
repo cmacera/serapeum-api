@@ -14,11 +14,7 @@ export const searchBooks = ai.defineFlow(
     name: 'searchBooks',
     inputSchema: z.object({
       query: z.string().min(1, 'Search query cannot be empty'),
-      language: z
-        .string()
-        .regex(/^[a-z]{2}$/, 'Language must be a 2-letter ISO 639-1 code (lowercase)')
-        .optional()
-        .default('en'),
+      language: z.string().optional().default('en'),
       page: z.number().int().positive().optional().default(1),
     }),
     outputSchema: SearchBooksOutputSchema,

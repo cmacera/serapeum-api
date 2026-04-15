@@ -256,18 +256,60 @@ components:
         - media
         - books
         - games
-    BooksResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Book"
-    MediaResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Media"
-    GamesResponse:
-      type: array
-      items:
-        $ref: "#/components/schemas/Game"
+    PaginatedBooksResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Book"
+        page:
+          type: integer
+          exclusiveMinimum: 0
+        hasMore:
+          type: boolean
+        total:
+          type: integer
+          minimum: 0
+      required:
+        - results
+        - page
+        - hasMore
+    PaginatedMediaResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Media"
+        page:
+          type: integer
+          exclusiveMinimum: 0
+        hasMore:
+          type: boolean
+        total:
+          type: integer
+          minimum: 0
+      required:
+        - results
+        - page
+        - hasMore
+    PaginatedGamesResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Game"
+        page:
+          type: integer
+          exclusiveMinimum: 0
+        hasMore:
+          type: boolean
+      required:
+        - results
+        - page
+        - hasMore
     ErrorResponse:
       type: object
       properties:
@@ -370,6 +412,11 @@ components:
           type: string
           description: BCP-47 language tag (e.g. en, es-ES)
           example: en
+        page:
+          type: integer
+          exclusiveMinimum: 0
+          description: "Page number for pagination (default: 1)"
+          example: 1
       required:
         - query
     CastMember:
@@ -746,11 +793,11 @@ paths:
               $ref: "#/components/schemas/CatalogSearchInput"
       responses:
         "200":
-          description: List of matching books
+          description: Paginated list of matching books
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BooksResponse"
+                $ref: "#/components/schemas/PaginatedBooksResponse"
         "400":
           description: Invalid request body
           content:
@@ -785,11 +832,11 @@ paths:
               $ref: "#/components/schemas/CatalogSearchInput"
       responses:
         "200":
-          description: List of matching movies and TV shows
+          description: Paginated list of matching movies and TV shows
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MediaResponse"
+                $ref: "#/components/schemas/PaginatedMediaResponse"
         "400":
           description: Invalid request body
           content:
@@ -824,11 +871,11 @@ paths:
               $ref: "#/components/schemas/CatalogSearchInput"
       responses:
         "200":
-          description: List of matching video games
+          description: Paginated list of matching video games
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GamesResponse"
+                $ref: "#/components/schemas/PaginatedGamesResponse"
         "400":
           description: Invalid request body
           content:

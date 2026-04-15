@@ -245,7 +245,7 @@ describe('searchGamesTool', () => {
         search "${query}";
         fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
-        limit 10;
+        limit 11;
         offset 0;
             `.trim();
 
@@ -384,9 +384,9 @@ describe('fetchGameResults', () => {
     expect(capturedBody).toContain('offset 20;');
   });
 
-  it('hasMore is true when IGDB returns a full page (raw count = CATALOG_PAGE_SIZE)', async () => {
-    // Return exactly 10 raw games (CATALOG_PAGE_SIZE), all pass quality filter
-    const rawGames = Array.from({ length: 10 }, (_, i) => makeGame(i + 1));
+  it('hasMore is true when IGDB returns a full page (raw count = CATALOG_PAGE_SIZE + 1)', async () => {
+    // Return 11 raw games (sentinel = CATALOG_PAGE_SIZE + 1), all pass quality filter
+    const rawGames = Array.from({ length: 11 }, (_, i) => makeGame(i + 1));
 
     nock(IGDB_API_URL).post('/v4/games').reply(200, rawGames);
 
@@ -406,17 +406,17 @@ describe('fetchGameResults', () => {
   });
 
   it('hasMore uses raw count before quality filter', async () => {
-    // 10 raw games (full page) but only 1 passes quality gate (has cover + summary)
+    // 11 raw games (sentinel page) but only 1 passes quality gate (has cover + summary)
     const rawGames: IGDBGame[] = [
       makeGame(1), // passes: has cover + summary
-      ...Array.from({ length: 9 }, (_, i) => ({ id: i + 2, name: `Game ${i + 2}` })), // no cover/summary
+      ...Array.from({ length: 10 }, (_, i) => ({ id: i + 2, name: `Game ${i + 2}` })), // no cover/summary
     ];
 
     nock(IGDB_API_URL).post('/v4/games').reply(200, rawGames);
 
     const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
 
-    // Quality filter reduces results to 1, but hasMore is based on rawGames.length === 10
+    // Quality filter reduces results to 1, but hasMore is based on rawGames.length > CATALOG_PAGE_SIZE
     expect(result.results).toHaveLength(1);
     expect(result.hasMore).toBe(true);
   });
