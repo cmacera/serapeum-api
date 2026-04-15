@@ -24,3 +24,12 @@ export const BookSearchResultSchema = z.object({
 });
 
 export type BookSearchResult = z.infer<typeof BookSearchResultSchema>;
+
+export const PaginatedBookResultSchema = z.object({
+  results: z.array(BookSearchResultSchema),
+  page: z.number().int().positive(),
+  hasMore: z.boolean(),
+  total: z.number().int().nonnegative().optional(),
+});
+
+export type PaginatedBookResult = z.infer<typeof PaginatedBookResultSchema>;

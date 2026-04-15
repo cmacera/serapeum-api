@@ -382,13 +382,18 @@ describe('orchestratorFlow', () => {
 
     // Mock searchMedia specifically
     const mediaResult = [{ title: 'Smile 2', id: 666, media_type: 'movie' }];
-    vi.mocked(searchMedia).mockResolvedValue(mediaResult as any);
+    vi.mocked(searchMedia).mockResolvedValue({
+      results: mediaResult,
+      page: 1,
+      hasMore: false,
+      total: 1,
+    } as any);
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({ text: 'Smile 2 is a scary movie.' } as any);
 
     const result = await orchestratorFlow({ query: 'Best horror movies', language: 'en' });
 
-    expect(searchMedia).toHaveBeenCalledWith({ query: 'Smile 2', language: 'en' });
+    expect(searchMedia).toHaveBeenCalledWith({ query: 'Smile 2', language: 'en', page: 1 });
     expect(searchGames).not.toHaveBeenCalled();
     expect(searchBooks).not.toHaveBeenCalled();
     expect(searchAll).not.toHaveBeenCalled();
@@ -422,13 +427,17 @@ describe('orchestratorFlow', () => {
     } as any);
 
     const gameResult = [{ name: "Baldur's Gate 3", id: 999 }];
-    vi.mocked(searchGames).mockResolvedValue(gameResult as any);
+    vi.mocked(searchGames).mockResolvedValue({
+      results: gameResult,
+      page: 1,
+      hasMore: false,
+    } as any);
 
     vi.mocked(synthesizerPrompt).mockResolvedValue({ text: 'BG3 is great.' } as any);
 
     const result = await orchestratorFlow({ query: 'Best RPGs', language: 'en' });
 
-    expect(searchGames).toHaveBeenCalledWith({ query: "Baldur's Gate 3", language: 'en' });
+    expect(searchGames).toHaveBeenCalledWith({ query: "Baldur's Gate 3", language: 'en', page: 1 });
     expect(searchMedia).not.toHaveBeenCalled();
     expect(searchBooks).not.toHaveBeenCalled();
 
@@ -437,6 +446,52 @@ describe('orchestratorFlow', () => {
       message: 'BG3 is great.',
       data: {
         featured: { type: 'game', item: gameResult[0] },
+        media: [],
+        books: [],
+        games: [],
+      },
+    });
+  });
+
+  it('should use searchBooks for GENERAL_DISCOVERY when category is BOOK', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'BOOK',
+        extractedQuery: 'horror novels',
+      },
+    } as Awaited<ReturnType<typeof routerPrompt>>);
+
+    vi.mocked(searchTavilyTool).mockResolvedValue([
+      { title: 'The Shining', content: '...', url: '...', score: 0.97 },
+    ]);
+    vi.mocked(extractorPrompt).mockResolvedValue({
+      output: { titles: ['The Shining'] },
+    } as any);
+
+    const bookResult = [{ title: 'The Shining', id: 'abc123' }];
+    vi.mocked(searchBooks).mockResolvedValue({
+      results: bookResult,
+      page: 1,
+      hasMore: false,
+      total: 1,
+    } as any);
+
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'The Shining is a classic horror novel.',
+    } as any);
+
+    const result = await orchestratorFlow({ query: 'Best horror books', language: 'en' });
+
+    expect(searchBooks).toHaveBeenCalledWith({ query: 'The Shining', language: 'en', page: 1 });
+    expect(searchMedia).not.toHaveBeenCalled();
+    expect(searchGames).not.toHaveBeenCalled();
+
+    expect(result).toEqual({
+      kind: 'discovery',
+      message: 'The Shining is a classic horror novel.',
+      data: {
+        featured: { type: 'book', item: bookResult[0] },
         media: [],
         books: [],
         games: [],

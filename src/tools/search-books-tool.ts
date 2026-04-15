@@ -1,15 +1,17 @@
 import { ai, z } from '../lib/ai.js';
-import { MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
+import { CATALOG_PAGE_SIZE, MAX_RESULTS_PER_SOURCE } from '../lib/constants.js';
 import axios from 'axios';
 import { withRetry } from '../lib/retry.js';
 
 const GOOGLE_BOOKS_TIMEOUT = 5000;
 import type {
   GoogleBooksSearchResponse,
+  GoogleBooksVolume,
   BookSearchResult,
   IndustryIdentifier,
 } from '../lib/google-books-types.js';
 import { BookSearchResultSchema } from '../schemas/book-schemas.js';
+import type { PaginatedBookResult } from '../schemas/book-schemas.js';
 
 /**
  * Helper function to extract ISBN from industry identifiers
@@ -25,6 +27,105 @@ function extractISBN(identifiers?: IndustryIdentifier[]): string | undefined {
   // Fallback to ISBN_10
   const isbn10 = identifiers.find((id) => id.type === 'ISBN_10');
   return isbn10?.identifier;
+}
+
+function mapBookResult(item: GoogleBooksVolume): BookSearchResult {
+  return {
+    id: item.id,
+    title: item.volumeInfo.title,
+    authors: item.volumeInfo.authors,
+    publisher: item.volumeInfo.publisher,
+    publishedDate: item.volumeInfo.publishedDate,
+    description: item.volumeInfo.description,
+    isbn: extractISBN(item.volumeInfo.industryIdentifiers),
+    pageCount: item.volumeInfo.pageCount,
+    categories: item.volumeInfo.categories,
+    imageLinks: item.volumeInfo.imageLinks
+      ? {
+          thumbnail: item.volumeInfo.imageLinks.thumbnail,
+          smallThumbnail: item.volumeInfo.imageLinks.smallThumbnail,
+        }
+      : undefined,
+    language: item.volumeInfo.language,
+    previewLink: item.volumeInfo.previewLink,
+    averageRating: item.volumeInfo.averageRating,
+    printType: item.volumeInfo.printType,
+    maturityRating: item.volumeInfo.maturityRating,
+  };
+}
+
+/**
+ * Core fetch function with pagination support. Used by both the Genkit tool
+ * (page 1, orchestrator) and the catalog flow (client-supplied page).
+ */
+export async function fetchBookResults(input: {
+  query: string;
+  language?: string;
+  page: number;
+}): Promise<PaginatedBookResult> {
+  const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
+
+  if (!apiKey) {
+    throw new Error('GOOGLE_BOOKS_API_KEY environment variable is not configured');
+  }
+
+  const startIndex = (input.page - 1) * CATALOG_PAGE_SIZE;
+  const langCandidate = (input.language ?? '').trim().split('-')[0]?.toLowerCase() ?? '';
+  const normalizedLanguage = /^[a-z]{2,3}$/.test(langCandidate) ? langCandidate : 'en';
+
+  try {
+    const response = await withRetry(() =>
+      axios.get<GoogleBooksSearchResponse>('https://www.googleapis.com/books/v1/volumes', {
+        params: {
+          q: `intitle:${input.query}`,
+          key: apiKey,
+          maxResults: CATALOG_PAGE_SIZE,
+          startIndex,
+          printType: 'books', // Exclude magazines
+          orderBy: 'relevance',
+          langRestrict: normalizedLanguage,
+        },
+        headers: {
+          Accept: 'application/json',
+        },
+        timeout: GOOGLE_BOOKS_TIMEOUT,
+      })
+    );
+
+    const totalItems = response.data.totalItems ?? 0;
+
+    const results: BookSearchResult[] = (response.data.items ?? [])
+      .map(mapBookResult)
+      .filter((r) => r.imageLinks?.thumbnail && r.description && r.authors?.length);
+
+    return {
+      results,
+      page: input.page,
+      // Conservative: based on requested page size so quality-gate filtering
+      // doesn't cause premature hasMore: false on a sparse-but-non-final page
+      hasMore: startIndex + CATALOG_PAGE_SIZE < totalItems,
+      total: totalItems,
+    };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 401 || status === 403) {
+          throw new Error('Google Books API authentication failed. Please check your API key.');
+        } else if (status === 429) {
+          throw new Error('Google Books API rate limit exceeded. Please try again later.');
+        } else {
+          throw new Error(`Google Books API error (${status}): ${error.response.statusText}`);
+        }
+      } else if (error.request) {
+        throw new Error(
+          'Network error: Unable to reach Google Books API. Please check your internet connection.'
+        );
+      }
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -46,81 +147,7 @@ export const searchBooksTool = ai.defineTool(
     outputSchema: z.array(BookSearchResultSchema),
   },
   async (input) => {
-    const apiKey = process.env['GOOGLE_BOOKS_API_KEY'];
-
-    if (!apiKey) {
-      throw new Error('GOOGLE_BOOKS_API_KEY environment variable is not configured');
-    }
-
-    try {
-      const response = await withRetry(() =>
-        axios.get<GoogleBooksSearchResponse>('https://www.googleapis.com/books/v1/volumes', {
-          params: {
-            q: `intitle:${input.query}`,
-            key: apiKey,
-            maxResults: MAX_RESULTS_PER_SOURCE,
-            printType: 'books', // Exclude magazines
-            orderBy: 'relevance',
-            langRestrict: input.language,
-          },
-          headers: {
-            Accept: 'application/json',
-          },
-          timeout: GOOGLE_BOOKS_TIMEOUT,
-        })
-      );
-
-      // Transform API response to clean format
-      const results: BookSearchResult[] =
-        response.data.items
-          ?.map((item) => ({
-            id: item.id,
-            title: item.volumeInfo.title,
-            authors: item.volumeInfo.authors,
-            publisher: item.volumeInfo.publisher,
-            publishedDate: item.volumeInfo.publishedDate,
-            description: item.volumeInfo.description,
-            isbn: extractISBN(item.volumeInfo.industryIdentifiers),
-            pageCount: item.volumeInfo.pageCount,
-            categories: item.volumeInfo.categories,
-            imageLinks: item.volumeInfo.imageLinks
-              ? {
-                  thumbnail: item.volumeInfo.imageLinks.thumbnail,
-                  smallThumbnail: item.volumeInfo.imageLinks.smallThumbnail,
-                }
-              : undefined,
-            language: item.volumeInfo.language,
-            previewLink: item.volumeInfo.previewLink,
-            averageRating: item.volumeInfo.averageRating,
-            printType: item.volumeInfo.printType,
-            maturityRating: item.volumeInfo.maturityRating,
-          }))
-          .filter((r) => r.imageLinks?.thumbnail && r.description && r.authors?.length) || [];
-
-      return results;
-    } catch (error) {
-      // Handle axios errors
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          // API returned an error response
-          const status = error.response.status;
-          if (status === 401 || status === 403) {
-            throw new Error('Google Books API authentication failed. Please check your API key.');
-          } else if (status === 429) {
-            throw new Error('Google Books API rate limit exceeded. Please try again later.');
-          } else {
-            throw new Error(`Google Books API error (${status}): ${error.response.statusText}`);
-          }
-        } else if (error.request) {
-          // Request was made but no response received
-          throw new Error(
-            'Network error: Unable to reach Google Books API. Please check your internet connection.'
-          );
-        }
-      }
-
-      // Re-throw other errors
-      throw error;
-    }
+    const paginated = await fetchBookResults({ ...input, page: 1 });
+    return paginated.results.slice(0, MAX_RESULTS_PER_SOURCE);
   }
 );

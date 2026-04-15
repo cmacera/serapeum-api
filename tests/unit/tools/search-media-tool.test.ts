@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
-import { searchMediaTool } from '../../../src/tools/search-media-tool.js';
+import { searchMediaTool, fetchMediaResults } from '../../../src/tools/search-media-tool.js';
 import type { TMDBSearchResponse } from '../../../src/lib/tmdb-types.js';
 
 describe('searchMediaTool', () => {
@@ -391,7 +391,7 @@ describe('searchMediaTool', () => {
     });
   });
 
-  describe('Error handling', () => {
+  describe('Error handling (tool)', () => {
     it('should throw error when API key is missing', async () => {
       delete process.env['TMDB_API_KEY'];
 
@@ -430,5 +430,156 @@ describe('searchMediaTool', () => {
         'Network error: Unable to reach TMDB API. Please check your internet connection.'
       );
     });
+  });
+});
+
+describe('fetchMediaResults', () => {
+  const TMDB_API_URL = 'https://api.themoviedb.org';
+  const mockApiKey = 'test-api-key';
+
+  beforeEach(() => {
+    process.env['TMDB_API_KEY'] = mockApiKey;
+    nock.cleanAll();
+  });
+
+  afterEach(() => {
+    delete process.env['TMDB_API_KEY'];
+  });
+
+  const makeResult = (id: number, page = 1) => ({
+    id,
+    media_type: 'movie' as const,
+    title: `Movie ${id}`,
+    release_date: '2020-01-01',
+    poster_path: `/poster-${id}.jpg`,
+    overview: `Overview for movie ${id}.`,
+    vote_average: 7,
+    vote_count: 100,
+    popularity: 10,
+    page,
+  });
+
+  it('page 1 sends page=1 to TMDB', async () => {
+    let capturedQuery: Record<string, unknown> = {};
+
+    nock(TMDB_API_URL)
+      .get('/3/search/multi')
+      .query((q) => {
+        capturedQuery = q as Record<string, unknown>;
+        return true;
+      })
+      .reply(200, { page: 1, total_pages: 1, total_results: 0, results: [] });
+
+    await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(capturedQuery).toMatchObject({ page: '1' });
+  });
+
+  it('page 2 sends page=2 to TMDB', async () => {
+    let capturedQuery: Record<string, unknown> = {};
+
+    nock(TMDB_API_URL)
+      .get('/3/search/multi')
+      .query((q) => {
+        capturedQuery = q as Record<string, unknown>;
+        return true;
+      })
+      .reply(200, { page: 2, total_pages: 5, total_results: 50, results: [] });
+
+    await fetchMediaResults({ query: 'test', language: 'en', page: 2 });
+
+    expect(capturedQuery).toMatchObject({ page: '2' });
+  });
+
+  it('hasMore is true when page < total_pages', async () => {
+    const mockResponse: TMDBSearchResponse = {
+      page: 1,
+      total_pages: 3,
+      total_results: 60,
+      results: [makeResult(1)],
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result.hasMore).toBe(true);
+    expect(result.page).toBe(1);
+    expect(result.total).toBe(60);
+  });
+
+  it('hasMore is false when page === total_pages', async () => {
+    const mockResponse: TMDBSearchResponse = {
+      page: 3,
+      total_pages: 3,
+      total_results: 60,
+      results: [makeResult(1)],
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 3 });
+
+    expect(result.hasMore).toBe(false);
+  });
+
+  it('hasMore uses raw TMDB total_pages, not filtered result count', async () => {
+    // All results fail quality gate (no poster), but TMDB says there are more pages
+    const mockResponse: TMDBSearchResponse = {
+      page: 1,
+      total_pages: 5,
+      total_results: 100,
+      results: [
+        {
+          id: 1,
+          media_type: 'movie',
+          title: 'No Poster',
+          overview: 'Has overview',
+          vote_count: 10,
+          vote_average: 7,
+        },
+      ],
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    // Quality gate removes the only result, but hasMore is still true
+    expect(result.results).toHaveLength(0);
+    expect(result.hasMore).toBe(true);
+  });
+
+  it('returns paginated wrapper with correct shape', async () => {
+    const mockResponse: TMDBSearchResponse = {
+      page: 1,
+      total_pages: 2,
+      total_results: 25,
+      results: [makeResult(1)],
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result).toMatchObject({ page: 1, hasMore: true, total: 25 });
+    expect(Array.isArray(result.results)).toBe(true);
+  });
+
+  it('caps results at CATALOG_PAGE_SIZE even when TMDB returns more', async () => {
+    const mockResponse: TMDBSearchResponse = {
+      page: 1,
+      total_pages: 3,
+      total_results: 30,
+      results: Array.from({ length: 12 }, (_, i) => makeResult(i + 1)),
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result.results).toHaveLength(10);
+    expect(result.hasMore).toBe(true);
+    expect(result.total).toBe(30);
   });
 });
