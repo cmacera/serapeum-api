@@ -70,6 +70,8 @@ export async function fetchBookResults(input: {
   }
 
   const startIndex = (input.page - 1) * CATALOG_PAGE_SIZE;
+  const langCandidate = (input.language ?? '').trim().split('-')[0]?.toLowerCase() ?? '';
+  const normalizedLanguage = /^[a-z]{2,3}$/.test(langCandidate) ? langCandidate : 'en';
 
   try {
     const response = await withRetry(() =>
@@ -81,7 +83,7 @@ export async function fetchBookResults(input: {
           startIndex,
           printType: 'books', // Exclude magazines
           orderBy: 'relevance',
-          langRestrict: (input.language ?? 'en').split('-')[0]?.toLowerCase() ?? 'en',
+          langRestrict: normalizedLanguage,
         },
         headers: {
           Accept: 'application/json',

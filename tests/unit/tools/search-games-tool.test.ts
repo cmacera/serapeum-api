@@ -393,6 +393,8 @@ describe('fetchGameResults', () => {
     const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
 
     expect(result.hasMore).toBe(true);
+    // Sentinel row must be stripped — only CATALOG_PAGE_SIZE results returned
+    expect(result.results).toHaveLength(10);
   });
 
   it('hasMore is false when IGDB returns fewer than a full page', async () => {

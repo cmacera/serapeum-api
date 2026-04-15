@@ -453,6 +453,52 @@ describe('orchestratorFlow', () => {
     });
   });
 
+  it('should use searchBooks for GENERAL_DISCOVERY when category is BOOK', async () => {
+    vi.mocked(routerPrompt).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'BOOK',
+        extractedQuery: 'horror novels',
+      },
+    } as Awaited<ReturnType<typeof routerPrompt>>);
+
+    vi.mocked(searchTavilyTool).mockResolvedValue([
+      { title: 'The Shining', content: '...', url: '...', score: 0.97 },
+    ]);
+    vi.mocked(extractorPrompt).mockResolvedValue({
+      output: { titles: ['The Shining'] },
+    } as any);
+
+    const bookResult = [{ title: 'The Shining', id: 'abc123' }];
+    vi.mocked(searchBooks).mockResolvedValue({
+      results: bookResult,
+      page: 1,
+      hasMore: false,
+      total: 1,
+    } as any);
+
+    vi.mocked(synthesizerPrompt).mockResolvedValue({
+      text: 'The Shining is a classic horror novel.',
+    } as any);
+
+    const result = await orchestratorFlow({ query: 'Best horror books', language: 'en' });
+
+    expect(searchBooks).toHaveBeenCalledWith({ query: 'The Shining', language: 'en', page: 1 });
+    expect(searchMedia).not.toHaveBeenCalled();
+    expect(searchGames).not.toHaveBeenCalled();
+
+    expect(result).toEqual({
+      kind: 'discovery',
+      message: 'The Shining is a classic horror novel.',
+      data: {
+        featured: { type: 'book', item: bookResult[0] },
+        media: [],
+        books: [],
+        games: [],
+      },
+    });
+  });
+
   it('should deduplicate results by id in Path B (GENERAL_DISCOVERY)', async () => {
     vi.mocked(routerPrompt).mockResolvedValue({
       output: {

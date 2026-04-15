@@ -565,4 +565,21 @@ describe('fetchMediaResults', () => {
     expect(result).toMatchObject({ page: 1, hasMore: true, total: 25 });
     expect(Array.isArray(result.results)).toBe(true);
   });
+
+  it('caps results at CATALOG_PAGE_SIZE even when TMDB returns more', async () => {
+    const mockResponse: TMDBSearchResponse = {
+      page: 1,
+      total_pages: 3,
+      total_results: 30,
+      results: Array.from({ length: 12 }, (_, i) => makeResult(i + 1)),
+    };
+
+    nock(TMDB_API_URL).get('/3/search/multi').query(true).reply(200, mockResponse);
+
+    const result = await fetchMediaResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result.results).toHaveLength(10);
+    expect(result.hasMore).toBe(true);
+    expect(result.total).toBe(30);
+  });
 });
