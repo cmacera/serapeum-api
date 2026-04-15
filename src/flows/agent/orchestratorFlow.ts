@@ -26,16 +26,16 @@ async function executeCategorySearch(
 ): Promise<z.infer<typeof SearchAllOutputSchema>> {
   switch (category) {
     case 'MOVIE_TV': {
-      const res = await searchMedia(input);
-      return { media: res, books: [], games: [] };
+      const res = await searchMedia({ ...input, page: 1 });
+      return { media: res.results, books: [], games: [] };
     }
     case 'GAME': {
-      const res = await searchGames(input);
-      return { media: [], books: [], games: res };
+      const res = await searchGames({ ...input, page: 1 });
+      return { media: [], books: [], games: res.results };
     }
     case 'BOOK': {
-      const res = await searchBooks(input);
-      return { media: [], books: res, games: [] };
+      const res = await searchBooks({ ...input, page: 1 });
+      return { media: [], books: res.results, games: [] };
     }
     case 'ALL': {
       const res = await searchAll(input);

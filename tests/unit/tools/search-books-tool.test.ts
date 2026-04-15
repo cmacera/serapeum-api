@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
-import { searchBooksTool } from '../../../src/tools/search-books-tool.js';
+import { searchBooksTool, fetchBookResults } from '../../../src/tools/search-books-tool.js';
 import type { GoogleBooksSearchResponse } from '../../../src/lib/google-books-types.js';
 
 describe('searchBooksTool', () => {
@@ -59,7 +59,8 @@ describe('searchBooksTool', () => {
         .query({
           q: 'intitle:The Great Gatsby',
           key: mockApiKey,
-          maxResults: 5,
+          maxResults: 10,
+          startIndex: 0,
           printType: 'books',
           orderBy: 'relevance',
           langRestrict: 'en',
@@ -322,5 +323,124 @@ describe('searchBooksTool', () => {
       // Zod validation should catch this before the API call
       await expect(searchBooksTool({ query: '', language: 'en' })).rejects.toThrow();
     });
+  });
+});
+
+describe('fetchBookResults', () => {
+  const GOOGLE_BOOKS_API_URL = 'https://www.googleapis.com';
+  const mockApiKey = 'test-api-key';
+
+  beforeEach(() => {
+    process.env['GOOGLE_BOOKS_API_KEY'] = mockApiKey;
+    nock.cleanAll();
+  });
+
+  afterEach(() => {
+    delete process.env['GOOGLE_BOOKS_API_KEY'];
+  });
+
+  const makeBook = (id: string) => ({
+    kind: 'books#volume',
+    id,
+    etag: 'etag',
+    selfLink: '',
+    volumeInfo: {
+      title: `Book ${id}`,
+      authors: ['Author'],
+      description: 'A description.',
+      imageLinks: { thumbnail: `http://books.google.com/${id}.jpg`, smallThumbnail: '' },
+    },
+  });
+
+  it('page 1 sends startIndex=0', async () => {
+    let capturedQuery: Record<string, unknown> = {};
+
+    nock(GOOGLE_BOOKS_API_URL)
+      .get('/books/v1/volumes')
+      .query((q) => {
+        capturedQuery = q as Record<string, unknown>;
+        return true;
+      })
+      .reply(200, { kind: 'books#volumes', totalItems: 0 });
+
+    await fetchBookResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(capturedQuery).toMatchObject({ startIndex: '0' });
+  });
+
+  it('page 2 sends startIndex=10', async () => {
+    let capturedQuery: Record<string, unknown> = {};
+
+    nock(GOOGLE_BOOKS_API_URL)
+      .get('/books/v1/volumes')
+      .query((q) => {
+        capturedQuery = q as Record<string, unknown>;
+        return true;
+      })
+      .reply(200, { kind: 'books#volumes', totalItems: 0 });
+
+    await fetchBookResults({ query: 'test', language: 'en', page: 2 });
+
+    expect(capturedQuery).toMatchObject({ startIndex: '10' });
+  });
+
+  it('hasMore is true when more pages exist', async () => {
+    const mockResponse: GoogleBooksSearchResponse = {
+      kind: 'books#volumes',
+      totalItems: 25,
+      items: Array.from({ length: 10 }, (_, i) => makeBook(`b${i}`)),
+    };
+
+    nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
+
+    const result = await fetchBookResults({ query: 'test', language: 'en', page: 1 });
+
+    // startIndex 0 + CATALOG_PAGE_SIZE 10 = 10 < totalItems 25
+    expect(result.hasMore).toBe(true);
+    expect(result.page).toBe(1);
+    expect(result.total).toBe(25);
+  });
+
+  it('hasMore is false on the last page', async () => {
+    const mockResponse: GoogleBooksSearchResponse = {
+      kind: 'books#volumes',
+      totalItems: 15,
+      items: Array.from({ length: 5 }, (_, i) => makeBook(`b${i}`)),
+    };
+
+    nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
+
+    // page 2: startIndex 10 + CATALOG_PAGE_SIZE 10 = 20 > totalItems 15
+    const result = await fetchBookResults({ query: 'test', language: 'en', page: 2 });
+
+    expect(result.hasMore).toBe(false);
+  });
+
+  it('handles empty results (no items field)', async () => {
+    nock(GOOGLE_BOOKS_API_URL)
+      .get('/books/v1/volumes')
+      .query(true)
+      .reply(200, { kind: 'books#volumes', totalItems: 0 });
+
+    const result = await fetchBookResults({ query: 'nothing', language: 'en', page: 1 });
+
+    expect(result.results).toEqual([]);
+    expect(result.hasMore).toBe(false);
+    expect(result.total).toBe(0);
+  });
+
+  it('returns paginated wrapper with correct shape', async () => {
+    const mockResponse: GoogleBooksSearchResponse = {
+      kind: 'books#volumes',
+      totalItems: 50,
+      items: [makeBook('x1')],
+    };
+
+    nock(GOOGLE_BOOKS_API_URL).get('/books/v1/volumes').query(true).reply(200, mockResponse);
+
+    const result = await fetchBookResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result).toMatchObject({ page: 1, hasMore: expect.any(Boolean), total: 50 });
+    expect(Array.isArray(result.results)).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import nock from 'nock';
-import { searchGamesTool } from '../../../src/tools/search-games-tool.js';
+import { searchGamesTool, fetchGameResults } from '../../../src/tools/search-games-tool.js';
 import * as igdbAuth from '../../../src/lib/igdb-auth.js';
 import type { IGDBGame } from '../../../src/lib/igdb-types.js';
 
@@ -245,7 +245,8 @@ describe('searchGamesTool', () => {
         search "${query}";
         fields name,game_type,summary,rating,aggregated_rating,first_release_date,cover.image_id,platforms.name,genres.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,screenshots.image_id,videos.video_id,themes.name,game_modes.name,age_ratings.organization.name,age_ratings.rating_category.rating,similar_games.id,similar_games.name;
         where game_type = (0, 1, 2, 8, 9, 10);
-        limit 5;
+        limit 10;
+        offset 0;
             `.trim();
 
       // Normalize whitespace for comparison to avoid fragility
@@ -305,27 +306,153 @@ describe('searchGamesTool', () => {
       expect(capturedBody).toContain('search "Game \\"Inject\\" Test";');
     });
 
-    it('should correctly map different game_types', async () => {
+    it('should correctly map different game_types (up to tool limit)', async () => {
+      // The tool slices to MAX_RESULTS_PER_SOURCE (5), so test with 5 games.
+      // Full coverage of all 6 game_types is in the fetchGameResults describe block below.
       const mockGames: IGDBGame[] = [
         { id: 1, name: 'Main Game', game_type: 0, summary: 'S', cover: { id: 1, image_id: 'c1' } },
         { id: 2, name: 'DLC', game_type: 1, summary: 'S', cover: { id: 2, image_id: 'c2' } },
         { id: 3, name: 'Expansion', game_type: 2, summary: 'S', cover: { id: 3, image_id: 'c3' } },
         { id: 4, name: 'Remake', game_type: 8, summary: 'S', cover: { id: 4, image_id: 'c4' } },
         { id: 5, name: 'Remaster', game_type: 9, summary: 'S', cover: { id: 5, image_id: 'c5' } },
-        { id: 6, name: 'Expanded', game_type: 10, summary: 'S', cover: { id: 6, image_id: 'c6' } },
       ];
 
       nock(IGDB_API_URL).post('/v4/games').reply(200, mockGames);
 
       const results = await searchGamesTool({ query: 'Types Test', language: 'en' });
 
-      expect(results).toHaveLength(6);
+      expect(results).toHaveLength(5);
       expect(results.find((g) => g.id === 1)?.game_type).toBe(0);
       expect(results.find((g) => g.id === 2)?.game_type).toBe(1);
       expect(results.find((g) => g.id === 3)?.game_type).toBe(2);
       expect(results.find((g) => g.id === 4)?.game_type).toBe(8);
       expect(results.find((g) => g.id === 5)?.game_type).toBe(9);
-      expect(results.find((g) => g.id === 6)?.game_type).toBe(10);
     });
+  });
+});
+
+describe('fetchGameResults', () => {
+  const IGDB_API_URL = 'https://api.igdb.com';
+  const mockClientId = 'test-client-id';
+  const mockAccessToken = 'test-access-token';
+
+  beforeEach(() => {
+    process.env['IGDB_CLIENT_ID'] = mockClientId;
+    vi.spyOn(igdbAuth, 'getAccessToken').mockResolvedValue(mockAccessToken);
+    nock.cleanAll();
+  });
+
+  afterEach(() => {
+    delete process.env['IGDB_CLIENT_ID'];
+    vi.restoreAllMocks();
+  });
+
+  const makeGame = (id: number): IGDBGame => ({
+    id,
+    name: `Game ${id}`,
+    summary: 'A summary.',
+    cover: { id, image_id: `co${id}` },
+  });
+
+  it('page 1 sends offset=0 in Apicalypse query', async () => {
+    let capturedBody = '';
+
+    nock(IGDB_API_URL)
+      .post('/v4/games', (body) => {
+        capturedBody = body;
+        return true;
+      })
+      .reply(200, []);
+
+    await fetchGameResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(capturedBody).toContain('offset 0;');
+  });
+
+  it('page 3 sends offset=20 in Apicalypse query', async () => {
+    let capturedBody = '';
+
+    nock(IGDB_API_URL)
+      .post('/v4/games', (body) => {
+        capturedBody = body;
+        return true;
+      })
+      .reply(200, []);
+
+    await fetchGameResults({ query: 'test', language: 'en', page: 3 });
+
+    expect(capturedBody).toContain('offset 20;');
+  });
+
+  it('hasMore is true when IGDB returns a full page (raw count = CATALOG_PAGE_SIZE)', async () => {
+    // Return exactly 10 raw games (CATALOG_PAGE_SIZE), all pass quality filter
+    const rawGames = Array.from({ length: 10 }, (_, i) => makeGame(i + 1));
+
+    nock(IGDB_API_URL).post('/v4/games').reply(200, rawGames);
+
+    const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result.hasMore).toBe(true);
+  });
+
+  it('hasMore is false when IGDB returns fewer than a full page', async () => {
+    const rawGames = Array.from({ length: 4 }, (_, i) => makeGame(i + 1));
+
+    nock(IGDB_API_URL).post('/v4/games').reply(200, rawGames);
+
+    const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result.hasMore).toBe(false);
+  });
+
+  it('hasMore uses raw count before quality filter', async () => {
+    // 10 raw games (full page) but only 1 passes quality gate (has cover + summary)
+    const rawGames: IGDBGame[] = [
+      makeGame(1), // passes: has cover + summary
+      ...Array.from({ length: 9 }, (_, i) => ({ id: i + 2, name: `Game ${i + 2}` })), // no cover/summary
+    ];
+
+    nock(IGDB_API_URL).post('/v4/games').reply(200, rawGames);
+
+    const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
+
+    // Quality filter reduces results to 1, but hasMore is based on rawGames.length === 10
+    expect(result.results).toHaveLength(1);
+    expect(result.hasMore).toBe(true);
+  });
+
+  it('returns paginated wrapper with no total field', async () => {
+    nock(IGDB_API_URL)
+      .post('/v4/games')
+      .reply(200, [makeGame(1)]);
+
+    const result = await fetchGameResults({ query: 'test', language: 'en', page: 1 });
+
+    expect(result).toMatchObject({ page: 1, hasMore: expect.any(Boolean) });
+    expect('total' in result).toBe(false);
+    expect(Array.isArray(result.results)).toBe(true);
+  });
+
+  it('correctly maps all 6 valid game_types', async () => {
+    const mockGames: IGDBGame[] = [
+      { id: 1, name: 'Main Game', game_type: 0, summary: 'S', cover: { id: 1, image_id: 'c1' } },
+      { id: 2, name: 'DLC', game_type: 1, summary: 'S', cover: { id: 2, image_id: 'c2' } },
+      { id: 3, name: 'Expansion', game_type: 2, summary: 'S', cover: { id: 3, image_id: 'c3' } },
+      { id: 4, name: 'Remake', game_type: 8, summary: 'S', cover: { id: 4, image_id: 'c4' } },
+      { id: 5, name: 'Remaster', game_type: 9, summary: 'S', cover: { id: 5, image_id: 'c5' } },
+      { id: 6, name: 'Expanded', game_type: 10, summary: 'S', cover: { id: 6, image_id: 'c6' } },
+    ];
+
+    nock(IGDB_API_URL).post('/v4/games').reply(200, mockGames);
+
+    const { results } = await fetchGameResults({ query: 'Types Test', language: 'en', page: 1 });
+
+    expect(results).toHaveLength(6);
+    expect(results.find((g) => g.id === 1)?.game_type).toBe(0);
+    expect(results.find((g) => g.id === 2)?.game_type).toBe(1);
+    expect(results.find((g) => g.id === 3)?.game_type).toBe(2);
+    expect(results.find((g) => g.id === 4)?.game_type).toBe(8);
+    expect(results.find((g) => g.id === 5)?.game_type).toBe(9);
+    expect(results.find((g) => g.id === 6)?.game_type).toBe(10);
   });
 });

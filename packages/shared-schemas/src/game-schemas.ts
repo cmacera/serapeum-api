@@ -22,3 +22,12 @@ export const GameSearchResultSchema = z.object({
 });
 
 export type GameSearchResult = z.infer<typeof GameSearchResultSchema>;
+
+// No `total` field — IGDB does not return a result count
+export const PaginatedGameResultSchema = z.object({
+  results: z.array(GameSearchResultSchema),
+  page: z.number().int().positive(),
+  hasMore: z.boolean(),
+});
+
+export type PaginatedGameResult = z.infer<typeof PaginatedGameResultSchema>;

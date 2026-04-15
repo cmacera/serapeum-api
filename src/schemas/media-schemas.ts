@@ -1,2 +1,2 @@
-export { MediaSearchResultSchema } from '@serapeum/shared-schemas';
-export type { MediaSearchResult } from '@serapeum/shared-schemas';
+export { MediaSearchResultSchema, PaginatedMediaResultSchema } from '@serapeum/shared-schemas';
+export type { MediaSearchResult, PaginatedMediaResult } from '@serapeum/shared-schemas';

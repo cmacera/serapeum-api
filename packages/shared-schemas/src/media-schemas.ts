@@ -17,3 +17,12 @@ export const MediaSearchResultSchema = z.object({
 });
 
 export type MediaSearchResult = z.infer<typeof MediaSearchResultSchema>;
+
+export const PaginatedMediaResultSchema = z.object({
+  results: z.array(MediaSearchResultSchema),
+  page: z.number().int().positive(),
+  hasMore: z.boolean(),
+  total: z.number().int().nonnegative().optional(),
+});
+
+export type PaginatedMediaResult = z.infer<typeof PaginatedMediaResultSchema>;
