@@ -177,7 +177,7 @@ describe('searchGamesTool', () => {
 
       const result = await searchGamesTool({ query: 'Partial Ratings', language: 'en' });
 
-      expect(result[0].age_ratings).toEqual([
+      expect(result[0]?.age_ratings).toEqual([
         { organization: 'ESRB', rating: 'T' },
         { organization: 'PEGI', rating: '18' },
       ]);
@@ -289,7 +289,7 @@ describe('searchGamesTool', () => {
     });
 
     it('should sanitize search query to prevent injection', async () => {
-      const query = 'Game "Inject" Test';
+      const query = 'Game "Inject" \\ Test\r\nNext';
       let capturedBody = '';
 
       nock(IGDB_API_URL)
@@ -301,9 +301,12 @@ describe('searchGamesTool', () => {
 
       await searchGamesTool({ query, language: 'en' });
 
-      // Expect the quote to be escaped: "Game \"Inject\" Test"
-      // In the body string it looks like: search "Game \"Inject\" Test";
-      expect(capturedBody).toContain('search "Game \\"Inject\\" Test";');
+      // Quotes escaped: \"
+      expect(capturedBody).toContain('\\"Inject\\"');
+      // Backslash escaped: \\
+      expect(capturedBody).toContain('\\\\');
+      // CR and LF each replaced with space — "Test\r\nNext" becomes "Test  Next"
+      expect(capturedBody).toContain('Test  Next');
     });
 
     it('should correctly map different game_types (up to tool limit)', async () => {

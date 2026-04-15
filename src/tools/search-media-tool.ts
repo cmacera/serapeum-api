@@ -84,7 +84,10 @@ export async function fetchMediaResults(input: {
     return {
       results,
       page: input.page,
-      // Derived from raw API metadata so quality-gate filtering doesn't cause false negatives
+      // hasMore is derived from raw TMDB metadata, not from filtered result count.
+      // A catalog page may contain fewer than CATALOG_PAGE_SIZE items when many
+      // results fail the quality gate, but hasMore will still be true if TMDB
+      // has more pages — this is intentional (conservative, avoids false negatives).
       hasMore: input.page < response.data.total_pages,
       total: response.data.total_results,
     };
