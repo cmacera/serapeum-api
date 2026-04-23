@@ -1,6 +1,9 @@
 # Serapeum API
 
-AI orchestration service powered by Genkit — a portable, container-ready API that connects Serapeum App with external knowledge sources.
+[![CI](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml/badge.svg)](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://api.serapeum.app)
+
+AI orchestration service powered by Genkit — a portable, serverless API that connects [Serapeum App](https://github.com/cmacera/serapeum-app) with external knowledge sources (TMDB, Google Books, IGDB, Tavily) and AI providers (Gemini, Ollama, OpenRouter).
 
 ## 🚀 Quick Start
 
@@ -220,7 +223,7 @@ docker run -p 3000:3000 \
 
 - **Language**: All code, comments, and documentation in English
 - **TypeScript**: Strict mode enabled
-- **Commits**: Conventional Commits (`type(scope): description`) — no `[SER-XX]` prefix in local commits
-- **PRs**: Title must start with `[SER-XX]` or `SER-XX` (enforced by CI)
-- **Branching**: All branches must start with Linear issue key (e.g., `SER-123/feature-name`)
+- **Commits**: Conventional Commits (`type(scope): description`) — no `[DEV-XX]` prefix in local commits
+- **PRs**: Title must start with `[DEV-XX]` or `DEV-XX` (enforced by CI)
+- **Branching**: All branches must start with Linear issue key (e.g., `DEV-123/feature-name`)
 - **Quality**: Pre-commit hooks run linting, formatting, and type-checking automatically

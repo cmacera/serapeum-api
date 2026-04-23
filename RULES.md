@@ -83,10 +83,10 @@ Local development MUST enforce quality before changes reach remote branches.
 *   **Commit Messages:**
     *   Use [Conventional Commits](https://www.conventionalcommits.org/).
     *   Structure: `type(scope): description`. Example: `feat(auth): add login endpoint`.
-    *   **No** `[SER-XX]` prefix in local commits — `commitlint` rejects it. The ticket ID belongs only in the PR title.
+    *   **No** `[DEV-XX]` prefix in local commits — `commitlint` rejects it. The ticket ID belongs only in the PR title.
 *   **Pull Requests:**
-    *   **Title**: Must include the Linear ticket ID (e.g., `[SER-123] feat(auth): add login` or `SER-123: feat(auth): add login`).
-    *   **Description**: Must include `Closes SER-123` to automatically link it.
+    *   **Title**: Must include the Linear ticket ID (e.g., `[DEV-123] feat(auth): add login` or `DEV-123: feat(auth): add login`).
+    *   **Description**: Must include `Closes DEV-123` to automatically link it.
 - **Staged Checks (`pre-commit`):**
   `lint-staged` MUST run on every commit to:
   - Format code with `prettier`.
@@ -107,13 +107,13 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
 
 - **Branch Naming:**
   All branches MUST start with the corresponding Linear issue key:
-  - Example: `SER-123/add-genkit-flow-for-recommendations`.
+  - Example: `DEV-123/add-genkit-flow-for-recommendations`.
 - **PR Title Convention:**
   Pull Requests MUST include the Linear issue key at the beginning of the title:
-  - Example: `[SER-123] feat(auth): implement Supabase JWT validation` or `SER-123: ...`
+  - Example: `[DEV-123] feat(auth): implement Supabase JWT validation` or `DEV-123: ...`
 - **PR Description:**
   PR descriptions MUST include a direct reference to the Linear issue:
-  - Example: `Closes SER-123`.
+  - Example: `Closes DEV-123`.
 - **Sync Requirement:**
   Every merged PR MUST be linked to at least one Linear issue.
 
@@ -131,17 +131,17 @@ Serapeum uses **Linear** as the single source of truth for planning and issue tr
 Every Pull Request opened by the AI agent **MUST** follow the PR workflow. Key requirements:
 
 - **PR Title format (MANDATORY):**
-  The `check-pr-title.yml` action validates: `/^(\[SER-\d+\]|SER-\d+)/`
+  The `check-pr-title.yml` action validates: `/^(\[DEV-\d+\]|DEV-\d+)/`
   Both formats pass ✅:
   ```text
-  [SER-47] feat(auth): implement Supabase JWT validation middleware
-  SER-47 feat(auth): implement Supabase JWT validation middleware
+  [DEV-47] feat(auth): implement Supabase JWT validation middleware
+  DEV-47 feat(auth): implement Supabase JWT validation middleware
   ```
-  Preferred: `[SER-47] ...` — matches Linear's own link style.
-  > Any title **not** starting with `[SER-XXX]` or `SER-XXX` will **fail** CI.
+  Preferred: `[DEV-47] ...` — matches Linear's own link style.
+  > Any title **not** starting with `[DEV-XXX]` or `DEV-XXX` will **fail** CI.
 
 - **PR Description (MANDATORY):**
-  Must contain `Closes SER-XXX` to auto-link the Linear issue and satisfy the Linear ↔ GitHub sync requirement.
+  Must contain `Closes DEV-XXX` to auto-link the Linear issue and satisfy the Linear ↔ GitHub sync requirement.
 
 > ⚠️ Pull Requests missing a valid Linear ticket ID at the start of the title will be **blocked by CI**.
 
@@ -170,7 +170,7 @@ The CI pipeline is the final gatekeeper of Serapeum's standards.
 
 | Check | Command | Scope |
 |---|---|---|
-| `check-pr-title` | regex `/^(\[SER-\d+\]\|SER-\d+)/` | PR title |
+| `check-pr-title` | regex `/^(\[DEV-\d+\]\|DEV-\d+)/` | PR title |
 
 > *CI is law enforcement; local hooks are the neighborhood watch.*
 
