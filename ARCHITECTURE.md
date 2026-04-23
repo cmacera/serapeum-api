@@ -7,7 +7,7 @@
 
 **Description:**
 **Serapeum API** is a standalone **Node.js** service powered by **Genkit**.
-It is designed for **containerized deployment** on **Render**, **Railway**, or any **VPS environment**.
+It is deployed on **[Vercel](https://vercel.com)** (serverless) and is also portable to Docker/OCI for self-hosted environments.
 
 **Core Tech Stack:**
 
@@ -18,7 +18,7 @@ It is designed for **containerized deployment** on **Render**, **Railway**, or a
 | ⚙️ Framework | Genkit Core (Express adapter) |
 | 🛰️ Server Mode | Express app factory (`createApp`) — local dev via `src/index.ts`, Vercel via `api/index.ts` |
 | 🗄️ Database | Supabase JS Client (PostgreSQL) |
-| 📦 Deployment | Docker / OCI Container |
+| 📦 Deployment | [Vercel](https://vercel.com) (serverless, via `api/index.ts`) — Docker/OCI for self-hosted |
 
 ---
 
@@ -164,7 +164,7 @@ User query → routerPrompt → extractorPrompt → [catalog tools] → synthesi
 
 ## 4. ⚙️ Environment & Config
 
-**Supported Infrastructure:** Render, Railway, or any VPS instance running Docker.
+**Supported Infrastructure:** Vercel (primary deployment) — also portable to Render, Railway, or any VPS running Docker.
 
 **Required Environment Variables:**
 
