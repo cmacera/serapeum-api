@@ -25,11 +25,12 @@ VERSION="$(node -p "require('./package.json').version")"
 TAG="v$VERSION"
 
 HEAD_SUBJECT="$(git log -1 --pretty=%s)"
+NORMALIZED_SUBJECT="$(echo "$HEAD_SUBJECT" | sed -E 's/ \(#[0-9]+\)$//')"
 EXPECTED="chore(release): bump version to $TAG"
-if [[ "$HEAD_SUBJECT" != "$EXPECTED" ]]; then
+if [[ "$NORMALIZED_SUBJECT" != "$EXPECTED" ]]; then
   echo "HEAD commit subject does not match the expected release commit." >&2
   echo "  expected: $EXPECTED" >&2
-  echo "  got:      $HEAD_SUBJECT" >&2
+  echo "  got:      $NORMALIZED_SUBJECT" >&2
   echo "Did you merge the release prep PR? Or did another commit land after?" >&2
   exit 1
 fi
