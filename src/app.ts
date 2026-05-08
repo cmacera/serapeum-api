@@ -3,6 +3,7 @@ import cors from 'cors';
 import { expressHandler } from '@genkit-ai/express';
 
 import { jwtContextProvider } from './middleware/verifyJwt.js';
+import { checkSupabaseHealth } from './lib/health.js';
 import { searchMedia } from './flows/catalog/searchMedia.js';
 import { searchBooks } from './flows/catalog/searchBooks.js';
 import { searchGames } from './flows/catalog/searchGames.js';
@@ -20,8 +21,15 @@ export function createApp(corsOrigins: string[] | string): express.Express {
   app.use(express.json());
   app.use(cors({ origin: corsOrigins }));
 
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+  app.get('/health', async (_req, res) => {
+    const result = await checkSupabaseHealth();
+    const timestamp = new Date().toISOString();
+    if (result.ok) {
+      res.json({ status: 'ok', timestamp });
+      return;
+    }
+    const code = result.error === 'supabase_not_configured' ? 500 : 503;
+    res.status(code).json({ status: 'error', error: result.error, timestamp });
   });
 
   const protect = { contextProvider: jwtContextProvider };

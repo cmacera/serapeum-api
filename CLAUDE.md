@@ -104,6 +104,16 @@ All checks run against `src/` only. Must pass before merge:
 
 ---
 
+## Health check & Supabase keep-alive
+
+`GET /health` (public, no auth) pings Supabase Postgres via `${SUPABASE_URL}/rest/v1/query_cache?select=key&limit=1` to keep the project active on the free tier — Supabase pauses projects after 7 days without database activity (Auth hits do not count).
+
+A Vercel cron in `vercel.json` calls `/health` every 5 days at 09:00 UTC (`0 9 */5 * *`). Logic lives in [src/lib/health.ts](src/lib/health.ts); the endpoint just wraps it.
+
+Status codes: `200` ok / `503` Supabase unreachable or 5xx / `500` env vars missing. Body always includes `timestamp`.
+
+---
+
 ## Releases
 
 Production deploys are **manual and tag-driven**. Pushing to `main` does not deploy — only pushing a `vX.Y.Z` tag does.
