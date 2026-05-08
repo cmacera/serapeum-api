@@ -13,5 +13,11 @@
       "maxDuration": 300,
       "includeFiles": "{prompts,src/locales}/**"
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/health",
+      "schedule": "0 9 */5 * *"
+    }
+  ]
 }
