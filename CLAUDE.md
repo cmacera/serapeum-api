@@ -104,11 +104,26 @@ All checks run against `src/` only. Must pass before merge:
 
 ---
 
-## Commit conventions
+## Releases
 
-- Format: `type(scope): description` (conventional commits)
-- **No** `[DEV-XX]` prefix in local commits — commitlint rejects it
-- The `[DEV-XX]` prefix appears only in the squash merge commit title (PR title)
+Production deploys are **manual and tag-driven**. Pushing to `main` does not deploy — only pushing a `vX.Y.Z` tag does.
+
+```bash
+# 1. Open the version-bump PR (defaults to patch)
+npm run release            # → opens PR titled "chore(release): bump version to vX.Y.Z"
+npm run release:minor
+npm run release:major
+
+# 2. Review and squash-merge the PR on GitHub.
+
+# 3. From updated main, tag and push:
+git checkout main && git pull --ff-only
+npm run release:tag        # → tags + pushes; release.yml deploys to Vercel
+```
+
+The `release.yml` workflow re-runs `typecheck` / `lint` / `test:run`, deploys via `vercel --prod`, and creates a GitHub Release with auto-generated notes.
+
+**Required GitHub secrets** (set once): `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. ORG and PROJECT IDs can be read from `.vercel/project.json` after `vercel link`.
 
 ---
 
@@ -144,42 +159,11 @@ Datasets:
 
 ---
 
-## Linear + GitHub workflow
+## Linear
 
-**Linear team:** DEVELOPMENT · **Project:** Serapeum API · **Identifier prefix:** `DEV`
+**Project:** Serapeum API
 
-### Ticket state automation
-
-- **Move to `In Progress` automatically** when starting work on a ticket — no need to ask.
-- All other state transitions (`In Review`, `Done`, `Canceled`, etc.) require an explicit request.
-
-### Starting a new feature
-
-1. Create a ticket in Linear (MCP or UI): assign to self, project = Serapeum API.
-2. **Move ticket to `In Progress`** (automatic — no need to ask).
-3. Create a branch: `git checkout -b feat/<short-description>` (branch name does NOT need the DEV-XX prefix).
-4. Implement, commit with conventional commits (no `[DEV-XX]` prefix — commitlint rejects it).
-5. Create the PR: title must start with `[DEV-XX]` or `DEV-XX` — both accepted by `check-pr-title` CI check. Body should include `Closes DEV-XX`.
-6. Move ticket to `In Review` when the PR is open (explicit request required).
-
-### PR title format (enforced by CI)
-
-Both formats accepted:
-```text
-[DEV-XX] type(scope): description
-DEV-XX type(scope): description
-```
-
-### Available Linear states
-
-| State | Type | Use when |
-|---|---|---|
-| Backlog | backlog | Not yet started |
-| Todo | unstarted | Ready to pick up |
-| In Progress | started | Actively working |
-| In Review | started | PR open, awaiting review |
-| Done | completed | PR merged |
-| Canceled / Duplicate | canceled | — |
+> Note: local commits must not include `[DEV-XX]` prefix — commitlint rejects it.
 
 ### Closing a feature
 
