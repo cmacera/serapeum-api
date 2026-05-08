@@ -20,6 +20,10 @@ jobs:
               return;
             }
             const title = context.payload.pull_request.title;
+            if (title.startsWith('chore(release):')) {
+              console.log('Skipping Linear ID check for release PR.');
+              return;
+            }
             const regex = /^(\[DEV-\d+\]|DEV-\d+)/;
             if (!regex.test(title)) {
               core.setFailed(`PR title "${title}" must start with a Linear Issue ID, e.g. "DEV-123" or "[DEV-123]".`);

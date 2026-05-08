@@ -14,8 +14,12 @@ build/
 .env.*
 !.env.example
 
-# Claude Code (personal permissions, not shared)
-.claude/settings.local.json
+# AI Agents Local
+.claude
+CLAUDE.local.md
+
+# Docs
+/docs/security
 
 # IDE
 .vscode/

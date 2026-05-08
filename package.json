@@ -29,6 +29,10 @@
     "compare:evals": "node --import tsx/esm scripts/compareEvals.ts",
     "generate:openapi": "node --import tsx/esm scripts/generate-openapi.ts",
     "sync:flutter": "npm run generate:openapi && node --import tsx/esm scripts/sync-flutter.ts",
+    "release": "bash scripts/release.sh",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major",
+    "release:tag": "bash scripts/release-tag.sh",
     "prepare": "husky"
   },
   "repository": {
