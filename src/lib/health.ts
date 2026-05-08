@@ -12,6 +12,8 @@ export async function checkSupabaseHealth(): Promise<HealthResult> {
     return { ok: false, error: 'supabase_not_configured' };
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
     const url = `${supabaseUrl}/rest/v1/query_cache?select=key&limit=1`;
     const res = await fetch(url, {
@@ -19,12 +21,18 @@ export async function checkSupabaseHealth(): Promise<HealthResult> {
         apikey: serviceRoleKey,
         Authorization: `Bearer ${serviceRoleKey}`,
       },
+      signal: controller.signal,
     });
     if (!res.ok) {
       return { ok: false, error: `supabase_${res.status}` };
     }
     return { ok: true };
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return { ok: false, error: 'supabase_timeout' };
+    }
     return { ok: false, error: 'supabase_unreachable' };
+  } finally {
+    clearTimeout(timeout);
   }
 }

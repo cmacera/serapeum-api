@@ -75,4 +75,27 @@ describe('checkSupabaseHealth', () => {
     expect(headers['apikey']).toBe(SERVICE_ROLE_KEY);
     expect(headers['Authorization']).toBe(`Bearer ${SERVICE_ROLE_KEY}`);
   });
+
+  it('returns supabase_timeout when fetch is aborted by the timeout', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((_url: string, options: RequestInit) => {
+        return new Promise((_resolve, reject) => {
+          options.signal?.addEventListener('abort', () => {
+            const err = new Error('aborted');
+            err.name = 'AbortError';
+            reject(err);
+          });
+        });
+      })
+    );
+
+    const promise = checkSupabaseHealth();
+    await vi.advanceTimersByTimeAsync(5000);
+    const result = await promise;
+
+    expect(result).toEqual({ ok: false, error: 'supabase_timeout' });
+    vi.useRealTimers();
+  });
 });
