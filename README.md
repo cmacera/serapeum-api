@@ -3,22 +3,24 @@
 [![CI](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml/badge.svg)](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml)
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://api.serapeum.app)
 
-AI orchestration service for natural-language **media discovery** — ask in plain English (or any of six supported languages) and get a synthesised answer across **books, movies, TV shows, and video games**. Built on a router → extractor → synthesiser pipeline with [Genkit](https://firebase.google.com/docs/genkit), aggregating TMDB, Google Books, IGDB, and Tavily, and pluggable across Gemini, Ollama, and OpenRouter.
+AI orchestration service for natural-language **media discovery** — ask a question and get a synthesised answer across **books, movies, TV shows, and video games**. Built on a router → extractor → synthesiser pipeline with [Genkit](https://firebase.google.com/docs/genkit), aggregating TMDB, Google Books, IGDB, and Tavily, and pluggable across Gemini, Ollama, and OpenRouter.
 
-Runs **standalone** as a portable Node service (no Flutter required — see [Quick Start](#-quick-start)), or as the backend for the official Serapeum mobile client.
+Runs **standalone** as a portable Node service (see [Quick Start](#-quick-start)), or as the backend for the official Serapeum mobile client.
 
 > **Part of the Serapeum Project**
 > - **This repo** — the AI orchestration API.
-> - [**Serapeum App**](https://github.com/cmacera/serapeum-app) — first-party Flutter client (macOS, Android, iOS coming soon).
+> - [**Serapeum App**](https://github.com/cmacera/serapeum-app) — first-party mobile client (macOS, Android, iOS coming soon).
 > - [**Serapeum Landing**](https://github.com/cmacera/serapeum-landing) — project presentation site.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 22+ (LTS)
-- npm
-- Docker (optional, for containerized deployment)
+- **Node.js 22+** (LTS) and **npm**.
+- A **[Supabase](https://supabase.com) project** — **required**. Authentication is performed by verifying a JWT signed with your project's secret; there is no bypass. Create a free project, then copy the JWT secret from *Project Settings → API → JWT Settings* into `SUPABASE_JWT_SECRET`.
+- An **AI provider** key — Google AI (default), Ollama, Ollama Cloud, or OpenRouter. See [AI Providers](#-ai-providers).
+- API keys for the catalog providers you want to enable: TMDB, Google Books, IGDB, Tavily.
+- Docker (optional, for containerised deployment).
 
 ### Installation
 
@@ -47,7 +49,7 @@ Runs **standalone** as a portable Node service (no Flutter required — see [Qui
    npm run dev             # API only, no DevTools UI
    ```
 
-5. **Make your first request** (no Flutter app required)
+5. **Make your first request**
 
    Generate a short-lived test JWT signed with your `SUPABASE_JWT_SECRET`:
 
@@ -173,7 +175,7 @@ Authorization: Bearer <supabase_access_token>
 
 Tokens are verified **locally** using `SUPABASE_JWT_SECRET` — no round-trip to Supabase. Requests without a token, or with an invalid/expired one, receive a `401 Unauthorized` response.
 
-For a quick standalone test (sign a token + call an endpoint without the Flutter app), see step 5 of [Quick Start](#-quick-start).
+For a quick standalone test (sign a token + call an endpoint directly), see step 5 of [Quick Start](#-quick-start).
 
 ---
 
@@ -233,5 +235,5 @@ docker run -p 3000:3000 \
 - **Language**: All code, comments, and documentation in English
 - **TypeScript**: Strict mode enabled
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) (`type(scope): description`) — `commitlint` rejects local commits prefixed with `[DEV-XX]`
-- **PRs**: Title must start with `[DEV-XX]` or `DEV-XX` (the project's internal Linear ticket key, enforced by CI)
+- **PRs**: Title must start with `[DEV-XX]` or `DEV-XX` (project ticket key, enforced by CI)
 - **Quality**: Pre-commit hooks run linting, formatting, and type-checking automatically
