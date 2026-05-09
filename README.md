@@ -3,7 +3,14 @@
 [![CI](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml/badge.svg)](https://github.com/cmacera/serapeum-api/actions/workflows/ci.yml)
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://api.serapeum.app)
 
-AI orchestration service powered by Genkit — a portable, serverless API that connects [Serapeum App](https://github.com/cmacera/serapeum-app) with external knowledge sources (TMDB, Google Books, IGDB, Tavily) and AI providers (Gemini, Ollama, OpenRouter).
+AI orchestration service for natural-language **media discovery** — ask in plain English (or any of six supported languages) and get a synthesised answer across **books, movies, TV shows, and video games**. Built on a router → extractor → synthesiser pipeline with [Genkit](https://firebase.google.com/docs/genkit), aggregating TMDB, Google Books, IGDB, and Tavily, and pluggable across Gemini, Ollama, and OpenRouter.
+
+Runs **standalone** as a portable Node service (no Flutter required — see [Quick Start](#-quick-start)), or as the backend for the official Serapeum mobile client.
+
+> **Part of the Serapeum Project**
+> - **This repo** — the AI orchestration API.
+> - [**Serapeum App**](https://github.com/cmacera/serapeum-app) — first-party Flutter client (macOS, Android, iOS coming soon).
+> - [**Serapeum Landing**](https://github.com/cmacera/serapeum-landing) — project presentation site.
 
 ## 🚀 Quick Start
 
@@ -39,6 +46,32 @@ AI orchestration service powered by Genkit — a portable, serverless API that c
    # or
    npm run dev             # API only, no DevTools UI
    ```
+
+5. **Make your first request** (no Flutter app required)
+
+   Generate a short-lived test JWT signed with your `SUPABASE_JWT_SECRET`:
+
+   ```bash
+   node --input-type=module --env-file=.env <<'EOF'
+   import { SignJWT } from 'jose';
+   const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
+   const token = await new SignJWT({ sub: 'test-user' })
+     .setProtectedHeader({ alg: 'HS256' }).setExpirationTime('24h').sign(secret);
+   console.log(token);
+   EOF
+   ```
+
+   Then call any endpoint:
+
+   ```bash
+   curl -X POST http://localhost:3000/searchMedia \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer <token>" \
+     -d '{"data":{"query":"Inception"}}'
+   ```
+
+   For a natural-language end-to-end query, hit `/orchestratorFlow` with
+   `{"data":{"query":"recommend me a fantasy RPG with great reviews","language":"en"}}`.
 
 ---
 
@@ -85,6 +118,7 @@ npm run generate:openapi
 | `POST /getMovieDetail` | Full movie details (cast, trailers, providers) |
 | `POST /getTvDetail` | Full TV show details (seasons, cast, providers) |
 | `POST /orchestratorFlow` | AI natural language orchestrator |
+| `POST /feedback` | Submit thumbs-up / thumbs-down feedback for a previous orchestrator response |
 
 ---
 
@@ -139,31 +173,7 @@ Authorization: Bearer <supabase_access_token>
 
 Tokens are verified **locally** using `SUPABASE_JWT_SECRET` — no round-trip to Supabase. Requests without a token, or with an invalid/expired one, receive a `401 Unauthorized` response.
 
-### Testing Without a Flutter App
-
-**1. Start the server:**
-```bash
-npm run dev
-```
-
-**2. Generate a test token:**
-```bash
-node --input-type=module --env-file=.env <<'EOF'
-import { SignJWT } from 'jose';
-const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET);
-const token = await new SignJWT({ sub: 'test-user' })
-  .setProtectedHeader({ alg: 'HS256' }).setExpirationTime('24h').sign(secret);
-console.log(token);
-EOF
-```
-
-**3. Call an endpoint:**
-```bash
-curl -X POST http://localhost:3000/searchMedia \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"data":{"query":"Inception"}}'
-```
+For a quick standalone test (sign a token + call an endpoint without the Flutter app), see step 5 of [Quick Start](#-quick-start).
 
 ---
 
@@ -217,13 +227,11 @@ docker run -p 3000:3000 \
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — Technical blueprint and architectural patterns
 - [RULES.md](./RULES.md) — Coding standards, CI rules, and Git workflow
 - [AGENTS.md](./AGENTS.md) — AI agent operational manifest
-- [CLAUDE.md](./CLAUDE.md) — Claude Code project instructions
 
 ## 🤝 Contributing
 
 - **Language**: All code, comments, and documentation in English
 - **TypeScript**: Strict mode enabled
-- **Commits**: Conventional Commits (`type(scope): description`) — no `[DEV-XX]` prefix in local commits
-- **PRs**: Title must start with `[DEV-XX]` or `DEV-XX` (enforced by CI)
-- **Branching**: All branches must start with Linear issue key (e.g., `DEV-123/feature-name`)
+- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) (`type(scope): description`) — `commitlint` rejects local commits prefixed with `[DEV-XX]`
+- **PRs**: Title must start with `[DEV-XX]` or `DEV-XX` (the project's internal Linear ticket key, enforced by CI)
 - **Quality**: Pre-commit hooks run linting, formatting, and type-checking automatically
