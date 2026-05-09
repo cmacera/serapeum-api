@@ -77,6 +77,28 @@ function removeFeaturedFromResults(
 }
 
 /**
+ * Re-orders secondary results so the highest-quality items appear right after the featured.
+ * Sort keys mirror the field the Flutter UI actually displays for each source — otherwise
+ * the visible order would silently disagree with the underlying numeric ordering.
+ *
+ * - Media: voteAverage (TMDB), shown by the UI.
+ * - Games: rating (IGDB community), with aggregated_rating (critic) as fallback — same
+ *   priority the UI uses.
+ * - Books: not sorted. averageRating is sparse in Google Books and the API's native
+ *   relevance order is a stronger signal for that source.
+ */
+function sortByRating(results: z.infer<typeof SearchAllOutputSchema>): void {
+  if (results.media) {
+    results.media.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
+  }
+  if (results.games) {
+    const score = (g: { aggregated_rating?: number; rating?: number }): number =>
+      g.rating ?? g.aggregated_rating ?? 0;
+    results.games.sort((a, b) => score(b) - score(a));
+  }
+}
+
+/**
  * Runs a catalog search across ALL categories, picks the best match as featured,
  * and removes it from its source array.
  * Shared by Path A (SPECIFIC_ENTITY) and Path D (FACTUAL_QUERY).
@@ -99,6 +121,7 @@ async function executeSearchWithFeatured(
     executionResult.featured = featuredMatch;
     removeFeaturedFromResults(executionResult, featuredMatch);
   }
+  sortByRating(executionResult);
 
   return { executionResult, featuredMatch };
 }
@@ -403,6 +426,7 @@ export const orchestratorFlow = ai.defineFlow(
           removeFeaturedFromResults(enrichmentResults, featuredMatch);
         }
       }
+      sortByRating(enrichmentResults);
 
       // 4. Synthesize Answer
       try {

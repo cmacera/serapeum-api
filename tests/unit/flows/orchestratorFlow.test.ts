@@ -451,6 +451,72 @@ describe('orchestratorFlow', () => {
     expect(data.featured).toBeUndefined();
   });
 
+  it('should sort games by aggregated_rating desc and media by popularity desc in Path B', async () => {
+    (routerPrompt as any).mockResolvedValue({
+      output: {
+        intent: 'GENERAL_DISCOVERY',
+        category: 'ALL',
+        extractedQuery: 'fantasy RPGs with great reviews',
+      },
+    });
+
+    (searchTavilyTool as any).mockResolvedValue([{ content: 'context' }]);
+
+    (extractorPrompt as any).mockResolvedValue({
+      output: { titles: ['Elden Ring'] },
+    });
+
+    // Unsorted input — featured (Elden Ring, id=1) is removed before sort.
+    // Sort keys mirror the UI display priority:
+    //   - media: vote_average desc
+    //   - games: rating ?? aggregated_rating desc
+    // Books preserve their input order (intentionally not sorted).
+    (searchAll as any).mockResolvedValue({
+      media: [
+        { title: 'Low vote', id: 10, media_type: 'movie' as const, vote_average: 5.5 },
+        { title: 'High vote', id: 11, media_type: 'movie' as const, vote_average: 8.7 },
+        { title: 'Mid vote', id: 12, media_type: 'movie' as const, vote_average: 7.0 },
+      ],
+      books: [
+        { title: 'Book A', id: 'a', averageRating: undefined },
+        { title: 'Book B', id: 'b', averageRating: 4.5 },
+      ],
+      games: [
+        // Elden Ring is the featured (removed). Remaining order should be:
+        // BG3 (rating 92) → Witcher 3 (rating 88) → DLC (rating 80) → Unrated (no rating).
+        // Critic-only fallback: DLC has aggregated_rating 95 but rating 80 — UI shows 80,
+        // so it must sort by 80 to match what the user sees.
+        { id: 1, name: 'Elden Ring', rating: 95, aggregated_rating: 96 },
+        { id: 2, name: 'DLC', rating: 80, aggregated_rating: 95 },
+        { id: 3, name: 'Unrated' },
+        { id: 4, name: 'BG3', rating: 92, aggregated_rating: 90 },
+        { id: 5, name: 'Witcher 3', rating: 88, aggregated_rating: 91 },
+      ],
+    });
+
+    (synthesizerPrompt as any).mockResolvedValue({ text: 'Sorted.' });
+
+    const result = await orchestratorFlow({
+      query: 'recomiéndame un RPG de fantasía con buenas valoraciones',
+      language: 'es',
+    });
+
+    const data = (result as any).data;
+
+    // Featured = Elden Ring, removed from games array
+    expect(data.featured?.type).toBe('game');
+    expect((data.featured?.item as { name?: string })?.name).toBe('Elden Ring');
+
+    // Games sorted by rating desc (matches UI display); unrated sinks to the bottom
+    expect(data.games.map((g: any) => g.name)).toEqual(['BG3', 'Witcher 3', 'DLC', 'Unrated']);
+
+    // Media sorted by vote_average desc (matches UI display)
+    expect(data.media.map((m: any) => m.title)).toEqual(['High vote', 'Mid vote', 'Low vote']);
+
+    // Books preserve their input order (intentionally not sorted)
+    expect(data.books.map((b: any) => b.title)).toEqual(['Book A', 'Book B']);
+  });
+
   it('should handle errors in Path B (Tavily search failure)', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {
