@@ -1,6 +1,6 @@
 {
   "name": "serapeum-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Serapeum API - AI orchestration service powered by Genkit",
   "type": "module",
   "main": "dist/index.js",
