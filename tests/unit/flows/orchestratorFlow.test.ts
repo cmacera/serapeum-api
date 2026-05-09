@@ -451,7 +451,7 @@ describe('orchestratorFlow', () => {
     expect(data.featured).toBeUndefined();
   });
 
-  it('should sort games by aggregated_rating desc and media by popularity desc in Path B', async () => {
+  it('should sort games by rating (fallback aggregated_rating) desc and media by vote_average desc in Path B', async () => {
     (routerPrompt as any).mockResolvedValue({
       output: {
         intent: 'GENERAL_DISCOVERY',
