@@ -92,7 +92,7 @@
     "genkit-cli": "^1.39.0",
     "globals": "^17.7.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.8",
     "nock": "^14.0.16",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.5",
